@@ -1122,121 +1122,155 @@
            iPhone対応版 音声システム (Web Audio API)
            =============================================== */
         
-        // 1. オーディオシステムの本体を作成
+        // 1. オーディオシステムの本体
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         
         // 2. 読み込んだ音声データを貯めておく場所
         const audioBuffers = {};
 
-        // 3. 音声ファイルをロードしてデコードする関数
-        async function loadSound(key, url) {
+        // 3. BGM管理用
+        let bgmSource = null;
+        let bgmGainNode = null;
+        let isBgmMuted = false;
+        let currentBgmType = null;
+
+        // 音声ファイルをロードしてデコードする関数
+        async function loadSound(key) {
+            // すでに読み込み済みなら何もしない
+            if (audioBuffers[key]) return audioBuffers[key];
+
+            const url = SOUND_FILES[key];
+            if (!url) return null;
+
             try {
                 const response = await fetch(url);
                 const arrayBuffer = await response.arrayBuffer();
-                // mp3などをブラウザが扱える生データに変換
                 const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                 audioBuffers[key] = decodedBuffer;
+                return decodedBuffer;
             } catch (e) {
                 console.warn(`音声読み込み失敗: ${key}`, e);
+                return null;
             }
         }
 
-        // 4. 定義済みの SOUND_FILES をすべて読み込む
-        // (ページを開いた裏側でダウンロードを開始します)
+        /* --- 修正: 定義されているすべての音をプリロードする --- */
+        // SOUND_FILES にあるキーをすべて取得して、順番に読み込みを開始する
         Object.keys(SOUND_FILES).forEach(key => {
-            loadSound(key, SOUND_FILES[key]);
+            loadSound(key);
         });
 
-        /* --- 修正: 再生関数 (Web Audio API版) --- */
-        function playSoundEffect(type) {
-            // データがまだ読み込めていない場合は無視
-            if (!audioBuffers[type]) return;
+        /* --- 再生関数 (効果音用) --- */
+        async function playSoundEffect(type) {
+            // 1. コンテキストが無効なら再開を試みる
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            // 音の発生源(Source)を作成
+            // 2. データを取得 (なければ今ロードする)
+            let buffer = audioBuffers[type];
+            if (!buffer) {
+                buffer = await loadSound(type);
+                if (!buffer) return;
+            }
+
+            // 3. 音源作成
             const source = audioCtx.createBufferSource();
-            source.buffer = audioBuffers[type];
+            source.buffer = buffer;
 
-            // 音量調整用のノード (GainNode)
+            // 4. 音量調整 (iPhoneでも効きます)
             const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 0.5; // 音量 (0.0〜1.0)
+            gainNode.gain.value = 0.6; // 効果音の音量 (0.0〜1.0)
 
-            // 配線: Source -> Gain -> スピーカー(Destination)
+            // 5. 接続: Source -> Gain -> Speaker
             source.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            // 再生開始
+            // 6. 再生
             source.start(0);
         }
 
-        /* --- 修正: iPhone用のロック解除 (一括許可) --- */
+        /* --- BGM再生関数 (音量調整対応) --- */
+        async function playBgm(type) {
+            // 同じ曲なら何もしない
+            if (currentBgmType === type && bgmSource) return;
+
+            // 前の曲を止める
+            stopBgm();
+
+            if (isBgmMuted) {
+                currentBgmType = type; // タイプだけ覚えておく（ミュート解除時に再生するため）
+                return; 
+            }
+
+            // データを準備
+            let buffer = audioBuffers[type];
+            if (!buffer) {
+                buffer = await loadSound(type);
+                if (!buffer) return;
+            }
+
+            // BGM用ソース作成
+            bgmSource = audioCtx.createBufferSource();
+            bgmSource.buffer = buffer;
+            bgmSource.loop = true;
+
+            // BGM用音量ノード
+            bgmGainNode = audioCtx.createGain();
+            // ★ここが重要: iPhone用にBGMをかなり小さく設定 (0.05くらいが丁度いいことが多い)
+            bgmGainNode.gain.value = 0.05; 
+
+            // 接続
+            bgmSource.connect(bgmGainNode);
+            bgmGainNode.connect(audioCtx.destination);
+
+            // 再生
+            bgmSource.start(0);
+            currentBgmType = type;
+        }
+
+        function stopBgm() {
+            if (bgmSource) {
+                try { bgmSource.stop(); } catch(e){}
+                bgmSource = null;
+            }
+            bgmGainNode = null;
+            currentBgmType = null;
+        }
+
+        function toggleBgmMute() {
+            isBgmMuted = !isBgmMuted;
+            const btn = document.getElementById('btn-bgm-toggle');
+            
+            if (isBgmMuted) {
+                btn.innerText = "🔇";
+                stopBgm(); // 停止
+                // タイプは保持しておかないと再開できないので、stopBgmで消えた分を戻す工夫が必要ですが、
+                // 簡易的に「今の状態(gameState)」を見て再判定するのが確実です。
+            } else {
+                btn.innerText = "🔊";
+                // 再開処理
+                if (gameState && gameState.status === 'playing') playBgm('BGM_BATTLE');
+                else playBgm('BGM_LOBBY');
+            }
+        }
+
+        /* --- iPhone用のロック解除 (サイレント版) --- */
         function unlockAudioContext() {
-            // 1. システムが停止中(suspended)なら再開(resume)させる
+            // 1. システムが停止中なら再開
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
             
-            // 2. 無音を一瞬だけ再生して「ユーザー操作で音を出した」実績を作る
-            // これにより、以降はどの音でも自由に鳴らせるようになります
-            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            // 2. 「無音」のバッファを一瞬再生して、再生権限を獲得する
+            // (実際の音声ファイルは使いません)
+            const emptyBuffer = audioCtx.createBuffer(1, 1, 22050);
             const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
+            source.buffer = emptyBuffer;
             source.connect(audioCtx.destination);
             source.start(0);
+
         }
-
-        /* --- BGM管理システム --- */
-function playBgm(type) {
-    // 既に同じ曲が流れていたら何もしない
-    if (currentBgmType === type && currentBgmAudio && !currentBgmAudio.paused) return;
-
-    // 前の曲があれば止める
-    stopBgm();
-
-    const fileName = SOUND_FILES[type];
-    if (!fileName) return;
-
-    currentBgmAudio = new Audio(fileName);
-    currentBgmAudio.loop = true;   // ループ再生
-    currentBgmAudio.volume = 0.05;  // ★重要: BGMは控えめに（0.0〜1.0）
-    
-    // ミュート状態でなければ再生
-    if (!isBgmMuted) {
-        // ユーザー操作後でないと再生できないため catch でエラー握りつぶし
-        currentBgmAudio.play().catch(e => console.log("BGM autoplay blocked", e));
-    }
-    
-    currentBgmType = type;
-}
-
-function stopBgm() {
-    if (currentBgmAudio) {
-        currentBgmAudio.pause();
-        currentBgmAudio.currentTime = 0;
-        currentBgmAudio = null;
-    }
-    currentBgmType = null;
-}
-
-function toggleBgmMute() {
-    isBgmMuted = !isBgmMuted;
-    const btn = document.getElementById('btn-bgm-toggle');
-    
-    if (isBgmMuted) {
-        btn.innerText = "🔇";
-        if (currentBgmAudio) currentBgmAudio.pause();
-    } else {
-        btn.innerText = "🔊";
-        if (currentBgmAudio) currentBgmAudio.play().catch(e=>console.log(e));
-        // もし曲がセットされていなければ状況に応じて再生開始
-        if (!currentBgmType) {
-            if (gameState && gameState.status === 'playing') playBgm('BGM_BATTLE');
-            else playBgm('BGM_LOBBY');
-        }
-    }
-}
-           
-        
+                
         const firebaseConfig = {
             apiKey: "AIzaSyBvdLTIWWv_7UCucT_i0Xiy7CgbGoBWUyo",
             authDomain: "seki-online.firebaseapp.com",
@@ -5171,6 +5205,36 @@ function setupEffectListener() {
                 <button onclick="closeModal(); execInitGame(${lastHostHandMode})" class="modal-btn primary">はい</button>
                 <button onclick="openHostSettings()" class="modal-btn">戻る</button>
             `;
+        }
+        
+        /* ===============================================
+           iPhone対策: タブ切り替え後のオーディオ復活処理
+           =============================================== */
+        
+        // 1. ページが再び「見える状態」になったら起こす
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                checkAndResumeAudio();
+            }
+        });
+
+        // 2. 画面をタッチしたときも念のため起こす
+        document.addEventListener('touchstart', function() {
+            checkAndResumeAudio();
+        }, { passive: true }); // passive: true はスクロール性能への配慮
+
+        // オーディオの状態を確認して、死んでたら再開させる関数
+        function checkAndResumeAudio() {
+            if (!audioCtx) return;
+
+            // 'suspended' (一時停止) や 'interrupted' (割り込み停止) なら再開
+            if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                audioCtx.resume().then(() => {
+                    console.log("AudioContext Resumed by User Action/Visibility");
+                }).catch(e => {
+                    console.log("AudioContext Resume Failed", e);
+                });
+            }
         }
     
         // Global exports
