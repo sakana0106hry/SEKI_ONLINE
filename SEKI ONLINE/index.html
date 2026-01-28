@@ -903,7 +903,7 @@
 
     <div id="login-screen">
         <h1>SEKI Online</h1>
-        <p>Ver 12.00 (Hacked)</p>
+        <p>Ver 20.00 (ほぼ完成)</p>
         <input type="text" id="roomName" placeholder="合言葉 (例: seki123)">
         <br>
         <input type="text" id="playerName" placeholder="あなたの名前">
@@ -1335,11 +1335,7 @@
         let lastReadLogTime = 0; // チャット既読用
         let prevActivatedList = {}; // 前回の発動状況を記録する
         let prevRevealedRoles = {}; // カミングアウト状況を記録する
-        // 他の変数定義のあたりに追加
-        let currentBgmAudio = null; // 現在再生中のAudioオブジェクト
-        let currentBgmType = null;  // 現在のBGMタイプ ('LOBBY' or 'BATTLE')
-        let isBgmMuted = false;     // ミュート状態
-        // 他の変数定義のあたりに追加
+    
         let prevSoundId = 0;
         let lastGraveNumCount = -1; // 前回の数字墓地の枚数
         let lastGraveSymCount = -1; // 前回の記号墓地の枚数
@@ -5206,7 +5202,7 @@ function setupEffectListener() {
                 <button onclick="openHostSettings()" class="modal-btn">戻る</button>
             `;
         }
-        
+
         /* ===============================================
            iPhone対策: タブ切り替え後のオーディオ復活処理
            =============================================== */
