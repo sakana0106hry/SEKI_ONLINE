@@ -334,6 +334,8 @@
 
     /* 左側：手札枚数（フォントサイズはそのまま維持） */
     .p-hand-count {
+        flex-shrink: 0 !important;      /* 横幅が足りなくても、絶対に縮めない！ */
+        white-space: nowrap !important; /* 勝手に改行させない！ */
         font-size: 24px;         /* ★そのまま！ */
         font-weight: 800;
         color: #fff;
