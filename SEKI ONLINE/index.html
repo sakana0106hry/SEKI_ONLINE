@@ -976,7 +976,8 @@
             margin-top: 5px;     /* ステータスとの隙間 */
             white-space: nowrap; /* 折り返しなし */
             line-height: 1.2;
-            font-family: monospace, sans-serif; /* 等幅っぽくして読みやすく */
+            /* ★ここが重要: ゲーム全体のフォント(M PLUS Rounded 1c)を強制する */
+            font-family: "M PLUS Rounded 1c", "Rounded Mplus 1c", sans-serif !important;
         }
 
         /* 何も公開されていない時 (NORMAL表示と同じような色に) */
@@ -988,7 +989,10 @@
         /* 公開されている時 (目立たせる) */
         .revealed-active {
             color: #ffeb3b;      /* 黄色 */
-            font-weight: bold;
+            font-family: "Arial Black", sans-serif;
+            /*font-weight: bold;*/
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(255, 234, 0, 0.6);
         }
         
         /* 元々の画像表示エリアは完全に非表示にする */
@@ -2179,7 +2183,7 @@
                         revealedTextHtml = `公開: <span class="revealed-active">${uniqueText}</span>`;
                     } else {
                         // なし (グレー文字)
-                        revealedTextHtml = `公開: <span class="revealed-none">NONE</span>`;
+                        revealedTextHtml = `<span class="revealed-none">公開: NONE</span>`;
                     }
                     let pName = players[pid].name;
 
