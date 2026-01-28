@@ -960,25 +960,6 @@
             gap: 2px !important; /* 左右ボックスとの隙間を最小限に */
         }
 
-        .player-zone.col .p-box-new .p-role-row {
-            display: flex !important;
-            justify-content: center !important; /* ボックス自体の左右中央 */
-            align-items: center !important;     /* 上下中央 */
-            width: 100%;
-            text-align: center;
-            padding-left: 0 !important;         /* 余計な隙間を削除 */
-            padding-right: 0 !important;
-        }
-
-        .player-zone.col .p-box-new .role-badge-pill {
-            margin: 0 auto !important;          /* 強制的に真ん中に置く */
-            justify-content: center !important; /* 文字を真ん中に */
-            text-align: center !important;
-            width: 92% !important;              /* 少しだけ余白を持たせて配置 */
-            max-width: 130px;                   /* 広がりすぎ防止 */
-        }
-
-
     }
 
     /* --- 追加: 公開カード情報（テキスト表示用） --- */
@@ -2589,9 +2570,6 @@
                 }
 
                 const top = getTop(gameState.graveNum);
-                let activeCount = getActiveCount(gameState);
-                let resetHolder = top ? top.owner : null;
-                const isResetTurn = (resetHolder === myId && (gameState.graveNum || []).length > 0);
                 
                 if (!canPlay(card, isResetTurn ? null : top, gameState.isReverse)) {
                     return showInfoModal("エラー", "そのカードは出せません");
@@ -2615,11 +2593,8 @@
                 updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
 
                 let newGraveNum = [...(gameState.graveNum || [])];
-                if (isResetTurn) {
-                    let excl = [...(gameState.exclusion || []), ...newGraveNum];
-                    updates[`rooms/${currentRoom}/exclusion`] = excl;
-                    newGraveNum = [];
-                }
+                
+        
                 
                 let playCardData = { ...card, owner: myId };
                 newGraveNum.push(playCardData);
