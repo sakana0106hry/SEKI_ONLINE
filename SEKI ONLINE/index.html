@@ -2069,6 +2069,35 @@
                     }
                 }
 
+                // ★修正: 自分の名前バーに役職名を表示する
+                const myNameBar = document.getElementById("my-name-bar");
+                if (myNameBar && players[myId]) {
+                    let myPName = players[myId].name;
+                    let myRoleHtml = "";
+                    
+                    // 自分の役職があればHTML生成
+                    if (roles[myId]) {
+                        const rKey = roles[myId];
+                        // 日本語名を取得
+                        const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
+                        const jpName = rInfo ? rInfo.jp : rKey;
+                        
+                        // スキル使用済みかチェック（現在のアクションリストにあるか）
+                        const isUsed = currentAct[myId];
+                        
+                        // 色の決定：通常は紫(#e040fb)、使用済みなら灰色(#bdbdbd)
+                        const textColor = isUsed ? "#bdbdbd" : "#e040fb"; 
+                        
+                        myRoleHtml = `<span style="color:${textColor}; font-size:10px; margin-left:6px; font-weight:normal;">【役職】${jpName}</span>`;
+                    }
+                    
+                    // 自分がホストなら★マーク
+                    let myHostMark = (myId === effectiveHostId) ? "<span class='p-host-mark'>★</span>" : "";
+                    
+                    // HTMLをセット
+                    myNameBar.innerHTML = `${myHostMark}${myPName}${myRoleHtml}`;
+                }
+
                 // 配置計算
                 let relativeOrder = [];
                 let myIndex = pIds.indexOf(myId);
@@ -2195,28 +2224,11 @@
                     }
                     let pName = players[pid].name;
 
-                    // 自分自身のボックスなら、名前の隣に役職を表示
-                    let myRoleHtml = "";
-                    if (pid === myId && roles[pid]) {
-                        const rKey = roles[pid];
-                        // 日本語名を取得（定義がなければ英語のまま）
-                        const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
-                        const jpName = rInfo ? rInfo.jp : rKey;
-                        
-                        // スキル使用済みかチェック
-                        const isUsed = currentAct[pid];
-                        
-                        // 色の決定：通常は紫、使用済みなら灰色
-                        const textColor = isUsed ? "#bdbdbd" : "#e040fb"; 
-                        
-                        // HTML生成（名前の右にフローで配置）
-                        myRoleHtml = `<span style="color:${textColor}; font-size:10px; margin-left:6px; font-weight:normal;">【役職】${jpName}</span>`;
-                    }
 
                     // ★ HTML組み立て ★
                     let html = `
                         <div class="${boxClass}">
-                            <div class="p-header">${hostMark}${pName}${myRoleHtml}</div>
+                            <div class="p-header">${hostMark}${pName}</div>
                             
                             <div class="p-body">
                                 <div class="p-hand-count" style="${countStyle}">
