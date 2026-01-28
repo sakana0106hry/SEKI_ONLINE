@@ -210,7 +210,9 @@
         flex: 1; /* 残りのスペース */
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        /* justify-content: space-between;  ← これを削除して */
+        justify-content: center;         /* ← これに変更！ */
+        gap: 5px;                        /* ← 間隔を少し空ける */
         width: 100%;
         position: relative;
     }
@@ -890,6 +892,74 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         z-index: 20;
         pointer-events: none; /* クリックの邪魔をしない */
+    }
+
+    /* --- スマホ・細い画面用のスリムレイアウト --- */
+    @media (max-width: 600px) {
+        /* 1. 左右のカラム幅を詰める */
+        .player-zone.col {
+            width: 105px !important; /* ボックス幅に合わせて最小限に */
+            z-index: 20;
+        }
+
+        /* 2. ボックスをスリム化 */
+        .player-zone.col .p-box-new {
+            width: 100px !important; /* 140px -> 100px に細くする */
+            /* 中身を縦に積むので、高さを少しだけ余裕を持たせる */
+            height: 115px !important; 
+        }
+
+        /* 3. 中段（手札数とステータス）を縦積みに */
+        .player-zone.col .p-box-new .p-body {
+            flex-direction: column; /* 縦並び */
+            justify-content: center;
+            gap: 2px; /* 詰める */
+            padding: 0;
+        }
+        
+        /* ステータス表示の位置調整 */
+        .player-zone.col .p-box-new .p-status-area {
+            align-items: center; /* 中央揃え */
+            width: 100%;
+        }
+
+        /* 4. 下段（役職）のエリア高さを自動調整 */
+        .player-zone.col .p-box-new .p-role-row {
+            height: auto !important; /* 固定高さを解除 */
+            min-height: 32px;        /* 最低限の高さ確保 */
+            padding: 2px 0;
+        }
+
+        /* 役職バッジの中身を折り返し（縦積み）にする */
+        .player-zone.col .p-box-new .role-badge-pill {
+            flex-direction: column; /* 縦並び */
+            width: 96%;             /* 幅いっぱい */
+            padding: 2px 0;
+            line-height: 1.1;
+            border-radius: 8px;     /* 角丸を少し緩める */
+        }
+        
+        /* 役職の補足（REVERSEなど）のデザイン調整 */
+        .player-zone.col .p-box-new .role-sub {
+            display: block;        /* 改行させる */
+            margin-left: 0;
+            margin-top: 1px;
+            font-size: 9px;        /* 少し小さく */
+            opacity: 0.9;
+        }
+
+        /* 公開カード置き場も幅を合わせる */
+        .player-zone.col .p-revealed-container {
+            width: 100px !important;
+        }
+        
+        /* 中央フィールドとの隙間を詰める */
+        #field-center {
+            margin: 0 !important;
+        }
+        #area-middle {
+            gap: 2px !important; /* 左右ボックスとの隙間を最小限に */
+        }
     }
 
 
