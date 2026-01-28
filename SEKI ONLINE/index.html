@@ -850,16 +850,7 @@
         position: relative;
     }
 
-    /* 右下に鍵アイコンを表示（カードの絵柄を隠さない） */
-    .card.locked::after {
-        content: "🔒";
-        position: absolute;
-        bottom: 2px;
-        right: 2px;
-        font-size: 16px;
-        z-index: 10;
-        text-shadow: 0 0 4px #000; /* 見やすくする影 */
-    }
+    /* 右下に鍵アイコンを表示（カードの絵柄を隠さない）⇐削除済み
 
     /* ホバーしても浮き上がらせない */
     .card.locked:hover {
@@ -968,6 +959,26 @@
         #area-middle {
             gap: 2px !important; /* 左右ボックスとの隙間を最小限に */
         }
+
+        .player-zone.col .p-box-new .p-role-row {
+            display: flex !important;
+            justify-content: center !important; /* ボックス自体の左右中央 */
+            align-items: center !important;     /* 上下中央 */
+            width: 100%;
+            text-align: center;
+            padding-left: 0 !important;         /* 余計な隙間を削除 */
+            padding-right: 0 !important;
+        }
+
+        .player-zone.col .p-box-new .role-badge-pill {
+            margin: 0 auto !important;          /* 強制的に真ん中に置く */
+            justify-content: center !important; /* 文字を真ん中に */
+            text-align: center !important;
+            width: 92% !important;              /* 少しだけ余白を持たせて配置 */
+            max-width: 130px;                   /* 広がりすぎ防止 */
+        }
+
+
     }
 
     /* --- 追加: 公開カード情報（テキスト表示用） --- */
@@ -2184,10 +2195,28 @@
                     }
                     let pName = players[pid].name;
 
+                    // 自分自身のボックスなら、名前の隣に役職を表示
+                    let myRoleHtml = "";
+                    if (pid === myId && roles[pid]) {
+                        const rKey = roles[pid];
+                        // 日本語名を取得（定義がなければ英語のまま）
+                        const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
+                        const jpName = rInfo ? rInfo.jp : rKey;
+                        
+                        // スキル使用済みかチェック
+                        const isUsed = currentAct[pid];
+                        
+                        // 色の決定：通常は紫、使用済みなら灰色
+                        const textColor = isUsed ? "#bdbdbd" : "#e040fb"; 
+                        
+                        // HTML生成（名前の右にフローで配置）
+                        myRoleHtml = `<span style="color:${textColor}; font-size:10px; margin-left:6px; font-weight:normal;">【役職】${jpName}</span>`;
+                    }
+
                     // ★ HTML組み立て ★
                     let html = `
                         <div class="${boxClass}">
-                            <div class="p-header">${hostMark}${pName}</div>
+                            <div class="p-header">${hostMark}${pName}${myRoleHtml}</div>
                             
                             <div class="p-body">
                                 <div class="p-hand-count" style="${countStyle}">
