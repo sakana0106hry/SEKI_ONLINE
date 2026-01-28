@@ -2364,7 +2364,8 @@
                     const isUsed = currentAct[myId];
                     const textColor = isUsed ? "#bdbdbd" : "#e040fb"; 
                     
-                    myRoleHtml = `<span style="color:${textColor}; font-size:10px; margin-left:8px; font-weight:normal;">【役職】${jpName}</span>`;
+                    // フォントサイズや太さの指定を消して、名前のスタイルをそのまま引き継ぐようにしました
+                    myRoleHtml = `<span style="color:${textColor}; margin-left:10px;">【役職】${jpName}</span>`;
                 }
 
                 // 2. ホストなら★を表示
