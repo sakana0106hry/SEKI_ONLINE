@@ -1118,54 +1118,71 @@
             'SKILL_ALCHEMIST': "./sounds/skill_alchemist.mp3",
         };
         
-        /* --- さらにスリム化した playSoundEffect --- */
-/* --- 修正版: キャッシュ機能付き playSoundEffect --- */
-        function playSoundEffect(type) {
-            // 定義がない場合は何もしない
-            if (!SOUND_FILES[type]) return;
+        /* ===============================================
+           iPhone対応版 音声システム (Web Audio API)
+           =============================================== */
+        
+        // 1. オーディオシステムの本体を作成
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        
+        // 2. 読み込んだ音声データを貯めておく場所
+        const audioBuffers = {};
 
-            // まだキャッシュになければ作成して保存
-            if (!audioCache[type]) {
-                audioCache[type] = new Audio(SOUND_FILES[type]);
+        // 3. 音声ファイルをロードしてデコードする関数
+        async function loadSound(key, url) {
+            try {
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                // mp3などをブラウザが扱える生データに変換
+                const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                audioBuffers[key] = decodedBuffer;
+            } catch (e) {
+                console.warn(`音声読み込み失敗: ${key}`, e);
             }
-
-            const audio = audioCache[type];
-            audio.volume = 0.5; // 音量は適宜調整
-            audio.currentTime = 0; // 再生位置を先頭に戻す（連打対応）
-            
-            // 再生実行
-            audio.play().catch(e => {
-                // まだブロックされる場合はログだけ出す
-                console.log(`再生ブロック (${type}):`, e);
-            });
         }
 
-        // ★★★ 追加: ブラウザの再生制限を解除する関数 ★★★
+        // 4. 定義済みの SOUND_FILES をすべて読み込む
+        // (ページを開いた裏側でダウンロードを開始します)
+        Object.keys(SOUND_FILES).forEach(key => {
+            loadSound(key, SOUND_FILES[key]);
+        });
+
+        /* --- 修正: 再生関数 (Web Audio API版) --- */
+        function playSoundEffect(type) {
+            // データがまだ読み込めていない場合は無視
+            if (!audioBuffers[type]) return;
+
+            // 音の発生源(Source)を作成
+            const source = audioCtx.createBufferSource();
+            source.buffer = audioBuffers[type];
+
+            // 音量調整用のノード (GainNode)
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = 0.5; // 音量 (0.0〜1.0)
+
+            // 配線: Source -> Gain -> スピーカー(Destination)
+            source.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // 再生開始
+            source.start(0);
+        }
+
+        /* --- 修正: iPhone用のロック解除 (一括許可) --- */
         function unlockAudioContext() {
-            // 特に重要な警告音などをリストアップ
-            const criticalSounds = ['UNO', 'DOS', 'WARNING', 'turn', 'chat'];
+            // 1. システムが停止中(suspended)なら再開(resume)させる
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             
-            criticalSounds.forEach(key => {
-                if (SOUND_FILES[key]) {
-                    // キャッシュに登録
-                    if (!audioCache[key]) {
-                        audioCache[key] = new Audio(SOUND_FILES[key]);
-                    }
-                    
-                    const audio = audioCache[key];
-                    audio.volume = 0; // 一旦無音にする
-                    
-                    // 一瞬だけ再生してすぐに止める
-                    // これにより「この音声は再生してOK」という実績を作る
-                    audio.play().then(() => {
-                        audio.pause();
-                        audio.currentTime = 0;
-                        audio.volume = 0.5; // 音量を戻しておく
-                    }).catch(e => {
-                        console.log("Audio unlock failed:", e);
-                    });
-                }
-            });
+            // 2. 無音を一瞬だけ再生して「ユーザー操作で音を出した」実績を作る
+            // これにより、以降はどの音でも自由に鳴らせるようになります
+            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
         }
 
         /* --- BGM管理システム --- */
