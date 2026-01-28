@@ -2076,35 +2076,6 @@
                     }
                 }
 
-                // ★修正: 自分の名前バーに役職名を表示する
-                const myNameBar = document.getElementById("my-name-bar");
-                if (myNameBar && players[myId]) {
-                    let myPName = players[myId].name;
-                    let myRoleHtml = "";
-                    
-                    // 自分の役職があればHTML生成
-                    if (roles[myId]) {
-                        const rKey = roles[myId];
-                        // 日本語名を取得
-                        const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
-                        const jpName = rInfo ? rInfo.jp : rKey;
-                        
-                        // スキル使用済みかチェック（現在のアクションリストにあるか）
-                        const isUsed = currentAct[myId];
-                        
-                        // 色の決定：通常は紫(#e040fb)、使用済みなら灰色(#bdbdbd)
-                        const textColor = isUsed ? "#bdbdbd" : "#e040fb"; 
-                        
-                        myRoleHtml = `<span style="color:${textColor}; font-size:10px; margin-left:6px; font-weight:normal;">【役職】${jpName}</span>`;
-                    }
-                    
-                    // 自分がホストなら★マーク
-                    let myHostMark = (myId === effectiveHostId) ? "<span class='p-host-mark'>★</span>" : "";
-                    
-                    // HTMLをセット
-                    myNameBar.innerHTML = `${myHostMark}${myPName}${myRoleHtml}`;
-                }
-
                 // 配置計算
                 let relativeOrder = [];
                 let myIndex = pIds.indexOf(myId);
@@ -2377,14 +2348,33 @@
             }
 
             // ↓↓↓ 追加: 自分の名前バーの更新 ↓↓↓
+            // ■■■ 自分エリア（名前・役職・順位）の表示処理 ■■■
             const nameBar = document.getElementById("my-name-bar");
-            if (nameBar) {
-                // ホストなら★を表示
-                let hostIcon = (effectiveHostId === myId) ? "<span style='color:#ffd700; margin-right:4px;'>★</span>" : "";
-                // 順位がついているなら表示
-                let rankText = (data.rankings && data.rankings[myId]) ? `<span style="color:#ffd700; margin-left:10px;">🏆${data.rankings[myId]}位</span>` : "";
+            if (nameBar && players[myId]) {
+                let myPName = players[myId].name;
                 
-                nameBar.innerHTML = `${hostIcon}${myName}${rankText}`;
+                // 1. 役職のHTML生成
+                let myRoleHtml = "";
+                if (roles[myId]) {
+                    const rKey = roles[myId];
+                    const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
+                    const jpName = rInfo ? rInfo.jp : rKey;
+                    
+                    // スキル使用済みなら灰色、未使用なら紫
+                    const isUsed = currentAct[myId];
+                    const textColor = isUsed ? "#bdbdbd" : "#e040fb"; 
+                    
+                    myRoleHtml = `<span style="color:${textColor}; font-size:10px; margin-left:8px; font-weight:normal;">【役職】${jpName}</span>`;
+                }
+
+                // 2. ホストなら★を表示
+                let hostIcon = (effectiveHostId === myId) ? "<span style='color:#ffd700; margin-right:4px;'>★</span>" : "";
+
+                // 3. 順位がついているなら表示
+                let rankText = (data.rankings && data.rankings[myId]) ? `<span style="color:#ffd700; margin-left:10px;">🏆${data.rankings[myId]}位</span>` : "";
+
+                // ★全部まとめてセット！
+                nameBar.innerHTML = `${hostIcon}${myPName}${myRoleHtml}${rankText}`;
             }
 
             // 音再生
