@@ -1109,12 +1109,15 @@
 
             <div id="my-area">
                 <div id="my-name-bar" class="my-name-plate"></div>
-                <div id="my-role-panel"></div>
+            
                 <div id="my-hand"></div>
                 <div id="controls" style="margin-top:5px;">
                     <button id="btn-play" onclick="playCard()">決定</button>
                     <button id="btn-pass" onclick="passTurn()" style="background:#546e7a; color:white;">パス</button>
                 </div>
+                
+                <div id="my-role-panel"></div>
+
             </div>
         </div>
     </div>
@@ -2362,7 +2365,7 @@
                     
                     // スキル使用済みなら灰色、未使用なら紫
                     const isUsed = currentAct[myId];
-                    const textColor = isUsed ? "#bdbdbd" : "#e040fb"; 
+                    const textColor = isUsed ? "#ebe8e8" : "#e040fb"; 
                     
                     // フォントサイズや太さの指定を消して、名前のスタイルをそのまま引き継ぐようにしました
                     myRoleHtml = `<span style="color:${textColor}; margin-left:10px;">【役職】${jpName}</span>`;
