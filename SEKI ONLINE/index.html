@@ -905,16 +905,18 @@
         /* 2. ボックスをスリム化 */
         .player-zone.col .p-box-new {
             width: 100px !important; /* 140px -> 100px に細くする */
-            /* 中身を縦に積むので、高さを少しだけ余裕を持たせる */
-            height: 155px !important; 
+            height: auto !important;    /* 固定をやめて自動に */
+            min-height: 180px;          /* 最低でもこの高さを確保 */
+            padding-bottom: 5px;        /* 下端の余白 */ 
         }
 
         /* 3. 中段（手札数とステータス）を縦積みに */
         .player-zone.col .p-box-new .p-body {
             flex-direction: column; /* 縦並び */
             justify-content: center;
-            gap: 12px; /* 詰める */
-            padding: 8px 0;
+            gap: 8px; /* 詰める */
+            padding: 5px 0;
+            flex: 1;         /* 余ったスペースを埋める */
         }
         
         /* ステータス表示の位置調整 */
@@ -931,6 +933,7 @@
             display: flex;
             align-items: center;     /* 上下中央寄せ */
             justify-content: center;
+            margin-top: auto; /* 一番下に押し下げる */
         }
 
         /* 役職バッジの中身を折り返し（縦積み）にする */
