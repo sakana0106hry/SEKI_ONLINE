@@ -906,15 +906,15 @@
         .player-zone.col .p-box-new {
             width: 100px !important; /* 140px -> 100px に細くする */
             /* 中身を縦に積むので、高さを少しだけ余裕を持たせる */
-            height: 115px !important; 
+            height: 140px !important; 
         }
 
         /* 3. 中段（手札数とステータス）を縦積みに */
         .player-zone.col .p-box-new .p-body {
             flex-direction: column; /* 縦並び */
             justify-content: center;
-            gap: 2px; /* 詰める */
-            padding: 0;
+            gap: 8px; /* 詰める */
+            padding: 5px 0;
         }
         
         /* ステータス表示の位置調整 */
@@ -926,16 +926,16 @@
         /* 4. 下段（役職）のエリア高さを自動調整 */
         .player-zone.col .p-box-new .p-role-row {
             height: auto !important; /* 固定高さを解除 */
-            min-height: 32px;        /* 最低限の高さ確保 */
-            padding: 2px 0;
+            min-height: 36px;        /* 最低限の高さ確保 */
+            padding: 4px 0;
         }
 
         /* 役職バッジの中身を折り返し（縦積み）にする */
         .player-zone.col .p-box-new .role-badge-pill {
             flex-direction: column; /* 縦並び */
             width: 96%;             /* 幅いっぱい */
-            padding: 2px 0;
-            line-height: 1.1;
+            padding: 3px 0;
+            line-height: 1.2;
             border-radius: 8px;     /* 角丸を少し緩める */
         }
         
@@ -943,7 +943,7 @@
         .player-zone.col .p-box-new .role-sub {
             display: block;        /* 改行させる */
             margin-left: 0;
-            margin-top: 1px;
+            margin-top: 2px;
             font-size: 9px;        /* 少し小さく */
             opacity: 0.9;
         }
