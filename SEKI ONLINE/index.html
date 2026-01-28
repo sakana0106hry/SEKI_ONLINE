@@ -1015,6 +1015,13 @@
             }
         }
 
+        /* --- 点滅アニメーション定義 --- */
+        @keyframes blink-text {
+            0% { opacity: 1.0; transform: scale(1.0); }
+            50% { opacity: 0.5; transform: scale(1.05); } /* 半透明になりつつ少し大きくなる */
+            100% { opacity: 1.0; transform: scale(1.0); }
+        }
+
     
 
 
@@ -2144,10 +2151,10 @@
                     if (!isRanked) { 
                         if (handCount === 1) {
                             boxClass += " warning-1";
-                            countStyle = "color:#ff1744; text-shadow:0 0 10px #ff1744;"; 
+                            countStyle = "color:#ff1744; text-shadow:0 0 10px #ff1744; animation: blink-text 0.6s infinite;"; 
                         } else if (handCount === 2) {
                             boxClass += " warning-2";
-                            countStyle = "color:#ffeb3b; text-shadow:0 0 10px #ffeb3b;";
+                            countStyle = "color:#ffeb3b; text-shadow:0 0 10px #ffeb3b; animation: blink-text 1.2s infinite;";
                         }
                     } else {
                         // あがった人は枚数0でグレーアウト
