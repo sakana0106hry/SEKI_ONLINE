@@ -963,7 +963,42 @@
         #area-middle {
             gap: 2px !important; /* 左右ボックスとの隙間を最小限に */
         }
+
+        /* --- 追加: 公開カード情報（テキスト表示用） --- */
+        .p-revealed-info {
+            font-size: 11px;
+            margin-top: 3px;     /* ステータスとの隙間 */
+            white-space: nowrap; /* 折り返しなし */
+            line-height: 1.2;
+            font-family: monospace, sans-serif; /* 等幅っぽくして読みやすく */
+        }
+
+        /* 何も公開されていない時 (NORMAL表示と同じような色に) */
+        .revealed-none {
+            color: #90a4ae;      /* 薄いグレー */
+            font-weight: normal;
+        }
+
+        /* 公開されている時 (目立たせる) */
+        .revealed-active {
+            color: #ffeb3b;      /* 黄色 */
+            font-weight: bold;
+        }
+        
+        /* 元々の画像表示エリアは完全に非表示にする */
+        .p-revealed-container {
+            display: none !important;
+        }
+        
+        /* スマホ表示の微調整 */
+        @media (max-width: 600px) {
+            .p-revealed-info {
+                font-size: 10px;
+            }
+        }
     }
+
+    
 
 
 
@@ -2104,20 +2139,43 @@
                     // ヘッダーアイコン
                     let hostMark = (pid === effectiveHostId) ? "<span class='p-host-mark'>★</span>" : "";
                     
-                    // 公開カード生成
-                    let revealedHtml = "";
-                    pHand.forEach(c => {
-                        if (c.isOpen) {
-                            let valAttr = (c.val===0) ? 'data-val="0"' : '';
-                            let style = "";
-                            let content = c.val;
-                            if (CARD_IMAGES[c.val]) {
-                                style = `background-image:url('${CARD_IMAGES[c.val]}'); background-size:cover; color:transparent; border:none;`;
-                            }
-                            revealedHtml += `<div class="mini-card" ${valAttr} style="${style}">${content}</div>`;
-                        }
-                    });
+                    // --- 4. 公開カード情報のテキスト生成 (ここが変更点) ---
+                    // 手札データ(hands)の中で isOpen フラグが立っているものを探す
+                    let openFromHand = pHand.filter(c => c.isOpen);
+                    
+                    // サーバーから別途リストが送られてくる場合（念のため安全策）
+                    let openFromServer = (data.revealedCards && data.revealedCards[pid]) ? data.revealedCards[pid] : [];
+                    
+                    // 両方をマージ
+                    let allOpenCards = [...openFromHand, ...openFromServer];
+                    let revealedTextHtml = "";
 
+                    if (allOpenCards.length > 0) {
+                        // 文字列リストを作成 (例: ["1", "REV"])
+                        let textList = allOpenCards.map(c => {
+                            let v = c.val; 
+                            // 数字(0-9)があればそのまま返す
+                            if (v !== undefined && v !== null && !isNaN(v)) {
+                                return v;
+                            }
+                            
+                            // 記号カードの略称変換
+                            let name = String(v).toUpperCase();
+                            if (name.includes('REVERSE')) return 'REV';
+                            if (name.includes('TRADE'))   return 'TRD';
+                            if (name.includes('DIG'))     return 'DIG';
+                            if (name.includes('DISCARD')) return 'DIS';
+                            
+                            return "?"; 
+                        });
+                        
+                        // 重複を除去して結合
+                        let uniqueText = [...new Set(textList)].join(', ');
+                        revealedTextHtml = `公開: <span class="revealed-active">${uniqueText}</span>`;
+                    } else {
+                        // なし (グレー文字)
+                        revealedTextHtml = `公開: <span class="revealed-none">NONE</span>`;
+                    }
                     let pName = players[pid].name;
 
                     // ★ HTML組み立て ★
@@ -2129,18 +2187,18 @@
                                 <div class="p-hand-count" style="${countStyle}">
                                     <span class="p-hand-icon">🃏×</span>${handCount}
                                 </div>
+
                                 <div class="p-status-area">
                                     ${statusHtml}
+                                    <div class="p-revealed-info">
+                                        ${revealedTextHtml}
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="p-role-row">
                                 ${roleHtml}
                             </div>
-                        </div>
-                        
-                        <div class="p-revealed-container">
-                            ${revealedHtml}
                         </div>
                     `;
                     
