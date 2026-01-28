@@ -10,19 +10,25 @@
 
     body { 
         font-family: "M PLUS Rounded 1c", sans-serif; 
+        
+        /* 背景を固定（スクロールしても付いてくるように） */
         background: radial-gradient(circle, #2e7d32 0%, #1b5e20 60%, #003300 100%);
+        background-attachment: fixed; /* ★重要 */
+        
         color: white; 
         margin: 0; 
         text-align: center; 
         user-select: none; 
         -webkit-tap-highlight-color: transparent;
         
-        /* ★高さ制御のキモ★ */
-        height: 100vh;
-        height: 100dvh;       /* スマホ対応 */
+        min-height: 100dvh;       /* スマホ対応 */
+
+        /* ★ここでスクロールさせる（ブラウザの右端に出る） */
+        overflow-y: auto; 
+        overflow-x: hidden;
+
         display: flex;        /* Flexbox化 */
         flex-direction: column;
-        overflow: hidden;     /* 画面全体のスクロールは禁止 */
     }
 
     /* 共通レイアウト */
@@ -32,11 +38,13 @@
         width: 100%;
         max-width: 800px;     /* 横幅制限 */
         
-        /* 残りの高さを全部使う */
-        flex: 1;
+        /* 高さは中身に合わせて伸びる */
+        height: auto;
+        min-height: 100vh;
+
         display: flex;
         flex-direction: column;
-        overflow: hidden;     /* ここもスクロール禁止 */
+        overflow: visible;     /* ここもスクロール禁止 */
     }
     #header-info {
         flex: 0 0 40px;       /* 高さ40px固定 */
@@ -174,10 +182,10 @@
         position: relative;
         
         /* ★ここが重要：入り切らない場合はここだけスクロールさせる */
-        overflow-y: auto; 
+        overflow-y: visible; 
         
         /* ★ログバー(35px)と被らないよう、底上げする */
-        padding-bottom: 60px !important; 
+        padding-bottom: 80px !important; 
         
         /* 横のパディング */
         padding-left: 10px;
