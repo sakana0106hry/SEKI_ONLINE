@@ -2571,7 +2571,7 @@
 
                 const top = getTop(gameState.graveNum);
                 
-                if (!canPlay(card, isResetTurn ? null : top, gameState.isReverse)) {
+                if (!canPlay(card, top, gameState.isReverse)) {
                     return showInfoModal("エラー", "そのカードは出せません");
                 }
                 
