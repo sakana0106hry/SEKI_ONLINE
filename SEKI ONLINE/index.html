@@ -2916,8 +2916,8 @@
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
             
             await pushLog(`${myName}が ${gameState.players[targetId].name} とTRADEしました`, 'public');
-            // ここに盗られた側のトレードログを挿入
-            await pushLog(`[${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
+            await pushLog(`${gameState.players[targetId].name}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
+            await pushLog(`${gameState.players[myId].name}に [${receiveCard.val}] を奪われ、 [${giveCard.val}] を渡されました。`, 'private', targetId);
 
             updates[`rooms/${currentRoom}/passCount`] = 0;
             let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
