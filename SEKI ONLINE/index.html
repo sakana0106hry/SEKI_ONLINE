@@ -2394,7 +2394,7 @@
                 let rankText = (data.rankings && data.rankings[myId]) ? `<span style="color:#ffd700; margin-left:10px;">🏆${data.rankings[myId]}位</span>` : "";
 
                 // ★全部まとめてセット！
-                nameBar.innerHTML = `${hostIcon}${myPName}${myRoleHtml}${rankText}`;
+                nameBar.innerHTML = `${hostIcon}${myPName}${myRoleHtml}${resetBadge}${rankText}`;
             }
 
             // 音再生
