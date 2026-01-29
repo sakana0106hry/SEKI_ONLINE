@@ -2372,6 +2372,13 @@
                     myRoleHtml = `<span style="color:${textColor}; margin-left:10px;">【役職】${jpName}</span>`;
                 }
 
+                let resetBadge = "";
+                // resetHolder（リセット権を持つ人のID）はrender関数内で計算済みと仮定
+                if (resetHolder === myId) {
+                    // status-resetクラスをそのまま利用（位置調整のためstyleを追加）
+                    resetBadge = `<span class="status-reset" style="margin-left:10px; font-size:12px; vertical-align:middle; display:inline-block;">👑 RESET</span>`;
+                }
+
                 // 2. ホストなら★を表示
                 let hostIcon = (effectiveHostId === myId) ? "<span style='color:#ffd700; margin-right:4px;'>★</span>" : "";
 
