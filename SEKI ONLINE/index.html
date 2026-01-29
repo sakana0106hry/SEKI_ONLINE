@@ -1644,6 +1644,26 @@
                     return showInfoModal("入力エラー", "部屋名と名前を入力してください");
                 }
 
+                // ▼▼▼▼▼ ここから追加・修正 ▼▼▼▼▼
+                
+                // 1. まず部屋のデータを取得して確認する
+                const checkRef = db.ref(`rooms/${room}`);
+                const snapshot = await checkRef.get();
+
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const players = data.players || {};
+                    const playerCount = Object.keys(players).length;
+                    
+                    // 「自分がまだリストにいない」かつ「既に5人以上いる」ならエラー
+                    // (リロードして戻ってきた人は入れるように !players[myId] で判定します)
+                    if (!players[myId] && playerCount >= 5) {
+                        els.btnJoin.disabled = false;
+                        return showInfoModal("満員", "この部屋は定員(5名)に達しています。<br>別の部屋名を使ってください。");
+                    }
+                }
+                
+
                 myName = name;
                 currentRoom = room;
 
