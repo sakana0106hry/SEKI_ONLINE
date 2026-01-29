@@ -2672,6 +2672,7 @@
 
         async function handleSymbol(card, idx, currentHand) {
             if (currentHand.length === 1) return showInfoModal("禁止あがり", "記号であがることはできません。");
+            //ここをハッカーのロックされてるカードと合わせて計算すればよさそう
             
             if (card.val === "DIG UP") {
                 const hasNum = currentHand.some((c, i) => i !== idx && c.type === 'num');
@@ -2986,7 +2987,7 @@
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
             updates[`rooms/${currentRoom}/hands/${myId}`] = currentHand;
         
-            await pushLog(`${myName}が DISCARD で [${discardCard.val}] を捨てました`, 'public');
+            await pushLog(`${myName}が [DISCARD] で [${discardCard.val}] を捨てました！！`, 'public');
 
             updates[`rooms/${currentRoom}/passCount`] = 0;
 
@@ -3065,9 +3066,9 @@ function activateAngler() {
     // 墓地が空っぽか確認（拾うものがないと損するだけなので警告、でもルール上は発動できそうだが一応チェック）
     let gn = gameState.graveNum || [];
     let gs = gameState.graveSym || [];
-    if(gn.length === 0 && gs.length === 0) return showInfoModal("エラー", "墓地にカードがないため拾えません");
+    if(gn.length === 0 && gs.length === 0) return showInfoModal("エラー", "墓地にカードがないため釣れません");
 
-    let html = `<p>コストとして除外する手札を選んでください。</p><div class="modal-list">`;
+    let html = `<p>エサとして除外する手札を選んでください。</p><div class="modal-list">`;
     hand.forEach((c, i) => {
         // カード表示用の共通処理（画像など）
         let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
@@ -3078,7 +3079,7 @@ function activateAngler() {
         html += `<div class="card ${c.type}" style="${style}" onclick="anglerStep2(${i})">${c.val}</div>`;
     });
     html += `</div>`;
-    openModal("釣り人: 除外選択", html);
+    openModal("釣り人: エサ選択", html);
 }
 
 // ステップ2: 墓地から拾うカードを選ぶ
@@ -3086,7 +3087,7 @@ function anglerStep2(excludeIdx) {
     let gn = gameState.graveNum || [];
     let gs = gameState.graveSym || [];
     
-    let html = `<p>墓地から拾うカードを選んでください。</p><div class="modal-list" style="justify-content:flex-start;">`;
+    let html = `<p>墓地から釣り上げるカードを選んでください。</p><div class="modal-list" style="justify-content:flex-start;">`;
     
     // 数字墓地
     gn.forEach((c, i) => {
@@ -3101,7 +3102,7 @@ function anglerStep2(excludeIdx) {
     });
     
     html += `</div>`;
-    openModal("釣り人: 回収選択", html);
+    openModal("釣り人: 釣魚選択", html);
 }
 
 // ステップ3: 実行
@@ -3141,7 +3142,7 @@ async function execAngler(excludeIdx, targetType, targetGraveIdx) {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
     // ログ
-    await pushLog(`${myName}が[釣り人]を発動！手札を除外して墓地の[${pickedCard.val}]を釣り上げました`, 'public');
+    await pushLog(`${myName}が[釣り人]を発動！手札を除外して墓地の [${pickedCard.val}] を釣り上げました`, 'public');
     //playSoundEffect('SKILL'); 
 
     // 4. ターン終了処理
@@ -3624,11 +3625,11 @@ async function execHunterSwap(isSkip = false) {
         updates[`rooms/${currentRoom}/deckSym`] = deckSym; 
         // updates[`rooms/${currentRoom}/exclusion`] = excl; // 除外場は変わらないので更新不要（またはそのまま更新してもOK）
         
-        await pushLog(`${myName}が[狩人]を発動！手札${handIndices.length}枚を記号山札と交換しました`, 'public');
+        await pushLog(`${myName}が[狩人]を発動！手札 [${handIndices.length}] 枚を記号山札と交換しました。`, 'public');
         await pushLog(`【狩りの成果】<br>使用武器(山札へ): ${outNames.join(', ')}<br>獲物: ${inNames.join(', ')}`, 'private', myId);
 
     } else {
-        await pushLog(`${myName}が[狩人]を発動！交換せずに終了しました`, 'public');
+        await pushLog(`${myName}が[狩人]を発動！交換せずに終了しました。`, 'public');
         await pushLog(`【狩りの成果】<br>なし`, 'private', myId);
     }
 
