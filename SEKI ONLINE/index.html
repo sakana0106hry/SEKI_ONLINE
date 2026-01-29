@@ -2381,8 +2381,8 @@
                 }
 
                 let resetBadge = "";
-                // resetHolder（リセット権を持つ人のID）はrender関数内で計算済みと仮定
-                if (resetHolder === myId) {
+                // ★ここも rHolder を使って判定します
+                if (rHolder === myId) {
                     // status-resetクラスをそのまま利用（位置調整のためstyleを追加）
                     resetBadge = `<span class="status-reset" style="margin-left:10px; font-size:12px; vertical-align:middle; display:inline-block;">👑 RESET</span>`;
                 }
