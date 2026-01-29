@@ -2355,6 +2355,14 @@
             // ■■■ 自分エリア（名前・役職・順位）の表示処理 ■■■
             const nameBar = document.getElementById("my-name-bar");
             if (nameBar && players[myId]) {
+
+                // ★修正: 変数名を「rHolder」に変えて、ここで再定義します
+                // (これで上にあるやつと喧嘩せず、確実に動きます)
+                let rHolder = null;
+                if (data.graveNum && data.graveNum.length > 0) {
+                    rHolder = data.graveNum[data.graveNum.length-1].owner;
+                }
+
                 let myPName = players[myId].name;
                 
                 // 1. 役職のHTML生成
