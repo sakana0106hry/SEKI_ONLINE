@@ -2915,7 +2915,7 @@
             updates[`rooms/${currentRoom}/hands/${targetId}`] = targetHand;
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
             
-            await pushLog(`${myName}が ${gameState.players[targetId].name} とTRADEしました`, 'public');
+            await pushLog(`${myName}が ${gameState.players[targetId].name} と [TRADE] しました`, 'public');
             await pushLog(`${gameState.players[targetId].name}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
             await pushLog(`${gameState.players[myId].name}に [${receiveCard.val}] を奪われ、 [${giveCard.val}] を渡されました。`, 'private', targetId);
 
@@ -3392,8 +3392,8 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
     
     // ログ出力
     await pushLog(`${myName}が[盗賊]で${targetName}とトレードしました！(${count}回目)`, 'public');
-    await pushLog(`【盗賊の結果】<br>奪った: ${receiveCard.val}<br>渡した: ${giveCard.val}`, 'private', myId);
-    await pushLog(`【盗賊の被害】<br>盗まれた: ${receiveCard.val}<br>渡された: ${giveCard.val}`, 'private', targetId);
+    await pushLog(`${targetName}から [${receiveCard.val}] を盗み、 [${giveCard.val}] を奪った。`, 'private', myId);
+    await pushLog(`${myName}に [${receiveCard.val}] を盗まれ、 [${giveCard.val}] を渡された。`, 'private', targetId);
 
     // 通知
     updates[`rooms/${currentRoom}/players/${targetId}/notification`] = {
@@ -4129,8 +4129,10 @@ async function execMagicianTrade(targetId, giveIdx, takeIdx) {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
     updates[`rooms/${currentRoom}/lastSound`] = { type: 'TRADE', id: Date.now() };
 
+    const targetName = gameState.players[targetId].name;
+
     await pushLog(`${myName}が[手品師]でTRADEを発動！`, 'public');
-    await pushLog(`[${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
+    await pushLog(`${targetName}から [${receiveCard.val}] を盗み、[${giveCard.val}] を渡しました。`, 'private', myId);
     await pushLog(`${myName}の手品で [${receiveCard.val}] を盗まれ、[${giveCard.val}] を渡されました。`, 'private', targetId);
 
     updates[`rooms/${currentRoom}/passCount`] = 0;
