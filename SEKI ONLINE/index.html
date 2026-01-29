@@ -2916,6 +2916,7 @@
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
             
             await pushLog(`${myName}が ${gameState.players[targetId].name} とTRADEしました`, 'public');
+            // ここに盗られた側のトレードログを挿入
             await pushLog(`[${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
 
             updates[`rooms/${currentRoom}/passCount`] = 0;
@@ -4635,7 +4636,7 @@ async function execPoliceTrade(targetId, giveIdx, takeIdx) {
 
     updates[`rooms/${currentRoom}/lastSound`] = { type: 'TRADE', id: Date.now() };
     await pushLog(`${myName}が[警察官]としてトレードを実行しました`, 'public');
-    await pushLog(`[${receiveCard.val}] (指定)を押収し、[${giveCard.val}] を渡しました。`, 'private', myId);
+    await pushLog(`[${receiveCard.val}] を押収し、[${giveCard.val}] を渡しました。`, 'private', myId);
     
     updates[`rooms/${currentRoom}/players/${targetId}/notification`] = {
         fromName: myName + "(警察官)",
