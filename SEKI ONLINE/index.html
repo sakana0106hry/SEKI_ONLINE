@@ -1418,20 +1418,110 @@
         ];
 
         // 【追加】役職の日本語名と簡易説明（表示用）
+        // 【修正】役職情報（簡易説明 + 詳細説明）
         const ROLE_INFO = {
-            "ALCHEMIST":      { jp: "錬金術師", desc: "数字を合成して捨てる" },
-            "ANGLER":         { jp: "釣り人",   desc: "手札を1枚除外して墓地回収" },
-            "EMPEROR":        { jp: "皇帝",     desc: "全員の手札を集めて再分配" },
-            "FORTUNE TELLER": { jp: "占い師",   desc: "全員の手札と役職を見る" },
-            "GAMBLER":        { jp: "賭博師",   desc: "山札の数字を予想して当たると……" },
-            "HACKER":         { jp: "ハッカー", desc: "相手の手札1枚をロックする" },
-            "HUNTER":         { jp: "狩人",     desc: "手札の記号を山札と交換" },
-            "MAGICIAN":       { jp: "手品師",   desc: "記号カードの効果を使える" },
-            "MILLIONAIRE":    { jp: "富豪",     desc: "数字手札を除外して記号を購入" },
-            "NEW GRAD":       { jp: "新卒",     desc: "他人の役職をコピー" },
-            "POLICE OFFICER": { jp: "警察官",   desc: "相手の手札を1枚公開させる" },
-            "THIEF":          { jp: "盗賊",     desc: "トレードを2回まで行える" },
-            "NECEOMANCER":    { jp: "ネクロマンサー",     desc: "数字墓地の一番上のカードを除外する" }
+            "ALCHEMIST": { 
+                jp: "錬金術師", 
+                summary: "数字山札を引き、手札と合成して出す",
+                desc: `①数字山札から、1枚カードを引く。
+②そのカードと、手札の好きな数字カードを、足し算もしくは引き算する。
+③その和もしくは差を、数字墓地に出せるとき、出すことができる。
+　→もし出せない場合は、引いたカードが手札に加わる（デメリット）。
+ターン終了！`
+            },
+            "ANGLER": { 
+                jp: "釣り人",   
+                summary: "手札1枚を除外、墓地から1枚回収",
+                desc: `①自分の手札から好きなカード1枚を除外する。
+②数字墓地もしくは記号墓地から、好きなカード1枚を手札に加える。
+ターン終了！`
+            },
+            "EMPEROR": { 
+                jp: "皇帝",     
+                summary: "全員の手札を回収し、好きな1枚奪う",
+                desc: `⓪ゲーム開始時に自分が「皇帝」であることが他プレイヤー全員に通知される。
+①他プレイヤー全員の手札を回収し、見ることができる。
+②回収した手札から好きなカードを1枚選ぶ。
+③余ったカードが皇帝を含む全員に再配布される（手札の枚数は変わらない）。
+ターン終了！`
+            },
+            "FORTUNE TELLER": { 
+                jp: "占い師",   
+                summary: "全員の手札と役職を見る",
+                desc: `①他プレイヤー全員の手札および役職を自分だけ確認することができる。
+　※このとき確認した結果はログに記録され、いつでも確認することができる。
+ターン終了！`
+            },
+            "GAMBLER": { 
+                jp: "賭博師",   
+                summary: "山札の数字を予想し、当たりで手札破棄",
+                desc: `①数字山札の一番上のカードについて，A: 小さい【1，2，3，4】，B: 大きい【6，7，8，9】，C: 命知らず【0，5】の3つの組から予想する。
+　→AおよびBを予想した場合、当たったとき自分の手札から好きなカードを1枚捨て、外れたときは数字山札の一番上のカードを手札に加える。
+　→Cを予想した場合， 当たったときは自分の手札から好きなカードを2枚捨て，外れたときは数字山札の一番上のカードとその下のカードを手札に加える。
+②演出が入り、数字山札の1番上のカードが明らかになる。
+③結果により、手札の好きなカードを1枚or2枚捨てる、もしくは数字カードを1枚or2枚手札に加える。
+ターン終了！`
+            },
+            "HACKER": { 
+                jp: "ハッカー", 
+                summary: "全員のカードを1枚ロックする",
+                desc: `①ハッカーを除く他プレイヤー全員に対し、手札のカード1枚を完全にロックする。
+　※ロックされたカードは、記号カードや役職能力などあらゆる効果の対象にならない。
+　※次のハッカーのターンが来たとき、ロックの効果は解除される。
+②自分のターンを行う。
+ターン終了！`
+            },
+            "HUNTER": { 
+                jp: "狩人",     
+                summary: "記号山札を見て、手札と交換する",
+                desc: `①記号山札を見ることができる。
+②望むなら、自分の手札から好きな記号カードを、好きな枚数だけ、記号山札から同じ枚数を交換する。
+　※どのような交換を行ったかは、他のプレイヤーからは見えません。
+ターン終了！`
+            },
+            "MAGICIAN": { 
+                jp: "手品師",   
+                summary: "記号カードの効果を即座に使用",
+                desc: `①DISCARD以外の記号カードの効果を1つだけ即座に使用する。
+ターン終了！`
+            },
+            "MILLIONAIRE": { 
+                jp: "富豪",     
+                summary: "数字カードを捨て、記号カードを引く",
+                desc: `①自分の手札の好きな数字カードを1枚除外する。
+②記号山札の一番上のカードを手札に加える。
+③自分のターンを行う。
+ターン終了！`
+            },
+            "NEW GRAD": { 
+                jp: "新卒",     
+                summary: "既に使用された役職の効果をコピー",
+                desc: `⓪ゲーム開始時に自分が「新卒」であることが他プレイヤー全員に通知される。
+①既にゲーム中で使用された役職（「皇帝」を除く）があるとき、その効果を1つだけ使用することができる。
+ターン終了！`
+            },
+            "POLICE OFFICER": { 
+                jp: "警察官",   
+                summary: "全員の手札を1枚公開し、トレード",
+                desc: `①他のプレイヤー全員に対し、手札の1枚を選んで永続的に表にする。
+　※プレイヤーの手札間を移動したときも表のまま。
+②望むなら、記号カードのTRADEと同じトレードを行うことができる。
+ターン終了！`
+            },
+            "THIEF": { 
+                jp: "盗賊",     
+                summary: "トレードを2回行う",
+                desc: `①記号カードのTRADEと同じトレードを2回まで行うことができる（1回で終了しても良い）。
+　※同じ相手を対象に行っても良い。
+ターン終了！`
+            },
+            "NECROMANCER": {
+                jp: "ネクロマンサー",
+                summary: "数字墓地の一番上を除外",
+                desc: `①数字墓地の一番上のカードを除外する。
+②自分のターンを行う。
+ターン終了！`
+            }
         };
 
         let myId = localStorage.getItem("seki_uid_v2");
@@ -2014,7 +2104,7 @@
                         <div class="role-card" style="${style} ${bgStyle}">
                             <div class="role-name">${myRole}</div>
                             <div class="role-jp">${rInfo.jp}</div>
-                            <div class="role-desc">${rInfo.desc}</div>
+                            <div class="role-desc">${rInfo.summary}</div>
                             ${actBtnHtml}
                         </div>
                     `;
@@ -5437,34 +5527,37 @@ function setupEffectListener() {
         }
 
         // --- ★追加: 役職一覧表示 ---
+        // --- ★修正: 役職一覧表示 (アコーディオン式) ---
         function showRoleList() {
-            let html = '<div style="text-align:left; max-height: 400px; overflow-y: auto;">';
+            let html = '<div style="text-align:left; max-height: 500px; overflow-y: auto;">';
             
-            // 定義済みの ROLE_INFO から自動生成
             Object.keys(ROLE_INFO).forEach(key => {
                 const info = ROLE_INFO[key];
-                // 画像があれば表示
                 let imgHtml = "";
                 if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
-                    imgHtml = `<img src="${ROLE_IMAGES[key]}" style="height:30px; vertical-align:middle; margin-right:8px; border-radius:4px; border:1px solid #ccc;">`;
+                    imgHtml = `<img src="${ROLE_IMAGES[key]}" style="height:40px; vertical-align:middle; margin-right:10px; border-radius:4px; border:1px solid #ccc;">`;
                 }
 
+                // ★detailsタグを使って開閉式にする
                 html += `
-                    <div style="margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:8px; display:flex; align-items:start;">
-                        ${imgHtml}
-                        <div>
-                            <div style="font-weight:bold; color:#fdd835; font-size:14px;">
-                                ${info.jp} 
-                                <span style="font-size:10px; color:#bbb; font-weight:normal; margin-left:4px;">${key}</span>
+                    <details style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">
+                        <summary style="cursor:pointer; display:flex; align-items:center; outline:none; list-style:none;">
+                            ${imgHtml}
+                            <div style="flex:1;">
+                                <div style="font-weight:bold; color:#fdd835; font-size:15px;">
+                                    ${info.jp} 
+                                    <span style="font-size:10px; color:#bbb; font-weight:normal; margin-left:4px;">${key}</span>
+                                </div>
+                                <div style="font-size:12px; color:#ddd;">${info.summary} <span style="font-size:10px; color:#888;">▼詳細</span></div>
                             </div>
-                            <div style="font-size:12px; color:#333; line-height:1.4;">${info.desc}</div>
-                        </div>
-                    </div>`;
+                        </summary>
+                        
+                        <div style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.2); border-radius:5px; font-size:12px; color:#eee; line-height:1.6; white-space: pre-wrap;">${info.desc}</div>
+                    </details>`;
             });
             html += '</div>';
             openModal("役職一覧", html);
         }
-
         // --- ★追加: ルール要約表示 ---
         function showRule() {
             let html = `
