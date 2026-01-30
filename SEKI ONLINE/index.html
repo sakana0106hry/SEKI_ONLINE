@@ -1094,15 +1094,17 @@
 
     /* 4. 右の人 -> 吹き出しは「左」に出す */
     .bubble-pos-right {
-        top: auto;
-        bottom: 100%; /* ボックスの上に */
+        /* 上に出す設定(bottom)を解除し、下(top: 100%)に出す */
+        top: 100%;
+        bottom: auto;
         
         /* 左端をボックスに合わせる */
         left: 0;
         right: auto;
         
-        /* 隙間調整 */
-        margin-bottom: 10px; 
+        /* 隙間調整 (上側にマージンを入れる) */
+        margin-top: 10px; 
+        margin-bottom: 0;
         margin-left: 0;
         margin-right: 0;
         
