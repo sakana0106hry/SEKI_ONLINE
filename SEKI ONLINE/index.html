@@ -1584,6 +1584,14 @@
             els.mContent.innerHTML = html;
             els.mFooter.innerHTML = '<button onclick="closeModal()" class="modal-btn">閉じる</button>';
             els.modal.classList.remove("hidden");
+
+            // ★追加: 毎回デフォルト幅(400px)に戻す
+            // これがないと、一度広げた後に他のモーダルを開いても広いままになってしまいます
+            const mBox = document.getElementById("modal-box");
+            if(mBox) {
+                mBox.style.width = "400px";
+                mBox.style.maxWidth = "90%";
+            }
         }
         function showInfoModal(title, msg) {
             els.mTitle.innerText = title;
@@ -5557,6 +5565,13 @@ function setupEffectListener() {
             });
             html += '</div>';
             openModal("役職一覧", html);
+
+            // ★追加: このモーダルだけ幅を広げる (600px)
+            const mBox = document.getElementById("modal-box");
+            if(mBox) {
+                mBox.style.width = "600px";   // PCなどでの幅
+                mBox.style.maxWidth = "95%"; // スマホでは画面いっぱいまで使う
+            }
         }
         // --- ★追加: ルール要約表示 ---
         function showRule() {
@@ -5564,32 +5579,43 @@ function setupEffectListener() {
                 <div style="text-align:left; max-height: 400px; overflow-y: auto; font-size:13px; color:#333;">
                     <h4 style="border-left:4px solid #2e7d32; padding-left:8px; margin:10px 0 5px 0;">基本ルール</h4>
                     <p style="margin:0 0 10px 0;">
-                        ・手札を先に0枚にした人が勝ち。<br>
+                        ・手札を先に0枚にした人が勝ち！<br>
                         ・前の人より<strong>強いカード</strong>を出せる。<br>
                         ・出せない（出したくない）時は<strong>パス</strong>。<br>
                         ・全員パスすると場が流れ、親（リセット権）になる。
                     </p>
                     
-                    <h4 style="border-left:4px solid #1565c0; padding-left:8px; margin:10px 0 5px 0;">カードの強弱</h4>
+                    <h4 style="border-left:4px solid #1565c0; padding-left:8px; margin:10px 0 5px 0;">数字カード</h4>
                     <p style="margin:0 0 10px 0;">
-                        <strong>🔵 順行 (通常):</strong><br>
-                        0 < 1 < 2 < ... < 8 < 9<br>
+                        <li>数字カードは0~9まで各4枚ずつ。</li>
+                        <li><strong>「0」はいつでも出せるが、その上に何でも出せる！</strong></li><br>
                         <br>
-                        <strong>🔴 逆行 (REVERSE中):</strong><br>
-                        0 > 1 > 2 > ... > 8 > 9<br>
-                        <span style="font-size:11px; color:#666;">※「0」は最強にはなれないが、いつでも出せる。</span>
+                        <strong>🔵 順行🐘 (通常):</strong><br>
+                        0 < 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9<br>
+                        <br>
+                        <strong>🔴 逆行🐁 (REVERSE中):</strong><br>
+                        0 < 9 < 8 < 7 < 6 < 5 < 4 < 3 < 2 < 1<br>
+                        <span style="font-size:11px; color:#666;">※「0」は最強にはなれないが、いつでも出せる！！</span>
                     </p>
 
                     <h4 style="border-left:4px solid #c62828; padding-left:8px; margin:10px 0 5px 0;">記号カード</h4>
                     <ul style="padding-left:20px; margin:0;">
-                        <li><strong>REVERSE:</strong> 強弱を逆転させる</li>
-                        <li><strong>TRADE:</strong> コスト1枚払い、相手とカード交換</li>
-                        <li><strong>DIG UP:</strong> 手札1枚を埋め、墓地から1枚回収</li>
-                        <li><strong>DISCARD:</strong> 手札を1枚捨てる</li>
+                        <li><strong>REVERSE</strong>（4枚）: 数字カードの強弱を逆転させる</li>
+                        <li><strong>TRADE</strong>（4枚）: 好きな手札1枚を他のプレイヤーと交換する</li>
+                        <li><strong>DIG UP</strong>（4枚）: 数字墓地の1番上のカードと、手札の数字カードを交換する</li>
+                        <li><strong>DISCARD</strong>（4枚）: 好きな手札を1枚捨てる</li>
                     </ul>
+
                 </div>
             `;
             openModal("ルール確認", html);
+
+            // ★追加: このモーダルだけ幅を広げる (600px)
+            const mBox = document.getElementById("modal-box");
+            if(mBox) {
+                mBox.style.width = "600px";   // PCなどでの幅
+                mBox.style.maxWidth = "95%"; // スマホでは画面いっぱいまで使う
+            }
         }
     
         // Global exports
