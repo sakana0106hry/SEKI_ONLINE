@@ -2584,6 +2584,14 @@
                     area.appendChild(wrapper);
                 });
 
+                // ▼▼▼ 追加: 3人対戦などで上エリアが空なら非表示にして詰める ▼▼▼
+                if (areaTop.children.length === 0) {
+                    areaTop.style.display = "none";
+                } else {
+                    areaTop.style.display = "flex";
+                }
+                // ▲▲▲ 追加ここまで ▲▲▲
+
                 // --- 6. 場の情報更新 ---
                 if (els.indicator) {
                     let targetSrc = data.isReverse ? "./images/reverse_red.jpg" : "./images/reverse_blue.jpg";
@@ -5666,10 +5674,10 @@ async function execAlchemist(resultVal) {
         
         let totalPlayers = gameState.playerOrder.length;
         if (currentRank >= totalPlayers - 1) {
-                         updates[`rooms/${currentRoom}/status`] = "finished";
+             updates[`rooms/${currentRoom}/status`] = "finished";
 
-                        // 敗者（最後の一人）を特定
-                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
+            // 敗者（最後の一人）を特定
+            let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
                      
                         if(loserId) {
                             // 敗者の順位を確定
@@ -5689,7 +5697,7 @@ async function execAlchemist(resultVal) {
                         } else {
                             await pushLog(`全順位が確定しました！`, 'public');
                         }
-                    }
+                    }           
     }
     
     let tempRankings = {...(gameState.rankings || {})};
