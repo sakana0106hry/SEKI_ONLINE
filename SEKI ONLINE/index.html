@@ -1034,6 +1034,8 @@
                     ⚙️ ホスト設定
                 </button>
                 <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:16px;">🔊</button>
+                <button onclick="showRoleList()" style="padding:2px 8px; font-size:12px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職一覧</button>
+                <button onclick="showRule()" style="padding:2px 8px; font-size:12px; background:#2e7d4a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">ルール</button>
                 <button onclick="location.reload()" style="padding:2px 8px; font-size:12px;">退出</button>
             </div>
         </div>
@@ -4536,7 +4538,7 @@ async function endPoliceTurn() {
     let updates = {};
 
     // ログ
-    await pushLog(`${myName}が[警察官]の捜査を終了しました。(トレードなし)`, 'public');
+    await pushLog(`${myName}がトレードなしで[警察官]の捜査を終了しました。`, 'public');
 
     // ターン終了処理
     updates[`rooms/${currentRoom}/passCount`] = 0;
@@ -4758,6 +4760,8 @@ async function execNewGradCopy(targetRole) {
             activateHacker();
         } else if (targetRole === "ALCHEMIST") {
             activateAlchemist();
+        } else if (targetRole === "NECROMANCER") {
+            activateNecromancer();
         } else {
             showInfoModal("エラー", `[${rName}] の業務内容は未定義です`);
         }
