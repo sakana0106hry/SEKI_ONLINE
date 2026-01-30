@@ -2078,7 +2078,7 @@
                         else if (myRole === "HACKER") funcName = "activateHacker()";
                         else if (myRole === "ALCHEMIST") funcName = "activateAlchemist()";
                         else if (myRole === "NEW GRAD") funcName = "activateNewGrad()";
-                        //else if (myRole === "NECROMANCER") funcName = "activateNecromancer()";
+                        else if (myRole === "NECROMANCER") funcName = "activateNecromancer()";
 
                         if (funcName) {
                             actBtnHtml = `<button onclick="${funcName}" style="margin-top:8px; padding:6px 12px; font-size:12px; background:#fff; color:#4a148c; border:none; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.2);">スキル発動</button>`;
@@ -5400,6 +5400,83 @@ async function execAlchemistKeep() {
     alchemyHandIdx = -1;
 }
 
+/* --- NECROMANCER (ネクロマンサー) の実装 --- */
+
+// 1. 発動確認
+function activateNecromancer() {
+    // 墓地チェック
+    let gn = gameState.graveNum || [];
+    if (gn.length === 0) {
+        return showInfoModal("発動不可", "数字墓地にカードがないため、除外できません。");
+    }
+
+    // 除去する対象（一番上のカード）
+    let topCard = gn[gn.length - 1];
+    
+    // 画像表示用のスタイル作成
+    let style = "";
+    if (Number(topCard.val) === 0) style = 'color:#6a1b9a; border-color:#6a1b9a; background:#f3e5f5;';
+    let cImg = CARD_IMAGES[topCard.val];
+    if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
+
+    let html = `
+        <p>数字墓地の一番上のカードを除外しますか？<br>
+        <span style="font-size:12px; color:#ef5350;">※除外した後、あなたのターンが続きます。</span>
+        </p>
+        
+        <div style="display:flex; justify-content:center; margin:15px 0;">
+            <div class="card ${topCard.type}" style="${style}">${topCard.val}</div>
+        </div>
+
+        <button onclick="execNecromancer()" style="background:#4a148c; color:white; padding:10px 30px; font-weight:bold; border-radius:20px;">
+            蘇生（除外）実行
+        </button>
+    `;
+
+    openModal("ネクロマンサー: 死者蘇生", html);
+}
+
+// 2. 実行処理
+async function execNecromancer() {
+    closeModal();
+    let updates = {};
+
+    // 最新の墓地データを取得
+    let gn = [...(gameState.graveNum || [])];
+    let excl = [...(gameState.exclusion || [])];
+    let actList = {...(gameState.activatedList || {})};
+
+    // 念のため再チェック
+    if (gn.length === 0) return showInfoModal("エラー", "墓地が空になりました。");
+
+    // 墓地から除去
+    let removedCard = gn.pop();
+    
+    // 除外場へ
+    excl.push(removedCard);
+
+    // データ更新
+    updates[`rooms/${currentRoom}/graveNum`] = gn;
+    updates[`rooms/${currentRoom}/exclusion`] = excl;
+
+    // スキル使用済みにする
+    actList[myId] = true;
+    updates[`rooms/${currentRoom}/activatedList`] = actList;
+
+    // ログ＆音
+    await pushLog(`${myName}が[ネクロマンサー]を発動！墓地の [${removedCard.val}] を除外しました`, 'public');
+    
+    // 音の再生（スキル音があればそれ、なければDISCARD音などを代用）
+    let soundType = (typeof SOUND_FILES !== 'undefined' && SOUND_FILES['SKILL_NECROMANCER']) ? 'SKILL_NECROMANCER' : 'DISCARD';
+    updates[`rooms/${currentRoom}/lastSound`] = { type: soundType, id: Date.now() };
+
+    /* ★重要: ターンを進める処理（turnIdxの更新）は書きません。
+       これにより、まだ自分のターン（playCardができる状態）が維持されます。
+    */
+
+    await db.ref().update(updates);
+}
+
 // カットイン再生関数（画像対応版）
 function playCutInAnimation(roleKey, roleNameJp, playerName) {
     const overlay = document.getElementById("cut-in-overlay");
@@ -5597,7 +5674,7 @@ function setupEffectListener() {
 
                     <h4 style="border-left:4px solid #1565c0; padding-left:8px; margin:10px 0 5px 0;">数字カード</h4>
                     <p style="margin:0 0 10px 0;">
-                        ・数字カードは0~9まで各4枚ずつ。<br>
+                        ・数字カードは0~9まで各4枚ずつ<br>
                         <strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br>
                         <strong>🔵 順行🐘 (通常):</strong><br>
                         0 < 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9<br>
@@ -5610,7 +5687,7 @@ function setupEffectListener() {
                         ・<strong>パス</strong>では、数字カードを1枚引いても良い<br>
                         　⇒その際、出せるなら出しても良い！
                         <br>
-                        <strong>リセットとは</strong><br>
+                        <strong>　リセットとは</strong><br>
                         ・数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持つ<br>
                         ・<strong>リセット権</strong>を持っているプレイヤーがパスすると、数字墓地のカードが全て除外され、何でも出せる<br>
                         ・<strong>リセット権</strong>は、<strong>👑RESET</strong>で表示されている
