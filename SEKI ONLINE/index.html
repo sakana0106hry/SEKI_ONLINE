@@ -1951,7 +1951,12 @@
             let turnIndicator = document.getElementById("turn-indicator");
             let graveContainer = document.getElementById("grave-container");
             let handContainer = document.getElementById("my-hand");
-            let hackedContainer = document.getElementById("hacked-area");
+            
+            // ▼▼▼ ここに追加してください！(一番最初) ▼▼▼
+            // ここで定義すれば、関数内のどこで使ってもエラーになりません
+            let topForReset = (data.graveNum && data.graveNum.length > 0) ? data.graveNum[data.graveNum.length-1] : null;
+            let resetHolder = topForReset ? topForReset.owner : null;
+            // ▲▲▲ 追加ここまで ▲▲▲
             
             // 2. クリア
             if(handContainer) handContainer.innerHTML = "";
@@ -2359,10 +2364,6 @@
                 if (els.graveSym) els.graveSym.innerHTML = renderPile(data.graveSym);
                 if (document.getElementById("exclusion-count")) document.getElementById("exclusion-count").innerText = (data.exclusion || []).length;
 
-
-                let top = getTop(data.graveNum);
-                let resetHolder = top ? top.owner : null;
-                
                 // メッセージ
                 let isMyTurnNow = (pIds[data.turnIdx] === myId);
                 if (data.status === "finished") {
