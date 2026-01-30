@@ -1031,12 +1031,12 @@
             <div style="display:flex; gap:10px; align-items:center;">
                 <button id="btn-host-settings" class="hidden" onclick="openHostSettings()" 
                     style="padding:5px 12px; font-size:11px; background:#1565c0; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:20px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; align-items:center;">
-                    ⚙️ ホスト設定
+                    ⚙️設定
                 </button>
                 <button onclick="showRoleList()" style="padding:2px 8px; font-size:12px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職一覧</button>
                 <button onclick="showRule()" style="padding:2px 8px; font-size:12px; ">ルール</button>
                 <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:16px;">🔊</button>
-                <button onclick="location.reload()" style="padding:2px 8px; font-size:12px;">退出</button>
+                <button onclick="location.reload()" style="padding:2px 8px; font-size:12px;">🚪</button>
             </div>
         </div>
 
@@ -3378,6 +3378,9 @@ function activateThief(count = 1) {
     });
 
     openModal(`盗賊: ターゲット選択 (${count}回目)`, html);
+    if (document.getElementById("modal-footer")) {
+                    document.getElementById("modal-footer").innerHTML = "";
+                }
 }
 
 // 2. ★追加: 奪うカードを選ぶ（裏向きシャッフル）
@@ -3419,6 +3422,9 @@ function thiefSelectTake(targetId, count) {
     });
     
     openModal(`盗賊: 略奪選択 (${count}回目)`, html);
+    if (document.getElementById("modal-footer")) {
+                    document.getElementById("modal-footer").innerHTML = "";
+                }
 }
 
 // 渡すカード選択
@@ -3444,11 +3450,12 @@ function thiefSelectGive(targetId, takeIdx, count) {
 
         html += `<div class="${cssClass}" style="${style} cursor:pointer;" ${onClick}>${c.val}</div>`;
     });
-    
-    html += `</div>`;
-    html += `<div style="margin-top:15px;"><button onclick="thiefSelectTake('${targetId}', ${count})" style="background:#90a4ae; padding:8px 16px; font-size:12px;">戻る</button></div>`;
 
     openModal(`盗賊: 譲渡選択 (${count}回目)`, html);
+
+    if (document.getElementById("modal-footer")) {
+                    document.getElementById("modal-footer").innerHTML = "";
+                }
 }
 
 // 3. 自分の手札から「押し付けるカード」を選ぶ
@@ -3471,11 +3478,12 @@ function thiefSelectGive(targetId, takeIdx, count) {
                  </div>`;
     });
     
-    html += `</div>`;
-    // 戻るボタン
-    html += `<div style="margin-top:15px;"><button onclick="thiefSelectTake('${targetId}', ${count})" style="background:#90a4ae; padding:8px 16px; font-size:12px;">戻る</button></div>`;
 
     openModal(`盗賊: 譲渡選択 (${count}回目)`, html);
+
+    if (document.getElementById("modal-footer")) {
+                    document.getElementById("modal-footer").innerHTML = "";
+                }
 }
 
 // 4. トレード実行処理 (ランダムではなく指定インデックスで)
@@ -3574,7 +3582,7 @@ async function endThiefTurn() {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
     await db.ref().update(updates);
-    await pushLog(`${myName}の盗賊ターンが終了しました。`, 'public');
+    await pushLog(`${myName}の[盗賊]が終了しました。`, 'public');
 }
 
 /* --- HUNTER (狩人) の実装 (UI改善版) --- */
@@ -5393,7 +5401,7 @@ async function execAlchemistKeep() {
     updates[`rooms/${currentRoom}/hands/${myId}`] = hand;
     updates[`rooms/${currentRoom}/deckNum`] = deck;
 
-    await pushLog(`${myName}の錬金は失敗し、素材を手札に追加しました)。`, 'public');
+    await pushLog(`${myName}の錬金は失敗し、素材を手札に追加しました。`, 'public');
 
     // スキル使用済み & パスカウントリセット
     let actList = {...(gameState.activatedList || {})};
@@ -5652,7 +5660,7 @@ function setupEffectListener() {
                     </details>`;
             });
             html += '</div>';
-            openModal("役職一覧", html);
+            openModal("役職", html);
 
             // ★追加: このモーダルだけ幅を広げる (600px)
             const mBox = document.getElementById("modal-box");
