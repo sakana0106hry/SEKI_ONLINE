@@ -2496,12 +2496,25 @@
                     if (isRevealed) {
                         let rName = roles[pid];
                         let rJp = (typeof ROLE_INFO !== 'undefined' && ROLE_INFO[rName]) ? ROLE_INFO[rName].jp : rName;
-                        // 手品師の特殊表示
+                        
+                        // ▼▼▼ 修正・追加箇所: 手品師 または 新卒 の場合の特殊表示 ▼▼▼
                         if (rName === "MAGICIAN" && typeof currentAct[pid] === 'string') {
+                            // 手品師の既存処理
                             roleHtml = `<div class="role-badge-pill">手品師: ${currentAct[pid]}</div>`;
-                        } else {
+                        } 
+                        else if (rName === "NEW GRAD" && typeof currentAct[pid] === 'string') {
+                            // ★新卒: コピーした役職名をカッコ書きで追加
+                            let copiedRoleKey = currentAct[pid];
+                            let copiedRoleJp = (ROLE_INFO[copiedRoleKey]) ? ROLE_INFO[copiedRoleKey].jp : copiedRoleKey;
+                            
+                            // .role-sub クラスを使って横に小さく表示
+                            roleHtml = `<div class="role-badge-pill">${rJp}<span class="role-sub">(${copiedRoleJp})</span></div>`;
+                        } 
+                        else {
+                            // 通常
                             roleHtml = `<div class="role-badge-pill">${rJp}</div>`;
                         }
+                        // ▲▲▲ 修正ここまで ▲▲▲s
                     }
 
                     // ヘッダーアイコン
@@ -5168,7 +5181,9 @@ async function execNewGradCopy(targetRole) {
     // (コピー先の役職でさらに上書きされることもありますが、まずは「新卒を使った」事実を記録)
     let updates = {};
     let actList = {...(gameState.activatedList || {})};
-    actList[myId] = true; 
+
+    actList[myId] = targetRole; 
+
     updates[`rooms/${currentRoom}/activatedList`] = actList;
     
     // スキル発動音 (新卒用)
