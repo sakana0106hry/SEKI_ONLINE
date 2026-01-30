@@ -1516,7 +1516,7 @@
 ターン終了！`
             },
             "NECROMANCER": {
-                jp: "ネクロマンサー",
+                jp: "死霊使い",
                 summary: "数字墓地の一番上を除外",
                 desc: `①数字墓地の一番上のカードを除外する。
 ②自分のターンを行う。
@@ -2305,8 +2305,15 @@
                             return "?"; 
                         });
                         
-                        // 重複を除去して結合
-                        let uniqueText = [...new Set(textList)].join(', ');
+                        // ★修正: 重複を削除せず、ソートして見やすくしてから結合
+                        // (Setを使わないことで、3が2枚なら "3, 3" と表示されるようになります)
+                        textList.sort((a, b) => {
+                            // 数字なら数字順、文字ならアルファベット順
+                            if (!isNaN(a) && !isNaN(b)) return a - b;
+                            return String(a).localeCompare(String(b));
+                        });
+
+                        let uniqueText = textList.join(', ');
                         revealedTextHtml = `公開: <span class="revealed-active">${uniqueText}</span>`;
                     } else {
                         // なし (グレー文字)
