@@ -1847,7 +1847,6 @@
                 
                 if (senderName !== myName && lastLog.timestamp > lastReadLogTime) {
                     // els.btnChat.classList.add("notify-active");
-                    els.log.classList.add("notify-bar");
                     if (Date.now() - lastLog.timestamp < 2000) { // 2秒以内の新着なら鳴らす
                          playSoundEffect('chat');
                     }
@@ -1884,7 +1883,7 @@
             // ★既読処理
             lastReadLogTime = Date.now();
             // els.btnChat.classList.remove("notify-active");
-            els.log.classList.remove("notify-bar");
+            //els.log.classList.remove("notify-bar");
 
             let html = `
                 <div id="chat-input-container">
