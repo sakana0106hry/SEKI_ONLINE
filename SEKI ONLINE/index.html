@@ -5581,24 +5581,12 @@ function setupEffectListener() {
                     <p style="margin:0 0 10px 0;">
                         ・順に回ってくるターンで、手札を先に0枚にした人が勝ち！<br>
                         ・自分のターンでは以下から<strong>1つ</strong>の行動ができる<br>
-                        　1. 手札から数字カードを数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br>
-                        　2. 手札から記号カードを使う<br>
-                        　3. 一度きりの役職能力を使う（詳しい説明は【役職一覧】を参照）<br>
-                        　4. パスをして自分のターンを流す（このとき、数字カードを1枚引いても良い）
+                        　　1. 手札から<strong>数字カード</strong>を数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br>
+                        　　2. 手札から<strong>記号カード</strong>を使う<br>
+                        　　3. 一度きりの<strong>役職能力</strong>を使う（詳しい説明は【役職一覧】を参照）<br>
+                        　　4. <strong>パス</strong>をして自分のターンを流す（このとき、数字カードを1枚引いても良い）<br>
                         ・数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持ち、<br>
                         　リセット権を持っているプレイヤーがパスすると、数字墓地のカードが除外され、何でも出せる。
-                    </p>
-                    
-                    <h4 style="border-left:4px solid #1565c0; padding-left:8px; margin:10px 0 5px 0;">数字カード</h4>
-                    <p style="margin:0 0 10px 0;">
-                        ・数字カードは0~9まで各4枚ずつ。<br>
-                        <strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br>
-                        <br>
-                        <strong>🔵 順行🐘 (通常):</strong><br>
-                        0 < 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9<br>
-                        <br>
-                        <strong>🔴 逆行🐁 (REVERSE中):</strong><br>
-                        0 < 9 < 8 < 7 < 6 < 5 < 4 < 3 < 2 < 1<br>
                     </p>
 
                     <h4 style="border-left:4px solid #c62828; padding-left:8px; margin:10px 0 5px 0;">記号カード</h4>
@@ -5608,6 +5596,17 @@ function setupEffectListener() {
                         <li><strong>DIG UP</strong>（4枚）: 数字墓地の1番上のカードと、手札の数字カードを交換する</li>
                         <li><strong>DISCARD</strong>（<strong>1枚</strong>）: 好きな手札を1枚捨てる</li>
                     </ul>
+
+                    <h4 style="border-left:4px solid #1565c0; padding-left:8px; margin:10px 0 5px 0;">数字カード</h4>
+                    <p style="margin:0 0 10px 0;">
+                        ・数字カードは0~9まで各4枚ずつ。<br>
+                        <strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br>
+                        <br>
+                        <strong>🔵 順行🐘 (通常):</strong><br>
+                        0 < 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9<br>
+                        <strong>🔴 逆行🐁 (REVERSE中):</strong><br>
+                        0 < 9 < 8 < 7 < 6 < 5 < 4 < 3 < 2 < 1<br>
+                    </p>
 
                 </div>
             `;
