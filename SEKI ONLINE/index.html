@@ -1034,7 +1034,6 @@
                     ⚙️ ホスト設定
                 </button>
                 <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:16px;">🔊</button>
-                <button id="btn-chat-icon" onclick="showLogHistory()" style="padding:2px 8px; font-size:16px;">💬</button>
                 <button onclick="location.reload()" style="padding:2px 8px; font-size:12px;">退出</button>
             </div>
         </div>
@@ -1554,7 +1553,7 @@
                     break;
                 }
             }
-            els.log.innerText = display + " (タップで履歴)";
+            els.log.innerText = display + " (タップで履歴＆チャット)";
 
             // ★チャット通知
             if (lastLog.type === 'chat' && lastLog.targetId !== myId) {
@@ -1562,7 +1561,7 @@
                 const senderName = match ? match[1] : "";
                 
                 if (senderName !== myName && lastLog.timestamp > lastReadLogTime) {
-                    els.btnChat.classList.add("notify-active");
+                    // els.btnChat.classList.add("notify-active");
                     els.log.classList.add("notify-bar");
                     if (Date.now() - lastLog.timestamp < 2000) { // 2秒以内の新着なら鳴らす
                          playSoundEffect('chat');
@@ -1577,7 +1576,7 @@
             
             // ★既読処理
             lastReadLogTime = Date.now();
-            els.btnChat.classList.remove("notify-active");
+            // els.btnChat.classList.remove("notify-active");
             els.log.classList.remove("notify-bar");
 
             let html = `
