@@ -3035,7 +3035,7 @@
                             let lName = gameState.players[loserId].name;
                             
                             // 全員に見えるログとして送信
-                            await pushLog(`最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                            await pushLog(`全順位確定！　最下位 ${lName} の残り手札: [${lText}]`, 'public');
                         } else {
                             await pushLog(`全順位が確定しました！`, 'public');
                         }
@@ -3402,7 +3402,7 @@
                             let lName = gameState.players[loserId].name;
                             
                             // 全員に見えるログとして送信
-                            await pushLog(`最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                            await pushLog(`全順位確定！　最下位 ${lName} の残り手札: [${lText}]`, 'public');
                         } else {
                             await pushLog(`全順位が確定しました！`, 'public');
                         }
@@ -4323,7 +4323,7 @@ function toggleGamblerSelect(el, maxCount) {
                             let lName = gameState.players[loserId].name;
                             
                             // 全員に見えるログとして送信
-                            await pushLog(`最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                            await pushLog(`全順位確定！　最下位 ${lName} の残り手札: [${lText}]`, 'public');
                         } else {
                             await pushLog(`全順位が確定しました！`, 'public');
                         }
@@ -5685,7 +5685,7 @@ async function execAlchemist(resultVal) {
                             let lName = gameState.players[loserId].name;
                             
                             // 全員に見えるログとして送信
-                            await pushLog(`最下位 ${lName} の残りの手札: [${lText}]`, 'public');
+                            await pushLog(`全順位確定！　最下位 ${lName} の残りの手札: [${lText}]`, 'public');
                         } else {
                             await pushLog(`全順位が確定しました！`, 'public');
                         }
