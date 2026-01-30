@@ -3393,8 +3393,8 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
     
     // ログ出力
     await pushLog(`${myName}が[盗賊]で${targetName}とトレードしました！(${count}回目)`, 'public');
-    await pushLog(`${targetName}から [${receiveCard.val}] を盗み、 [${giveCard.val}] を奪った。`, 'private', myId);
-    await pushLog(`${myName}に [${receiveCard.val}] を盗まれ、 [${giveCard.val}] を渡された。`, 'private', targetId);
+    await pushLog(`${targetName}から [${receiveCard.val}] を盗み、 [${giveCard.val}] を奪いました。`, 'private', myId);
+    await pushLog(`${myName}に [${receiveCard.val}] を盗まれ、 [${giveCard.val}] を渡されました。`, 'private', targetId);
 
     // 通知
     updates[`rooms/${currentRoom}/players/${targetId}/notification`] = {
@@ -4630,6 +4630,7 @@ async function execPoliceTrade(targetId, giveIdx, takeIdx) {
     let giveCard = myHand.splice(giveIdx, 1)[0];
     // ★変更: ランダムではなく、指定された takeIdx のカードを奪う
     let receiveCard = targetHand.splice(takeIdx, 1)[0];
+    const targetName = gameState.players[targetId].name;
     
     myHand.push(receiveCard);
     targetHand.push(giveCard);
@@ -4638,8 +4639,9 @@ async function execPoliceTrade(targetId, giveIdx, takeIdx) {
     updates[`rooms/${currentRoom}/hands/${targetId}`] = sortCards(targetHand);
 
     updates[`rooms/${currentRoom}/lastSound`] = { type: 'TRADE', id: Date.now() };
-    await pushLog(`${myName}が[警察官]としてトレードを実行しました`, 'public');
-    await pushLog(`[${receiveCard.val}] を押収し、[${giveCard.val}] を渡しました。`, 'private', myId);
+    await pushLog(`${myName}が[警察官]として${targetName}とトレードを実行しました。`, 'public');
+    await pushLog(`${targetName}から [${receiveCard.val}] を押収し、[${giveCard.val}] を渡しました。`, 'private', myId);
+    await pushLog(`${myName}に [${receiveCard.val}] を押収され、[${giveCard.val}] を渡されました。`, 'private', targetId);
     
     updates[`rooms/${currentRoom}/players/${targetId}/notification`] = {
         fromName: myName + "(警察官)",
