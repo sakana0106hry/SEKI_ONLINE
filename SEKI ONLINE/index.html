@@ -3065,8 +3065,11 @@
         }
 
         async function handleSymbol(card, idx, currentHand) {
-            if (currentHand.length === 1) return showInfoModal("禁止あがり", "記号であがることはできません。");
-            //ここをハッカーのロックされてるカードと合わせて計算すればよさそう
+            // ▼▼▼ 修正箇所: ロック中のカードも考慮して「あがり」かどうか判定する ▼▼▼
+            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
+            
+            if (currentHand.length === 1 && myHackedCount === 0) return showInfoModal("禁止あがり", "記号であがることはできません。");
+            
             
             if (card.val === "DIG UP") {
                 const hasNum = currentHand.some((c, i) => i !== idx && c.type === 'num');
@@ -3133,7 +3136,6 @@
             newHand.splice(idx, 1);
 
             // 2. 残り枚数を計算して、音のセットを作成
-            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
             let nextTotal = newHand.length + myHackedCount;
 
             let soundList = [card.val]; // 例: ['REVERSE']
