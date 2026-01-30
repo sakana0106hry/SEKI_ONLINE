@@ -5584,9 +5584,7 @@ function setupEffectListener() {
                         　　1. 手札から<strong>数字カード</strong>を数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br>
                         　　2. 手札から<strong>記号カード</strong>を使う<br>
                         　　3. 一度きりの<strong>役職能力</strong>を使う（詳しい説明は【役職一覧】を参照）<br>
-                        　　4. <strong>パス</strong>をして自分のターンを流す（このとき、数字カードを1枚引いても良い）<br>
-                        ・数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持ち、<br>
-                        　リセット権を持っているプレイヤーがパスすると、数字墓地のカードが除外され、何でも出せる。
+                        　　4. <strong>パス</strong>をして自分のターンを流す（パスの詳細は下部へ）<br>
                     </p>
 
                     <h4 style="border-left:4px solid #c62828; padding-left:8px; margin:10px 0 5px 0;">記号カード</h4>
@@ -5601,12 +5599,27 @@ function setupEffectListener() {
                     <p style="margin:0 0 10px 0;">
                         ・数字カードは0~9まで各4枚ずつ。<br>
                         <strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br>
-                        <br>
                         <strong>🔵 順行🐘 (通常):</strong><br>
                         0 < 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9<br>
                         <strong>🔴 逆行🐁 (REVERSE中):</strong><br>
                         0 < 9 < 8 < 7 < 6 < 5 < 4 < 3 < 2 < 1<br>
                     </p>
+
+                    <h4 style="border-left:4px solid #f76205; padding-left:8px; margin:10px 0 5px 0;">パスとリセット</h4>
+                    <p style="margin:0 0 10px 0;">
+                        ・<strong>パス</strong>では、数字カードを1枚引いても良い<br>
+                        　⇒その際、出せるなら出しても良い！
+                        <br>
+                        <strong>リセットとは</strong><br>
+                        ・数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持つ<br>
+                        ・<strong>リセット権</strong>を持っているプレイヤーがパスすると、数字墓地のカードが全て除外され、何でも出せる<br>
+                        ・<strong>リセット権</strong>は、<strong>👑RESET</strong>で表示されている
+                    </p>
+
+                    <h4 style="border-left:4px solid #c62828; padding-left:8px; margin:10px 0 5px 0;">🚫禁止事項🚫</h4>
+                    <ul style="padding-left:20px; margin:0;">
+                        <li><strong>記号あがり</strong>: 手札の最後の1枚が記号カードのとき、それを使って0枚にはできない</li>
+                        <li><strong>0あがり</strong>: 手札の最後の1枚が0のとき、0を出して0枚にすることはできない</li>
 
                 </div>
             `;
