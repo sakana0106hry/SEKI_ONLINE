@@ -1003,6 +1003,101 @@
             50% { opacity: 0.5; transform: scale(1.05); } /* 半透明になりつつ少し大きくなる */
             100% { opacity: 1.0; transform: scale(1.0); }
         }
+        /* --- チャット吹き出し (Chat Bubble) --- */
+    .chat-bubble {
+        position: absolute;
+        background: #fff;
+        color: #000;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 6px 10px;
+        border-radius: 12px;
+        max-width: 120px;       /* 長文は省略 */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        opacity: 0;             /* 最初は隠す */
+        pointer-events: none;   /* クリックの邪魔をしない */
+        z-index: 500;           /* カードより手前 */
+        transition: opacity 0.2s;
+    }
+
+    /* 吹き出しのしっぽ (共通) */
+    .chat-bubble::after {
+        content: "";
+        position: absolute;
+        border-style: solid;
+        display: block;
+    }
+
+    /* アニメーションクラス */
+    .chat-bubble.active {
+        animation: bubble-pop 4s ease-out forwards;
+    }
+
+    @keyframes bubble-pop {
+        0% { opacity: 0; transform: scale(0.5); }
+        10% { opacity: 1; transform: scale(1); }
+        85% { opacity: 1; transform: scale(1); }
+        100% { opacity: 0; transform: scale(0.8); }
+    }
+
+    /* --- 位置別のスタイル (画面内側に向くように配置) --- */
+
+    /* 1. 自分 (下部配置) -> 吹き出しは「上」に出す */
+    .bubble-pos-bottom {
+        bottom: 110%; /* 箱の上に */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .bubble-pos-bottom::after {
+        bottom: -6px; left: 50%; margin-left: -6px;
+        border-width: 6px 6px 0;
+        border-color: #fff transparent;
+    }
+
+    /* 2. 上の人 (上部配置) -> 吹き出しは「下」に出す */
+    .bubble-pos-top {
+        top: 100%;    /* 箱の下に */
+        left: 50%;
+        margin-top: 10px;
+        transform: translateX(-50%);
+    }
+    .bubble-pos-top::after {
+        top: -6px; left: 50%; margin-left: -6px;
+        border-width: 0 6px 6px;
+        border-color: #fff transparent;
+    }
+
+    /* 3. 左の人 -> 吹き出しは「右」に出す */
+    .bubble-pos-left {
+        top: 20px;
+        left: 100%;   /* 箱の右に */
+        margin-left: 10px;
+    }
+    .bubble-pos-left::after {
+        top: 50%; right: 100%; margin-top: -6px;
+        border-width: 6px 6px 6px 0;
+        border-color: transparent #fff;
+    }
+
+    /* 4. 右の人 -> 吹き出しは「左」に出す */
+    .bubble-pos-right {
+        top: 20px;
+        right: 100%;  /* 箱の左に */
+        margin-right: 10px;
+    }
+    .bubble-pos-right::after {
+        top: 50%; left: 100%; margin-top: -6px;
+        border-width: 6px 0 6px 6px;
+        border-color: transparent #fff;
+    }
+
+    /* スマホ調整: 左右の人が画面端すぎる場合、少し内側に寄せる微調整 */
+    @media (max-width: 600px) {
+        .chat-bubble { max-width: 90px; font-size: 10px; }
+    }
 
     
 
@@ -1614,6 +1709,7 @@
         // ★追加: ハッカー解除制御用の変数
         let lastCleanupTurnIdx = -1;
         let myRankPlayed = false; // ★追加: 順位決定音が再生済みかどうかのフラグ
+        let lastChatTimeProcessed = 0; // ★追加: チャット吹き出し用
         
 
         const els = {
@@ -1716,6 +1812,34 @@
             }
             els.log.innerText = display + " (タップで履歴＆チャット)";
 
+            // ▼▼▼ 追加: チャット吹き出し表示処理 ▼▼▼
+            // 今回のレンダリングでまだ処理していない、かつ新しいチャットのみ対象
+            logs.forEach(l => {
+                if (l.type === 'chat' && l.timestamp > lastChatTimeProcessed) {
+                    // 発言者のIDを探す
+                    // ログテキスト形式 "[名前] メッセージ" から逆引きするのは確実ではないため、
+                    // pushLog 側で targetId (発言者ID) を保存するように修正するのがベストですが、
+                    // 現状のコードに合わせて名前から推測、あるいは targetId があればそれを使います。
+                    
+                    // pushLog('...', 'chat') の呼び出し元を確認すると、targetId は渡されていません。
+                    // なので、gameState.players から名前で検索するか、
+                    // もしくは sendChat() を修正して targetId を入れる必要があります。
+                    
+                    // ★一番簡単な対応: sendChat()を修正してIDを入れる（後述ステップ4）
+                    // ここでは IDが入っている前提で書きます。
+                    
+                    if (l.targetId) {
+                        showChatBubble(l.targetId, l.text);
+                    }
+                }
+            });
+            
+            // 最新のタイムスタンプを記録
+            if (lastLog) {
+                lastChatTimeProcessed = Math.max(lastChatTimeProcessed, lastLog.timestamp);
+            }
+            // ▲▲▲ 追加ここまで ▲▲▲
+
             // ★チャット通知
             if (lastLog.type === 'chat' && lastLog.targetId !== myId) {
                 const match = lastLog.text.match(/^\[(.*?)\]/);
@@ -1728,6 +1852,28 @@
                          playSoundEffect('chat');
                     }
                 }
+            }
+        }
+
+        // ▼▼▼ 新規関数: 吹き出し表示 ▼▼▼
+        function showChatBubble(pid, text) {
+            const bubble = document.getElementById(`bubble-${pid}`);
+            if (!bubble) return;
+
+            // 名前部分 "[Name] " を除去してメッセージだけにする
+            const match = text.match(/^\[.*?\] (.*)$/);
+            const msg = match ? match[1] : text;
+
+            bubble.innerText = msg;
+            
+            // アニメーションリセット（連続投稿対応）
+            bubble.classList.remove("active");
+            void bubble.offsetWidth; // リフロー強制
+            bubble.classList.add("active");
+            
+            // 効果音（自分以外）
+            if (pid !== myId) {
+                playSoundEffect('chat');
             }
         }
 
@@ -1776,7 +1922,9 @@
             const input = document.getElementById('chat-input');
             const msg = input.value.trim();
             if(!msg) return;
-            await pushLog(`[${myName}] ${msg}`, 'chat');
+
+            await pushLog(`[${myName}] ${msg}`, 'chat', myId);
+
             input.value = "";
             lastReadLogTime = Date.now();
             showLogHistory(); 
@@ -2280,6 +2428,12 @@
                     let area = item.area;
                     if (!area) return;
 
+                    // ▼▼▼ 追加: エリアに応じた吹き出し位置クラスを決定 ▼▼▼
+                    let bubbleClass = "bubble-pos-top"; // デフォルト（上）
+                    if (area.id === "area-left") bubbleClass = "bubble-pos-left";
+                    else if (area.id === "area-right") bubbleClass = "bubble-pos-right";
+                    // ▲▲▲ 追加ここまで ▲▲▲
+
                     let isTurn = (pIds[data.turnIdx] === pid);
                     let isRanked = (data.rankings && data.rankings[pid]);
                     let pHand = hands[pid] || [];
@@ -2386,8 +2540,8 @@
 
                     // ★ HTML組み立て ★
                     let html = `
-                        <div class="${boxClass}">
-                            <div class="p-header">${hostMark}${pName}</div>
+                        <div class="${boxClass}" style="position:relative;">
+                            <div id="bubble-${pid}" class="chat-bubble ${bubbleClass}"></div> <div class="p-header">${hostMark}${pName}</div>
                             
                             <div class="p-body">
                                 <div class="p-hand-count" style="${countStyle}">
@@ -2542,6 +2696,14 @@
             const nameBar = document.getElementById("my-name-bar");
             if (nameBar && players[myId]) {
 
+                // ▼▼▼ 追加: 自分用の吹き出しを nameBar の近くに追加 ▼▼▼
+                // nameBar は position: relative がないので、親の my-area に依存させるか、
+                // nameBar自体に relative をつける手もありますが、
+                // ここでは nameBar の中に absolute で配置します。
+                // nameBar に style="position:relative" を付与しておくと安全です
+                nameBar.style.position = "relative";
+                nameBar.style.overflow = "visible"; // はみ出してもOKにする
+
                 // ★修正: 変数名を「rHolder」に変えて、ここで再定義します
                 // (これで上にあるやつと喧嘩せず、確実に動きます)
                 let rHolder = null;
@@ -2579,8 +2741,10 @@
                 // 3. 順位がついているなら表示
                 let rankText = (data.rankings && data.rankings[myId]) ? `<span style="color:#ffd700; margin-left:10px;">🏆${data.rankings[myId]}位</span>` : "";
 
-                // ★全部まとめてセット！
-                nameBar.innerHTML = `${hostIcon}${myPName}${myRoleHtml}${resetBadge}${rankText}`;
+                let bubbleHtml = `<div id="bubble-${myId}" class="chat-bubble bubble-pos-bottom"></div>`;
+                
+                // ★全部まとめてセット！ (先頭に bubbleHtml を追加)
+                nameBar.innerHTML = `${bubbleHtml}${hostIcon}${myPName}${myRoleHtml}${resetBadge}${rankText}`;
             }
 
             // 音再生
