@@ -2441,7 +2441,7 @@
                     let activeCount = getActiveCount(data);
                     
                     // 条件A: 権利継承 (あがった人のカードで、全員パスが回った)
-                    let isInheritedReset = (data.rankings && data.rankings[resetHolder] && data.passCount >= activeCount);
+                    let isInheritedReset = (data.rankings && data.rankings[resetHolder]);
                     
                     // 条件B: 自分切り (場のカードが自分のものである)
                     // ※パス回数に関係なく、自分のカードならリセット権を持つ
@@ -2639,7 +2639,7 @@
             let resetHolder = top ? top.owner : null;
 
             let isOwnerReset = (resetHolder === myId && (gameState.graveNum||[]).length > 0);
-            let isInheritedReset = (resetHolder && gameState.rankings && gameState.rankings[resetHolder] && gameState.passCount >= activeCount);
+            let isInheritedReset = (resetHolder && gameState.rankings && gameState.rankings[resetHolder]);
 
             if (isOwnerReset || isInheritedReset) {
                 openModal("パス (リセット権行使)", "山札からドローしますか？<br><br><span style='color:#ef5350; font-weight:bold;'>※リセット権を行使します（場が流れ、自分のターンが続きます）</span><br><br><button class='modal-btn primary' onclick='execPassDraw(true)'>ドローする</button><button class='modal-btn' onclick='execPassNoDraw(true)'>しない</button>");
