@@ -285,7 +285,7 @@
         border-radius: 10px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-        overflow: hidden;        /* ★はみ出した分はカット（これで伸びない） */
+        overflow: visible !important;        /* ★はみ出した分はカット（これで伸びない） */
     }
 
     /* 手番のときの強調 */
@@ -1812,24 +1812,19 @@
             }
             els.log.innerText = display + " (タップで履歴＆チャット)";
 
+            // ▼▼▼ 修正箇所: チャット吹き出し表示処理 ▼▼▼
+            const now = Date.now(); // 現在時刻を取得
+
             // ▼▼▼ 追加: チャット吹き出し表示処理 ▼▼▼
             // 今回のレンダリングでまだ処理していない、かつ新しいチャットのみ対象
             logs.forEach(l => {
-                if (l.type === 'chat' && l.timestamp > lastChatTimeProcessed) {
-                    // 発言者のIDを探す
-                    // ログテキスト形式 "[名前] メッセージ" から逆引きするのは確実ではないため、
-                    // pushLog 側で targetId (発言者ID) を保存するように修正するのがベストですが、
-                    // 現状のコードに合わせて名前から推測、あるいは targetId があればそれを使います。
-                    
-                    // pushLog('...', 'chat') の呼び出し元を確認すると、targetId は渡されていません。
-                    // なので、gameState.players から名前で検索するか、
-                    // もしくは sendChat() を修正して targetId を入れる必要があります。
-                    
-                    // ★一番簡単な対応: sendChat()を修正してIDを入れる（後述ステップ4）
-                    // ここでは IDが入っている前提で書きます。
-                    
-                    if (l.targetId) {
-                        showChatBubble(l.targetId, l.text);
+                if (l.type === 'chat') {
+                    // 1. 吹き出し表示ロジック (4秒以内の発言なら表示し続ける)
+                    // これにより、画面が再描画されても吹き出しが維持されます
+                    if (now - l.timestamp < 4000) {
+                        if (l.targetId) {
+                            showChatBubble(l.targetId, l.text);
+                        }
                     }
                 }
             });
@@ -1863,17 +1858,17 @@
             const match = text.match(/^\[.*?\] (.*)$/);
             const msg = match ? match[1] : text;
 
+            // 既に同じ内容が表示され、activeなら何もしない (点滅防止)
+            if (bubble.innerText === msg && bubble.classList.contains("active")) {
+                return;
+            }
+
             bubble.innerText = msg;
             
             // アニメーションリセット（連続投稿対応）
             bubble.classList.remove("active");
             void bubble.offsetWidth; // リフロー強制
             bubble.classList.add("active");
-            
-            // 効果音（自分以外）
-            if (pid !== myId) {
-                playSoundEffect('chat');
-            }
         }
 
         function showLogHistory() {
