@@ -885,6 +885,7 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         z-index: 20;
         pointer-events: none; /* クリックの邪魔をしない */
+        font-family: "M PLUS Rounded 1c", sans-serif;
     }
 
     /* --- スマホ・細い画面用のスリムレイアウト --- */
@@ -1051,7 +1052,7 @@
                     <div class="field-zone-container">
                         
                         <div class="field-zone zone-num">
-                            <div class="zone-label">数字</div>
+                            <div class="zone-label">数字墓地</div>
                             
                             <div class="grave-slot" onclick="viewGrave('num')">
                                 <div id="graveNum" class="pile"></div>
@@ -1064,7 +1065,7 @@
                         </div>
 
                         <div class="field-zone zone-sym">
-                            <div class="zone-label">記号</div>
+                            <div class="zone-label">記号墓地</div>
                             
                             <div class="grave-slot" onclick="viewGrave('sym')">
                                 <div id="graveSym" class="pile"></div>
@@ -1188,6 +1189,7 @@
         "HACKER": "./images/hacker.png",
         "POLICE OFFICER": "./images/policeofficer.png",
         "ALCHEMIST": "./images/alchemist.png",
+        "NECROMANCER": "./images/necromancer.png",
         //他もあれば追加
         };
 
@@ -1232,6 +1234,7 @@
             'SKILL_HACKER': "./sounds/skill_hacker.mp3",
             'SKILL_POLICE OFFICER': "./sounds/skill_policeofficer.mp3",
             'SKILL_ALCHEMIST': "./sounds/skill_alchemist.mp3",
+            'SKILL_NECROMANCER': "./sounds/skill_necromancer.mp3",
         };
         
         /* ===============================================
@@ -1410,7 +1413,7 @@
         const ROLES = [
             "ALCHEMIST", "ANGLER", "EMPEROR", "FORTUNE TELLER", 
             "GAMBLER", "HACKER", "HUNTER", "MAGICIAN", 
-            "MILLIONAIRE", "NEW GRAD", "POLICE OFFICER", "THIEF"
+            "MILLIONAIRE", "NEW GRAD", "POLICE OFFICER", "THIEF", "NECROMANCER"
         ];
 
         // 【追加】役職の日本語名と簡易説明（表示用）
@@ -1426,7 +1429,8 @@
             "MILLIONAIRE":    { jp: "富豪",     desc: "数字手札を除外して記号を購入" },
             "NEW GRAD":       { jp: "新卒",     desc: "他人の役職をコピー" },
             "POLICE OFFICER": { jp: "警察官",   desc: "相手の手札を1枚公開させる" },
-            "THIEF":          { jp: "盗賊",     desc: "トレードを2回まで行える" }
+            "THIEF":          { jp: "盗賊",     desc: "トレードを2回まで行える" },
+            "NECEOMANCER":    { jp: "ネクロマンサー",     desc: "数字墓地の一番上のカードを除外する" }
         };
 
         let myId = localStorage.getItem("seki_uid_v2");
@@ -1975,6 +1979,7 @@
                         else if (myRole === "HACKER") funcName = "activateHacker()";
                         else if (myRole === "ALCHEMIST") funcName = "activateAlchemist()";
                         else if (myRole === "NEW GRAD") funcName = "activateNewGrad()";
+                        //else if (myRole === "NECROMANCER") funcName = "activateNecromancer()";
 
                         if (funcName) {
                             actBtnHtml = `<button onclick="${funcName}" style="margin-top:8px; padding:6px 12px; font-size:12px; background:#fff; color:#4a148c; border:none; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.2);">スキル発動</button>`;
