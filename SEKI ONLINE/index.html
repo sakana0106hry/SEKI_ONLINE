@@ -1030,13 +1030,13 @@
             <div id="room-display"></div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <button id="btn-host-settings" class="hidden" onclick="openHostSettings()" 
-                    style="padding:5px 12px; font-size:16px; background:#1565c0; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:20px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; align-items:center;">
+                    style="padding:5px 12px; font-size:15px; background:#1565c0; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:20px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; align-items:center;">
                     ⚙️
                 </button>
-                <button onclick="showRoleList()" style="padding:2px 8px; font-size:16px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職</button>
-                <button onclick="showRule()" style="padding:2px 8px; font-size:16px; ">ルール</button>
-                <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:16px;">🔊</button>
-                <button onclick="location.reload()" style="padding:2px 8px; font-size:16px;">🚪</button>
+                <button onclick="showRoleList()" style="padding:2px 8px; font-size:15px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職</button>
+                <button onclick="showRule()" style="padding:2px 8px; font-size:15px; ">ルール</button>
+                <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:15px;">🔊</button>
+                <button onclick="location.reload()" style="padding:2px 8px; font-size:15px;">🚪</button>
             </div>
         </div>
 
@@ -2172,10 +2172,6 @@
                 let pIds = getSortedPlayerIds(players); 
                 if(data.playerOrder) pIds = data.playerOrder;
                 
-                // リセット権の持ち主
-                let resetHolder = null;
-                if (data.graveNum && data.graveNum.length > 0) resetHolder = data.graveNum[data.graveNum.length-1].owner;
-
                 // 自分エリアの演出処理
                 const myAreaEl = document.getElementById("my-area");
                 if (myAreaEl) {
@@ -2373,12 +2369,23 @@
                     els.msg.innerText = `あなたは ${data.rankings[myId]}位 であがりました！`;
                     document.getElementById("btn-play").disabled = true;
                     document.getElementById("btn-pass").disabled = true;
+                
                 } else {
+                    // ▼▼▼ 修正箇所 ▼▼▼
+                    let top = getTop(data.graveNum);
+                    let resetHolder = top ? top.owner : null;
                     let activeCount = getActiveCount(data);
-                    let isInheritedReset = (data.rankings && data.rankings[resetHolder] && data.passCount >= activeCount);
-                    let isOwnerReset = (resetHolder === myId && (data.graveNum||[]).length > 0);
-                    let canReset = isOwnerReset || isInheritedReset;
                     
+                    // 条件A: 権利継承 (あがった人のカードで、全員パスが回った)
+                    let isInheritedReset = (data.rankings && data.rankings[resetHolder] && data.passCount >= activeCount);
+                    
+                    // 条件B: 自分切り (場のカードが自分のものである)
+                    // ※パス回数に関係なく、自分のカードならリセット権を持つ
+                    let isOwnerReset = (resetHolder === myId);
+                    
+                    let canReset = isOwnerReset || isInheritedReset;
+                    // ▲▲▲ 修正ここまで ▲▲▲
+
                     if (isMyTurnNow) {
                         if (!wasMyTurn) playSoundEffect('turn');
                         if (data.turnIdx !== lastCleanupTurnIdx) {
