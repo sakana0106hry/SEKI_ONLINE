@@ -5579,23 +5579,26 @@ function setupEffectListener() {
                 <div style="text-align:left; max-height: 400px; overflow-y: auto; font-size:13px; color:#333;">
                     <h4 style="border-left:4px solid #2e7d32; padding-left:8px; margin:10px 0 5px 0;">基本ルール</h4>
                     <p style="margin:0 0 10px 0;">
-                        ・手札を先に0枚にした人が勝ち！<br>
-                        ・前の人より<strong>強いカード</strong>を出せる。<br>
-                        ・出せない（出したくない）時は<strong>パス</strong>。<br>
-                        ・全員パスすると場が流れ、親（リセット権）になる。
+                        ・順に回ってくるターンで、手札を先に0枚にした人が勝ち！<br>
+                        ・自分のターンでは以下から<strong>1つ</strong>の行動ができる<br>
+                        　1. 手札から数字カードを数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br>
+                        　2. 手札から記号カードを使う<br>
+                        　3. 一度きりの役職能力を使う（詳しい説明は【役職一覧】を参照）<br>
+                        　4. パスをして自分のターンを流す（このとき、数字カードを1枚引いても良い）
+                        ・数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持ち、<br>
+                        　リセット権を持っているプレイヤーがパスすると、数字墓地のカードが除外され、何でも出せる。
                     </p>
                     
                     <h4 style="border-left:4px solid #1565c0; padding-left:8px; margin:10px 0 5px 0;">数字カード</h4>
                     <p style="margin:0 0 10px 0;">
-                        <li>数字カードは0~9まで各4枚ずつ。</li>
-                        <li><strong>「0」はいつでも出せるが、その上に何でも出せる！</strong></li><br>
+                        ・数字カードは0~9まで各4枚ずつ。<br>
+                        <strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br>
                         <br>
                         <strong>🔵 順行🐘 (通常):</strong><br>
                         0 < 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9<br>
                         <br>
                         <strong>🔴 逆行🐁 (REVERSE中):</strong><br>
                         0 < 9 < 8 < 7 < 6 < 5 < 4 < 3 < 2 < 1<br>
-                        <span style="font-size:11px; color:#666;">※「0」は最強にはなれないが、いつでも出せる！！</span>
                     </p>
 
                     <h4 style="border-left:4px solid #c62828; padding-left:8px; margin:10px 0 5px 0;">記号カード</h4>
@@ -5603,12 +5606,12 @@ function setupEffectListener() {
                         <li><strong>REVERSE</strong>（4枚）: 数字カードの強弱を逆転させる</li>
                         <li><strong>TRADE</strong>（4枚）: 好きな手札1枚を他のプレイヤーと交換する</li>
                         <li><strong>DIG UP</strong>（4枚）: 数字墓地の1番上のカードと、手札の数字カードを交換する</li>
-                        <li><strong>DISCARD</strong>（4枚）: 好きな手札を1枚捨てる</li>
+                        <li><strong>DISCARD</strong>（<strong>1枚</strong>）: 好きな手札を1枚捨てる</li>
                     </ul>
 
                 </div>
             `;
-            openModal("ルール確認", html);
+            openModal("ルール", html);
 
             // ★追加: このモーダルだけ幅を広げる (600px)
             const mBox = document.getElementById("modal-box");
