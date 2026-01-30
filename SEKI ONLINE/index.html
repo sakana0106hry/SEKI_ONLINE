@@ -5226,20 +5226,16 @@ function renderAlchemistUI() {
         const makeBtn = (label, val, can) => {
             let bg = can ? "#7b1fa2" : "#e0e0e0"; 
             let color = can ? "white" : "#999";
-            let cursor = "pointer"; 
+            let cursor = can ? "pointer" : "not-allowed"; // カーソルを禁止マークに
             
-            let onClick = "";
-            if (can) {
-                onClick = `onclick="execAlchemist(${val})"`;
-            } else {
-                let reason = isRev ? "逆行中(弱い方が強い)です" : "順行中(強い方が強い)です";
-                let msg = `場のカード[${topVal}]に対して、[${val}]は出せません。<br>(${reason})`;
-                onClick = `onclick="showInfoModal('錬成不可', '${msg}')"`;
-            }
+            // 出せる時だけクリックイベントを設定
+            let onClick = can ? `onclick="execAlchemist(${val})"` : "";
+            // 出せない時は disabled 属性をつける
+            let disabledAttr = can ? "" : "disabled";
 
-            let note = can ? "" : "<br><span style='font-size:10px; opacity:0.8;'>(× 出せません)</span>";
+            let note = can ? "" : "<br><span style='font-size:10px; opacity:0.8;'>(不可)</span>";
             
-            return `<button ${onClick} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+            return `<button ${onClick} ${disabledAttr} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                         ${label} <span style="font-size:18px;">[${val}]</span>${note}
                     </button>`;
         };
@@ -5257,7 +5253,7 @@ function renderAlchemistUI() {
 
     // 中止ボタン
     let footerHtml = `<button onclick="execAlchemistKeep()" class="modal-btn" style="background:#78909c; margin-top:10px; width:100%;">
-                        錬金中止 (素材を手札に加える)
+                        錬金失敗 (素材を手札に加える)
                       </button>`;
 
     openModal("錬金術師: 素材融合", html);
@@ -5323,7 +5319,7 @@ async function execAlchemist(resultVal) {
     updates[`rooms/${currentRoom}/exclusion`] = excl;
     updates[`rooms/${currentRoom}/graveNum`] = gn;
 
-    await pushLog(`${myName}が錬金成功！ [${realDrawn.val}](ドロー)と[${realHandCard.val}](手札)を融合し[${resultVal}]を出しました。`, 'public');
+    await pushLog(`${myName}が錬金成功！ [${realDrawn.val}] (ドロー)と [${realHandCard.val}] (手札)を融合し [${resultVal}] を出しました。`, 'public');
     
     // ★1. ハッキング枚数と合計枚数の計算
     let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
@@ -5393,7 +5389,7 @@ async function execAlchemistKeep() {
     updates[`rooms/${currentRoom}/hands/${myId}`] = hand;
     updates[`rooms/${currentRoom}/deckNum`] = deck;
 
-    await pushLog(`${myName}の錬金は中止されました(素材を手札に追加)。`, 'public');
+    await pushLog(`${myName}の錬金は失敗し、素材を手札に追加しました)。`, 'public');
 
     // スキル使用済み & パスカウントリセット
     let actList = {...(gameState.activatedList || {})};
