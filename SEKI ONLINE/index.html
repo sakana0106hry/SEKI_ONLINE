@@ -1060,9 +1060,9 @@
     /* 2. 上の人 (上部配置) -> 吹き出しは「下」に出す */
     .bubble-pos-top {
         top: 100%;    /* 箱の下に */
-        left: 50%;
+        left: 0;
         margin-top: 10px;
-        transform: translateX(-50%);
+        transform: none;
     }
     .bubble-pos-top::after {
         top: -6px; left: 50%; margin-left: -6px;
@@ -1072,9 +1072,19 @@
 
     /* 3. 左の人 -> 吹き出しは「右」に出す */
     .bubble-pos-left {
-        top: 20px;
-        left: 100%;   /* 箱の右に */
-        margin-left: 10px;
+        top: auto;
+        bottom: 100%; /* ボックスの上に */
+        
+        /* 左端をボックスに合わせる */
+        left: 0;
+        right: auto;
+        
+        /* 隙間調整 */
+        margin-bottom: 10px; 
+        margin-left: 0;
+        margin-right: 0;
+        
+        transform: none;
     }
     .bubble-pos-left::after {
         top: 50%; right: 100%; margin-top: -6px;
@@ -1084,9 +1094,19 @@
 
     /* 4. 右の人 -> 吹き出しは「左」に出す */
     .bubble-pos-right {
-        top: 20px;
-        right: 100%;  /* 箱の左に */
-        margin-right: 10px;
+        top: auto;
+        bottom: 100%; /* ボックスの上に */
+        
+        /* 左端をボックスに合わせる */
+        left: 0;
+        right: auto;
+        
+        /* 隙間調整 */
+        margin-bottom: 10px; 
+        margin-left: 0;
+        margin-right: 0;
+        
+        transform: none;
     }
     .bubble-pos-right::after {
         top: 50%; left: 100%; margin-top: -6px;
