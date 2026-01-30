@@ -2359,6 +2359,10 @@
                 if (els.graveSym) els.graveSym.innerHTML = renderPile(data.graveSym);
                 if (document.getElementById("exclusion-count")) document.getElementById("exclusion-count").innerText = (data.exclusion || []).length;
 
+
+                let top = getTop(data.graveNum);
+                let resetHolder = top ? top.owner : null;
+                
                 // メッセージ
                 let isMyTurnNow = (pIds[data.turnIdx] === myId);
                 if (data.status === "finished") {
@@ -2372,8 +2376,6 @@
                 
                 } else {
                     // ▼▼▼ 修正箇所 ▼▼▼
-                    let top = getTop(data.graveNum);
-                    let resetHolder = top ? top.owner : null;
                     let activeCount = getActiveCount(data);
                     
                     // 条件A: 権利継承 (あがった人のカードで、全員パスが回った)
