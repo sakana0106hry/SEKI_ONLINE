@@ -5435,6 +5435,69 @@ function setupEffectListener() {
                 });
             }
         }
+
+        // --- ★追加: 役職一覧表示 ---
+        function showRoleList() {
+            let html = '<div style="text-align:left; max-height: 400px; overflow-y: auto;">';
+            
+            // 定義済みの ROLE_INFO から自動生成
+            Object.keys(ROLE_INFO).forEach(key => {
+                const info = ROLE_INFO[key];
+                // 画像があれば表示
+                let imgHtml = "";
+                if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
+                    imgHtml = `<img src="${ROLE_IMAGES[key]}" style="height:30px; vertical-align:middle; margin-right:8px; border-radius:4px; border:1px solid #ccc;">`;
+                }
+
+                html += `
+                    <div style="margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:8px; display:flex; align-items:start;">
+                        ${imgHtml}
+                        <div>
+                            <div style="font-weight:bold; color:#fdd835; font-size:14px;">
+                                ${info.jp} 
+                                <span style="font-size:10px; color:#bbb; font-weight:normal; margin-left:4px;">${key}</span>
+                            </div>
+                            <div style="font-size:12px; color:#333; line-height:1.4;">${info.desc}</div>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+            openModal("役職一覧", html);
+        }
+
+        // --- ★追加: ルール要約表示 ---
+        function showRule() {
+            let html = `
+                <div style="text-align:left; max-height: 400px; overflow-y: auto; font-size:13px; color:#333;">
+                    <h4 style="border-left:4px solid #2e7d32; padding-left:8px; margin:10px 0 5px 0;">基本ルール</h4>
+                    <p style="margin:0 0 10px 0;">
+                        ・手札を先に0枚にした人が勝ち。<br>
+                        ・前の人より<strong>強いカード</strong>を出せる。<br>
+                        ・出せない（出したくない）時は<strong>パス</strong>。<br>
+                        ・全員パスすると場が流れ、親（リセット権）になる。
+                    </p>
+                    
+                    <h4 style="border-left:4px solid #1565c0; padding-left:8px; margin:10px 0 5px 0;">カードの強弱</h4>
+                    <p style="margin:0 0 10px 0;">
+                        <strong>🔵 順行 (通常):</strong><br>
+                        0 < 1 < 2 < ... < 8 < 9<br>
+                        <br>
+                        <strong>🔴 逆行 (REVERSE中):</strong><br>
+                        0 > 1 > 2 > ... > 8 > 9<br>
+                        <span style="font-size:11px; color:#666;">※「0」は最強にはなれないが、いつでも出せる。</span>
+                    </p>
+
+                    <h4 style="border-left:4px solid #c62828; padding-left:8px; margin:10px 0 5px 0;">記号カード</h4>
+                    <ul style="padding-left:20px; margin:0;">
+                        <li><strong>REVERSE:</strong> 強弱を逆転させる</li>
+                        <li><strong>TRADE:</strong> コスト1枚払い、相手とカード交換</li>
+                        <li><strong>DIG UP:</strong> 手札1枚を埋め、墓地から1枚回収</li>
+                        <li><strong>DISCARD:</strong> 手札を1枚捨てる</li>
+                    </ul>
+                </div>
+            `;
+            openModal("ルール確認", html);
+        }
     
         // Global exports
         window.joinGame = joinGame;
@@ -5461,6 +5524,8 @@ function setupEffectListener() {
         window.playCutInAnimation = playCutInAnimation;
         window.openHostSettings = openHostSettings;
         window.confirmInitGameWithSettings = confirmInitGameWithSettings;
+        window.showRoleList = showRoleList;
+        window.showRule = showRule;
         // 釣り人
         window.activateAngler = activateAngler;
         window.anglerStep2 = anglerStep2;
