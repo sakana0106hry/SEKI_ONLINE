@@ -3548,6 +3548,10 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
             </button>
         `;
         openModal("盗賊: 追撃の選択", confirmHtml);
+        
+        if (document.getElementById("modal-footer")) {
+                    document.getElementById("modal-footer").innerHTML = "";
+                }
     } else {
         endThiefTurn();
     }
