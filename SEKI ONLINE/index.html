@@ -1030,13 +1030,13 @@
             <div id="room-display"></div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <button id="btn-host-settings" class="hidden" onclick="openHostSettings()" 
-                    style="padding:5px 12px; font-size:11px; background:#1565c0; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:20px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; align-items:center;">
-                    ⚙️設定
+                    style="padding:5px 12px; font-size:16px; background:#1565c0; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:20px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; align-items:center;">
+                    ⚙️
                 </button>
-                <button onclick="showRoleList()" style="padding:2px 8px; font-size:12px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職一覧</button>
-                <button onclick="showRule()" style="padding:2px 8px; font-size:12px; ">ルール</button>
+                <button onclick="showRoleList()" style="padding:2px 8px; font-size:16px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職</button>
+                <button onclick="showRule()" style="padding:2px 8px; font-size:16px; ">ルール</button>
                 <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:16px;">🔊</button>
-                <button onclick="location.reload()" style="padding:2px 8px; font-size:12px;">🚪</button>
+                <button onclick="location.reload()" style="padding:2px 8px; font-size:16px;">🚪</button>
             </div>
         </div>
 
@@ -5660,7 +5660,7 @@ function setupEffectListener() {
                     </details>`;
             });
             html += '</div>';
-            openModal("役職", html);
+            openModal("役職一覧", html);
 
             // ★追加: このモーダルだけ幅を広げる (600px)
             const mBox = document.getElementById("modal-box");
