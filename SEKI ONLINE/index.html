@@ -3014,11 +3014,31 @@
                     await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
 
                     let totalPlayers = gameState.playerOrder.length;
+
                     if (currentRank >= totalPlayers - 1) {
                          updates[`rooms/${currentRoom}/status`] = "finished";
-                         await pushLog(`全順位が確定しました！`, 'public');
-                         let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
-                         if(loserId) updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+
+                        // 敗者（最後の一人）を特定
+                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
+                     
+                        if(loserId) {
+                            // 敗者の順位を確定
+                            updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            
+                            // 敗者の手札（通常手札 + ハッキング中の手札）を取得
+                            let lHand = gameState.hands[loserId] || [];
+                            let lHacked = (gameState.hackedHands && gameState.hackedHands[loserId]) ? gameState.hackedHands[loserId] : [];
+                            let allL = [...lHand, ...lHacked];
+                            
+                            // カード名を文字列化
+                            let lText = allL.map(c => c.val).join(", ") || "なし";
+                            let lName = gameState.players[loserId].name;
+                            
+                            // 全員に見えるログとして送信
+                            await pushLog(`最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                        } else {
+                            await pushLog(`全順位が確定しました！`, 'public');
+                        }
                     }
                 }
                 
@@ -3172,7 +3192,7 @@
             let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
             updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
             
-            await pushLog(`${myName}が DIG UP を使用`, 'public');
+            await pushLog(`${myName}が DIG UP を使用して [${top.val}] を回収し、[${retCard.val}] を埋めました。`, 'public');
             
             await db.ref().update(updates);
             selectedIdx = -1;
@@ -3363,10 +3383,29 @@
 
                 let totalPlayers = gameState.playerOrder.length;
                 if (currentRank >= totalPlayers - 1) {
-                     updates[`rooms/${currentRoom}/status`] = "finished";
-                     await pushLog(`全順位が確定しました！`, 'public');
-                     let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
-                     if(loserId) updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                         updates[`rooms/${currentRoom}/status`] = "finished";
+
+                        // 敗者（最後の一人）を特定
+                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
+                     
+                        if(loserId) {
+                            // 敗者の順位を確定
+                            updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            
+                            // 敗者の手札（通常手札 + ハッキング中の手札）を取得
+                            let lHand = gameState.hands[loserId] || [];
+                            let lHacked = (gameState.hackedHands && gameState.hackedHands[loserId]) ? gameState.hackedHands[loserId] : [];
+                            let allL = [...lHand, ...lHacked];
+                            
+                            // カード名を文字列化
+                            let lText = allL.map(c => c.val).join(", ") || "なし";
+                            let lName = gameState.players[loserId].name;
+                            
+                            // 全員に見えるログとして送信
+                            await pushLog(`最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                        } else {
+                            await pushLog(`全順位が確定しました！`, 'public');
+                        }
                 }
             }
 
@@ -4265,10 +4304,29 @@ function toggleGamblerSelect(el, maxCount) {
                 
                 let totalPlayers = gameState.playerOrder.length;
                 if (currentRank >= totalPlayers - 1) {
-                     updates[`rooms/${currentRoom}/status`] = "finished";
-                     await pushLog(`全順位が確定しました！`, 'public');
-                     let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
-                     if(loserId) updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                         updates[`rooms/${currentRoom}/status`] = "finished";
+
+                        // 敗者（最後の一人）を特定
+                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
+                     
+                        if(loserId) {
+                            // 敗者の順位を確定
+                            updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            
+                            // 敗者の手札（通常手札 + ハッキング中の手札）を取得
+                            let lHand = gameState.hands[loserId] || [];
+                            let lHacked = (gameState.hackedHands && gameState.hackedHands[loserId]) ? gameState.hackedHands[loserId] : [];
+                            let allL = [...lHand, ...lHacked];
+                            
+                            // カード名を文字列化
+                            let lText = allL.map(c => c.val).join(", ") || "なし";
+                            let lName = gameState.players[loserId].name;
+                            
+                            // 全員に見えるログとして送信
+                            await pushLog(`最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                        } else {
+                            await pushLog(`全順位が確定しました！`, 'public');
+                        }
                 }
             }
 
@@ -5608,10 +5666,30 @@ async function execAlchemist(resultVal) {
         
         let totalPlayers = gameState.playerOrder.length;
         if (currentRank >= totalPlayers - 1) {
-             updates[`rooms/${currentRoom}/status`] = "finished";
-             let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
-             if(loserId) updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
-        }
+                         updates[`rooms/${currentRoom}/status`] = "finished";
+
+                        // 敗者（最後の一人）を特定
+                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
+                     
+                        if(loserId) {
+                            // 敗者の順位を確定
+                            updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            
+                            // 敗者の手札（通常手札 + ハッキング中の手札）を取得
+                            let lHand = gameState.hands[loserId] || [];
+                            let lHacked = (gameState.hackedHands && gameState.hackedHands[loserId]) ? gameState.hackedHands[loserId] : [];
+                            let allL = [...lHand, ...lHacked];
+                            
+                            // カード名を文字列化
+                            let lText = allL.map(c => c.val).join(", ") || "なし";
+                            let lName = gameState.players[loserId].name;
+                            
+                            // 全員に見えるログとして送信
+                            await pushLog(`最下位 ${lName} の残りの手札: [${lText}]`, 'public');
+                        } else {
+                            await pushLog(`全順位が確定しました！`, 'public');
+                        }
+                    }
     }
     
     let tempRankings = {...(gameState.rankings || {})};
