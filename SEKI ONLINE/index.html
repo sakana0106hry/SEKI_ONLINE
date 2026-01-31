@@ -2319,9 +2319,17 @@
                         }
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
-                        if (myRole === "MAGICIAN" && typeof isActivated === 'string') {
-                            statusText = `使用: ${isActivated}`;
+                        
+                        // ▼▼▼ 修正: 手品師 または 新卒 の場合、中身を表示 ▼▼▼
+                        if ((myRole === "MAGICIAN" || myRole === "NEW GRAD") && typeof isActivated === 'string') {
+                            // 役職IDなら日本語に変換、そうでなければそのまま表示(REVERSE等)
+                            let val = isActivated;
+                            if (ROLE_INFO[val]) val = ROLE_INFO[val].jp;
+                            
+                            statusText = `使用: ${val}`;
                         }
+                        // ▲▲▲ 修正ここまで ▲▲▲
+                        
                         actBtnHtml = `<div style="font-size:11px; color:#ffeb3b; margin-top:5px; font-weight:bold;">${statusText}</div>`;
                     }
 
@@ -2488,7 +2496,7 @@
                         // リセット権を持っている場合
                         statusHtml = `<span class="status-text status-reset">👑 RESET</span>`;
                     }
-
+                    
                     // --- 3. 役職表示 (??? / ROLE NAME) ---
                     let isRevealed = currentAct[pid] || isRanked || currentRev[pid];
                     let roleHtml = `<span class="role-unknown">ROLE: ???</span>`; // デフォルト
@@ -2497,24 +2505,24 @@
                         let rName = roles[pid];
                         let rJp = (typeof ROLE_INFO !== 'undefined' && ROLE_INFO[rName]) ? ROLE_INFO[rName].jp : rName;
                         
-                        // ▼▼▼ 修正・追加箇所: 手品師 または 新卒 の場合の特殊表示 ▼▼▼
+                        // ▼▼▼ 修正・追加箇所: 手品師と同じスタイルにする ▼▼▼
                         if (rName === "MAGICIAN" && typeof currentAct[pid] === 'string') {
-                            // 手品師の既存処理
+                            // 手品師: 内容をそのまま表示
                             roleHtml = `<div class="role-badge-pill">手品師: ${currentAct[pid]}</div>`;
                         } 
                         else if (rName === "NEW GRAD" && typeof currentAct[pid] === 'string') {
-                            // ★新卒: コピーした役職名をカッコ書きで追加
+                            // ★新卒: 役職IDを日本語に変換して表示
                             let copiedRoleKey = currentAct[pid];
-                            let copiedRoleJp = ROLE_INFO[copiedRoleKey] ? ROLE_INFO[copiedRoleKey].jp : copiedRoleKey;
+                            let copiedRoleJp = (ROLE_INFO[copiedRoleKey]) ? ROLE_INFO[copiedRoleKey].jp : copiedRoleKey;
                             
-                            // .role-sub クラスを使って横に小さく表示
-                            roleHtml = `<div class="role-badge-pill">${rJp}<span class="role-sub">(${copiedRoleJp})</span></div>`;
+                            // バッジの中身自体を「新卒: 〇〇」にする
+                            roleHtml = `<div class="role-badge-pill">新卒: ${copiedRoleJp}</div>`;
                         } 
                         else {
                             // 通常
                             roleHtml = `<div class="role-badge-pill">${rJp}</div>`;
                         }
-                        // ▲▲▲ 修正ここまで ▲▲▲s
+                        // ▲▲▲ 修正ここまで ▲▲▲
                     }
 
                     // ヘッダーアイコン
