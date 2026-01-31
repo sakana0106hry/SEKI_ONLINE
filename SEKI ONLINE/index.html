@@ -2505,7 +2505,7 @@
                         else if (rName === "NEW GRAD" && typeof currentAct[pid] === 'string') {
                             // ★新卒: コピーした役職名をカッコ書きで追加
                             let copiedRoleKey = currentAct[pid];
-                            let copiedRoleJp = (ROLE_INFO[copiedRoleKey]) ? ROLE_INFO[copiedRoleKey].jp : copiedRoleKey;
+                            let copiedRoleJp = ROLE_INFO[copiedRoleKey] ? ROLE_INFO[copiedRoleKey].jp : copiedRoleKey;
                             
                             // .role-sub クラスを使って横に小さく表示
                             roleHtml = `<div class="role-badge-pill">${rJp}<span class="role-sub">(${copiedRoleJp})</span></div>`;
