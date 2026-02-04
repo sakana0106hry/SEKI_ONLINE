@@ -1873,7 +1873,7 @@
         }
 
         // ▼▼▼ 新規関数: 吹き出し表示 ▼▼▼
-        function showChatBubble(pid, text) {
+        function showChatBubble(pid, text, timestamp) {
             const bubble = document.getElementById(`bubble-${pid}`);
             if (!bubble) return;
 
@@ -2714,7 +2714,7 @@
                             lastCleanupTurnIdx = data.turnIdx;
                             if (typeof checkHackerCleanup === 'function') checkHackerCleanup();
                         }
-                        els.msg.innerText = canReset ? "リセット可能です（パスで発動）" : "あなたの番です";
+                        els.msg.innerText = canReset ? "リセット可能（パスで発動）" : "あなたの番です";
                         document.getElementById("btn-play").disabled = false;
                         document.getElementById("btn-pass").disabled = false;
                     } else {
