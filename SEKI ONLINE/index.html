@@ -2222,7 +2222,7 @@
             }
 
             // 6. 判定
-            return actedNames.size >= othersCount;
+            return actedNames.size >= activeCount;
         }
 
        function render(data) {
@@ -3424,23 +3424,18 @@
             
             // 1. コストとして使う「DISCARD」カード自体
             let usedCard = currentHand.splice(useCardIdx, 1)[0];
-            let newGraveSym = [...(gameState.graveSym || []), usedCard];
             
             // 2. 捨てられるカード
             // (UIの仕組み上、splice後のインデックスが渡ってくるのでそのまま使えます)
             let discardCard = currentHand.splice(targetIdx, 1)[0];
-            
-            // ★ここが修正ポイント：種類によって送り先を変える
-            let newGraveNum = [...(gameState.graveNum || [])];
-            
-            if (discardCard.type === 'num') {
-                // 数字なら「数字墓地」へ（これで場のトップが更新され、バグが直る！）
-                // ownerを自分にすることで、責任の所在を明確にする
-                newGraveNum.push({ ...discardCard, owner: myId });
-            } else {
-                // 記号なら「記号墓地」へ
-                newGraveSym.push(discardCard);
+
+            // ★追加: 数字カード以外は捨てられないようにガードする
+            if (discardCard.type !== 'num') {
+                showInfoModal("使用不可", "DISCARDで捨てられるのは<br>「数字カード」のみです。");
+                return; // 処理を中断（DB更新もしない）
             }
+            
+            newGraveNum.push({ ...discardCard, owner: myId });
             
             currentHand = sortCards(currentHand);
             
