@@ -2186,6 +2186,48 @@
             } catch(e) { showInfoModal("エラー", "開始エラー: " + e.message); }
         }
 
+        // ★共通関数: リセット権の継承判定ロジック
+        function checkInheritedResetLogic(data, myId) {
+            if (!data) return false;
+            
+            let top = (data.graveNum && data.graveNum.length > 0) ? data.graveNum[data.graveNum.length-1] : null;
+            
+            // 1. 基本条件: 墓地にカードがあり、その持ち主が前回の勝者であり、かつその勝者が今回のランキングに存在すること
+            if (!top || !data.lastWinnerId || data.lastWinnerId !== top.owner) return false;
+            if (!data.rankings || !data.rankings[data.lastWinnerId]) return false;
+
+            // 2. 生存人数計算 (あがっていない人)
+            let activePIds = (data.playerOrder || []).filter(pid => !data.rankings || !data.rankings[pid]);
+            let activeCount = activePIds.length;
+            
+            // 3. ログ解析: 勝った時間より後のログを確認
+            let winTime = data.lastWinnerTime || 0;
+            let logs = data.logs || [];
+            let actedNames = new Set();
+            let recentLogs = logs.filter(l => l.timestamp > winTime && l.type === 'public');
+
+            recentLogs.forEach(l => {
+                let match = l.text.match(/^(.+?)が/);
+                if (match) actedNames.add(match[1]);
+            });
+
+            // 4. 除外処理 (勝者本人と、判定者自身を除外)
+            if (data.players && data.players[data.lastWinnerId]) {
+                actedNames.delete(data.players[data.lastWinnerId].name);
+            }
+            if (data.players && data.players[myId]) {
+                actedNames.delete(data.players[myId].name);
+            }
+
+            // 5. 閾値計算 (自分以外の生存者数)
+            let othersCount = activeCount;
+            if (activePIds.includes(myId)) othersCount -= 1;
+            if (othersCount < 0) othersCount = 0;
+
+            // 6. 判定
+            return actedNames.size >= othersCount;
+        }
+
        function render(data) {
             // 1. 要素の取得
             let turnIndicator = document.getElementById("turn-indicator");
@@ -2209,26 +2251,8 @@
             let top = (data.graveNum && data.graveNum.length > 0) ? data.graveNum[data.graveNum.length-1] : null;
             let resetHolder = top ? top.owner : null;
 
-            // ★追加: リセット権の継承ロジックをここで計算（描画ループより前に！）
-            let activeCount = getActiveCount(data);
-            let isInheritedReset = false;
-            
-            if (top && data.lastWinnerId && data.lastWinnerId === top.owner) {
-                let winTime = data.lastWinnerTime || 0;
-                let logs = data.logs || [];
-                // 「あがった時間」より後の「パブリックログ」を取得
-                let recentLogs = logs.filter(l => l.timestamp > winTime && l.type === 'public');
-                // ログから行動したプレイヤーを抽出
-                let actedPlayers = new Set();
-                recentLogs.forEach(l => {
-                    let match = l.text.match(/^(.+?)が/);
-                    if (match) actedPlayers.add(match[1]);
-                });
-                // 行動した人数が残り人数以上なら継承発生
-                if (actedPlayers.size >= activeCount) {
-                    isInheritedReset = true;
-                }
-            }
+           // ★修正: 共通関数を使ってリセット権の継承判定を行う
+            let isInheritedReset = checkInheritedResetLogic(data, myId);
 
             // ★決定: 最終的なリセット権を持つプレイヤーID
             // 継承が起きているなら「現在の手番プレイヤー」、そうでなければ「カードの持ち主」
@@ -2621,7 +2645,7 @@
                     let html = `
                         <div class="${boxClass}" style="position:relative;">
                             <div id="bubble-${pid}" class="chat-bubble ${bubbleClass}"></div> <div class="p-header">${hostMark}${pName}</div>
-                            
+                            <div class="p-header" onclick="showPlayerLogs('${pid}')" style="cursor:pointer; text-decoration:underline;">${hostMark}${pName}</div>
                             <div class="p-body">
                                 <div class="p-hand-count" style="${countStyle}">
                                     <span class="p-hand-icon">🃏×</span>${handCount}
@@ -2815,7 +2839,8 @@
                 let bubbleHtml = `<div id="bubble-${myId}" class="chat-bubble bubble-pos-bottom"></div>`;
                 
                 // ★全部まとめてセット！ (先頭に bubbleHtml を追加)
-                nameBar.innerHTML = `${bubbleHtml}${hostIcon}${myPName}${myRoleHtml}${resetBadge}${rankText}`;
+                // ★変更: 自分の名前もクリックして履歴を見れるようにする
+                nameBar.innerHTML = `${bubbleHtml}${hostIcon}<span onclick="showPlayerLogs('${myId}')" style="cursor:pointer; text-decoration:underline;">${myPName}</span>${myRoleHtml}${resetBadge}${rankText}`;
             }
 
             // 音再生
@@ -2875,31 +2900,8 @@
 
             let isOwnerReset = (resetHolder === myId && (gameState.graveNum||[]).length > 0);
 
-            let isInheritedReset = false;
-
-            if (top && gameState.lastWinnerId && gameState.lastWinnerId === top.owner) {
-                let winTime = gameState.lastWinnerTime || 0;
-                let logs = gameState.logs || [];
-                
-                // 「あがった時間」より後の「パブリックログ」を取得
-                let recentLogs = logs.filter(l => l.timestamp > winTime && l.type === 'public');
-
-                // ログから名前を抽出して、重複なしのリスト(Set)を作る
-                let actedPlayers = new Set();
-                recentLogs.forEach(l => {
-                    // "Gokuが..." の "Goku" を取り出す正規表現
-                    let match = l.text.match(/^(.+?)が/);
-                    if (match) {
-                        actedPlayers.add(match[1]);
-                    }
-                });
-
-                // 行動した「人数」が、残りプレイヤー数以上ならOK
-                // (警察官が5回ログを出しても、Setなら「1人」としてカウントされます)
-                if (actedPlayers.size >= activeCount) {
-                    isInheritedReset = true;
-                }
-            }
+            // ★修正: 共通関数を使ってリセット権の継承判定を行う
+            let isInheritedReset = checkInheritedResetLogic(gameState, myId);
 
             if (isOwnerReset || isInheritedReset) {
                 openModal("パス (リセット権行使)", "山札からドローしますか？<br><br><span style='color:#ef5350; font-weight:bold;'>※リセット権を行使します（場が流れ、自分のターンが続きます）</span><br><br><button class='modal-btn primary' onclick='execPassDraw(true)'>ドローする</button><button class='modal-btn' onclick='execPassNoDraw(true)'>しない</button>");
@@ -6150,6 +6152,46 @@ function setupEffectListener() {
                 mBox.style.maxWidth = "95%"; // スマホでは画面いっぱいまで使う
             }
         }
+        // --- ★追加: プレイヤー別ログ表示機能 ---
+        function showPlayerLogs(targetId) {
+            if (!gameState || !gameState.logs) return showInfoModal("履歴なし", "まだ記録がありません。");
+            if (!gameState.players[targetId]) return;
+
+            const targetName = gameState.players[targetId].name;
+            const logs = gameState.logs;
+            
+            // フィルタリング: typeがpublicで、テキストにその人の名前が含まれるもの
+            const filtered = logs.filter(l => 
+                l.type === 'public' && l.text.includes(targetName)
+            );
+
+            if (filtered.length === 0) return showInfoModal(targetName + "の履歴", "表示できる行動履歴がありません。");
+
+            let html = `<div style="text-align:left; max-height:400px; overflow-y:auto; font-size:13px;">`;
+            
+            // 新しい順に表示
+            [...filtered].reverse().forEach(l => {
+                let time = new Date(l.timestamp).toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+                html += `
+                    <div style="border-bottom:1px solid #eee; padding:6px 0;">
+                        <span style="color:#888; font-size:11px; margin-right:8px;">${time}</span>
+                        <span style="color:#333;">${l.text}</span>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            openModal(`${targetName} の行動履歴`, html);
+            
+            // モーダルの幅調整
+            const mBox = document.getElementById("modal-box");
+            if(mBox) {
+                mBox.style.width = "400px";
+                mBox.style.maxWidth = "90%";
+            }
+        }
+        
+
     
         // Global exports
         window.joinGame = joinGame;
@@ -6178,6 +6220,8 @@ function setupEffectListener() {
         window.confirmInitGameWithSettings = confirmInitGameWithSettings;
         window.showRoleList = showRoleList;
         window.showRule = showRule;
+        // windowオブジェクトに登録してHTMLから呼べるようにする
+        window.showPlayerLogs = showPlayerLogs;
         // 釣り人
         window.activateAngler = activateAngler;
         window.anglerStep2 = anglerStep2;
