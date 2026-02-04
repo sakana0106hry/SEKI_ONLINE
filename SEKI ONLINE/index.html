@@ -1845,7 +1845,8 @@
                     // これにより、画面が再描画されても吹き出しが維持されます
                     if (now - l.timestamp < 4000) {
                         if (l.targetId) {
-                            showChatBubble(l.targetId, l.text);
+                            // ★修正: 第三引数に timestamp を渡す
+                            showChatBubble(l.targetId, l.text, l.timestamp);
                         }
                     }
                 }
@@ -1880,16 +1881,20 @@
             const match = text.match(/^\[.*?\] (.*)$/);
             const msg = match ? match[1] : text;
 
-            // 既に同じ内容が表示され、activeなら何もしない (点滅防止)
-            if (bubble.innerText === msg && bubble.classList.contains("active")) {
-                return;
-            }
-
             bubble.innerText = msg;
+
+            // ★追加: 経過時間を計算して、アニメーションを「途中から」開始させる
+            // これにより、画面が書き換わっても見た目上のアニメーションは継続しているように見えます
+            const elapsed = Date.now() - timestamp;
             
             // アニメーションリセット（連続投稿対応）
             bubble.classList.remove("active");
             void bubble.offsetWidth; // リフロー強制
+
+            // ★重要: 経過時間分だけアニメーションを「巻き戻して」セットする
+            // (例: 1秒経過していたら、最初から1秒進んだ状態から表示される)
+            bubble.style.animationDelay = `-${elapsed}ms`;
+
             bubble.classList.add("active");
         }
 
@@ -2214,9 +2219,6 @@
             // 4. 除外処理 (勝者本人と、判定者自身を除外)
             if (data.players && data.players[data.lastWinnerId]) {
                 actedNames.delete(data.players[data.lastWinnerId].name);
-            }
-            if (data.players && data.players[myId]) {
-                actedNames.delete(data.players[myId].name);
             }
 
             // 5. 閾値計算 (自分以外の生存者数)
