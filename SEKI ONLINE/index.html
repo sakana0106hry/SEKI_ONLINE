@@ -3226,10 +3226,10 @@
             newGraveSym.push(card);
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
 
-            let logMsg = `${myName}が [${card.val}] を使用`;
+            let logMsg = `${myName}が [${card.val}] を使用して`;
             if (card.val === "REVERSE") {
                 updates[`rooms/${currentRoom}/isReverse`] = !gameState.isReverse;
-                logMsg += " (強弱逆転)";
+                logMsg += "強弱を逆転させました";
             }
 
             await pushLog(logMsg, 'public');
@@ -3280,7 +3280,7 @@
             let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
             updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
             
-            await pushLog(`${myName}が DIG UP を使用して [${top.val}] を回収し、[${retCard.val}] を埋めました。`, 'public');
+            await pushLog(`${myName}が [DIG UP] を使用して [${top.val}] を回収し、[${retCard.val}] を埋めました。`, 'public');
             
             await db.ref().update(updates);
             selectedIdx = -1;
@@ -3388,7 +3388,7 @@
             updates[`rooms/${currentRoom}/hands/${targetId}`] = targetHand;
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
             
-            await pushLog(`${myName}が ${gameState.players[targetId].name} と [TRADE] しました`, 'public');
+            await pushLog(`${myName}が [TRADE] を使用して${gameState.players[targetId].name} とカードを交換しました`, 'public');
             await pushLog(`${gameState.players[targetId].name}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
             await pushLog(`${gameState.players[myId].name}に [${receiveCard.val}] を奪われ、 [${giveCard.val}] を渡されました。`, 'private', targetId);
 
