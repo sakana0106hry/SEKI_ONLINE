@@ -1989,6 +1989,21 @@
                         els.btnJoin.disabled = false;
                         return showInfoModal("満員", "この部屋は定員(5名)に達しています。<br>別の部屋名を使ってください。");
                     }
+
+                    // ★追加: 名前重複チェック
+                    // IDが違うのに、同じ名前の人がいたらエラーにする
+                    const isNameDuplicate = Object.keys(players).some(pid => {
+                        // 自分自身は除外
+                        if (pid === myId) return false;
+                        // 名前が一致するかチェック
+                        return players[pid].name === name;
+                    });
+
+                    if (isNameDuplicate) {
+                         els.btnJoin.disabled = false;
+                         return showInfoModal("名前重複", "その名前は既に使用されています。<br>別の名前を使ってください。");
+                    }
+
                 }
                 
 
