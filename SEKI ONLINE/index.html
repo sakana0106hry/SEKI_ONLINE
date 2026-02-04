@@ -5231,7 +5231,7 @@ function activateNewGrad() {
         // 日本語名を取得
         const rInfo = ROLE_INFO[role];
         const rName = rInfo ? rInfo.jp : role;
-        const rDesc = rInfo ? rInfo.desc : "";
+        const rDesc = rInfo ? rInfo.summary : "";
 
         // ボタン生成
         html += `
