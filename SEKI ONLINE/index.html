@@ -2654,12 +2654,29 @@
                     // ▼▼▼ 修正箇所 ▼▼▼
                     let activeCount = getActiveCount(data);
                     
-                    // 条件A: 権利継承 (あがった人のカードで、全員パスが回った)
-                    let isInheritedReset = (data.rankings && data.rankings[resetHolder]);
-                    
                     // 条件B: 自分切り (場のカードが自分のものである)
                     // ※パス回数に関係なく、自分のカードならリセット権を持つ
                     let isOwnerReset = (resetHolder === myId);
+
+
+                    // ▼▼▼ 継承リセット判定 (ユニーク人数カウント) ▼▼▼
+                    let isInheritedReset = false;
+                    if (top && data.lastWinnerId && data.lastWinnerId === top.owner) {
+                        let winTime = data.lastWinnerTime || 0;
+                        let logs = data.logs || [];
+                        
+                        let recentLogs = logs.filter(l => l.timestamp > winTime && l.type === 'public');
+                        
+                        let actedPlayers = new Set();
+                        recentLogs.forEach(l => {
+                            let match = l.text.match(/^(.+?)が/);
+                            if (match) actedPlayers.add(match[1]);
+                        });
+
+                        if (actedPlayers.size >= activeCount) {
+                            isInheritedReset = true;
+                        }
+                    }
                     
                     let canReset = isOwnerReset || isInheritedReset;
                     // ▲▲▲ 修正ここまで ▲▲▲
@@ -2863,7 +2880,32 @@
             let resetHolder = top ? top.owner : null;
 
             let isOwnerReset = (resetHolder === myId && (gameState.graveNum||[]).length > 0);
-            let isInheritedReset = (resetHolder && gameState.rankings && gameState.rankings[resetHolder]);
+
+            let isInheritedReset = false;
+
+            if (top && gameState.lastWinnerId && gameState.lastWinnerId === top.owner) {
+                let winTime = gameState.lastWinnerTime || 0;
+                let logs = gameState.logs || [];
+                
+                // 「あがった時間」より後の「パブリックログ」を取得
+                let recentLogs = logs.filter(l => l.timestamp > winTime && l.type === 'public');
+
+                // ログから名前を抽出して、重複なしのリスト(Set)を作る
+                let actedPlayers = new Set();
+                recentLogs.forEach(l => {
+                    // "Gokuが..." の "Goku" を取り出す正規表現
+                    let match = l.text.match(/^(.+?)が/);
+                    if (match) {
+                        actedPlayers.add(match[1]);
+                    }
+                });
+
+                // 行動した「人数」が、残りプレイヤー数以上ならOK
+                // (警察官が5回ログを出しても、Setなら「1人」としてカウントされます)
+                if (actedPlayers.size >= activeCount) {
+                    isInheritedReset = true;
+                }
+            }
 
             if (isOwnerReset || isInheritedReset) {
                 openModal("パス (リセット権行使)", "山札からドローしますか？<br><br><span style='color:#ef5350; font-weight:bold;'>※リセット権を行使します（場が流れ、自分のターンが続きます）</span><br><br><button class='modal-btn primary' onclick='execPassDraw(true)'>ドローする</button><button class='modal-btn' onclick='execPassNoDraw(true)'>しない</button>");
@@ -3058,6 +3100,11 @@
                     // ... (以下、あがり処理はそのまま)
                     updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
                     await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+
+                    // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
+                    updates[`rooms/${currentRoom}/lastWinnerId`] = myId;
+                    updates[`rooms/${currentRoom}/lastWinnerTime`] = Date.now();
+                    // ▲▲▲ 追加ここまで ▲▲▲
 
                     let totalPlayers = gameState.playerOrder.length;
 
@@ -3428,6 +3475,11 @@
                 let currentRank = Object.keys(gameState.rankings || {}).length + 1;
                 updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
                 await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+
+                // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
+                updates[`rooms/${currentRoom}/lastWinnerId`] = myId;
+                updates[`rooms/${currentRoom}/lastWinnerTime`] = Date.now();
+                // ▲▲▲ 追加ここまで ▲▲▲
 
                 let totalPlayers = gameState.playerOrder.length;
                 if (currentRank >= totalPlayers - 1) {
@@ -4349,6 +4401,11 @@ function toggleGamblerSelect(el, maxCount) {
                 let currentRank = Object.keys(gameState.rankings || {}).length + 1;
                 updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
                 await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+                
+                // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
+                updates[`rooms/${currentRoom}/lastWinnerId`] = myId;
+                updates[`rooms/${currentRoom}/lastWinnerTime`] = Date.now();
+                // ▲▲▲ 追加ここまで ▲▲▲
                 
                 let totalPlayers = gameState.playerOrder.length;
                 if (currentRank >= totalPlayers - 1) {
@@ -5713,6 +5770,11 @@ async function execAlchemist(resultVal) {
         let currentRank = Object.keys(gameState.rankings || {}).length + 1;
         updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
         await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+        
+        // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
+        updates[`rooms/${currentRoom}/lastWinnerId`] = myId;
+        updates[`rooms/${currentRoom}/lastWinnerTime`] = Date.now();
+        // ▲▲▲ 追加ここまで ▲▲▲
         
         let totalPlayers = gameState.playerOrder.length;
         if (currentRank >= totalPlayers - 1) {
