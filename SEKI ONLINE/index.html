@@ -2192,12 +2192,7 @@
             let graveContainer = document.getElementById("grave-container");
             let handContainer = document.getElementById("my-hand");
             let hackedContainer = document.getElementById("hacked-area");
-            // ▼▼▼ ここに追加してください！(一番最初) ▼▼▼
-            // ここで定義すれば、関数内のどこで使ってもエラーになりません
-            let topForReset = (data.graveNum && data.graveNum.length > 0) ? data.graveNum[data.graveNum.length-1] : null;
-            let resetHolder = topForReset ? topForReset.owner : null;
-            // ▲▲▲ 追加ここまで ▲▲▲
-            
+           
             // 2. クリア
             if(handContainer) handContainer.innerHTML = "";
             if(hackedContainer) hackedContainer.innerHTML = "";
@@ -2209,6 +2204,38 @@
             const hackedHands = data.hackedHands || {};
             const currentAct = data.activatedList || {};
             const currentRev = data.revealedRoles || {};
+
+            // ★追加: 墓地トップとリセット権所有者の計算（位置を上に移動）
+            let top = (data.graveNum && data.graveNum.length > 0) ? data.graveNum[data.graveNum.length-1] : null;
+            let resetHolder = top ? top.owner : null;
+
+            // ★追加: リセット権の継承ロジックをここで計算（描画ループより前に！）
+            let activeCount = getActiveCount(data);
+            let isInheritedReset = false;
+            
+            if (top && data.lastWinnerId && data.lastWinnerId === top.owner) {
+                let winTime = data.lastWinnerTime || 0;
+                let logs = data.logs || [];
+                // 「あがった時間」より後の「パブリックログ」を取得
+                let recentLogs = logs.filter(l => l.timestamp > winTime && l.type === 'public');
+                // ログから行動したプレイヤーを抽出
+                let actedPlayers = new Set();
+                recentLogs.forEach(l => {
+                    let match = l.text.match(/^(.+?)が/);
+                    if (match) actedPlayers.add(match[1]);
+                });
+                // 行動した人数が残り人数以上なら継承発生
+                if (actedPlayers.size >= activeCount) {
+                    isInheritedReset = true;
+                }
+            }
+
+            // ★決定: 最終的なリセット権を持つプレイヤーID
+            // 継承が起きているなら「現在の手番プレイヤー」、そうでなければ「カードの持ち主」
+            let effectiveResetHolder = resetHolder;
+            if (isInheritedReset && data.playerOrder) {
+                effectiveResetHolder = data.playerOrder[data.turnIdx];
+            }
 
             // ★追加: 実質的なホスト（権限者）を決定する
             // 通常は先頭の人だが、ゲーム終了時は「最下位の人」に権限を移す
@@ -2507,7 +2534,7 @@
                         let rank = data.rankings[pid];
                         let suffix = ["st","nd","rd"][rank-1] || "th"; // 1st, 2nd...
                         statusHtml = `<span class="status-text status-rank">🏆 ${rank}${suffix}</span>`;
-                    } else if (pid === resetHolder) {
+                    } else if (pid === effectiveResetHolder) {
                         // リセット権を持っている場合
                         statusHtml = `<span class="status-text status-reset">👑 RESET</span>`;
                     }
@@ -2651,35 +2678,9 @@
                     document.getElementById("btn-pass").disabled = true;
                 
                 } else {
-                    // ▼▼▼ 修正箇所 ▼▼▼
-                    let activeCount = getActiveCount(data);
-                    
-                    // 条件B: 自分切り (場のカードが自分のものである)
-                    // ※パス回数に関係なく、自分のカードならリセット権を持つ
+                    // ここでの activeCount, isInheritedReset は冒頭で計算したものを使用
                     let isOwnerReset = (resetHolder === myId);
-
-
-                    // ▼▼▼ 継承リセット判定 (ユニーク人数カウント) ▼▼▼
-                    let isInheritedReset = false;
-                    if (top && data.lastWinnerId && data.lastWinnerId === top.owner) {
-                        let winTime = data.lastWinnerTime || 0;
-                        let logs = data.logs || [];
-                        
-                        let recentLogs = logs.filter(l => l.timestamp > winTime && l.type === 'public');
-                        
-                        let actedPlayers = new Set();
-                        recentLogs.forEach(l => {
-                            let match = l.text.match(/^(.+?)が/);
-                            if (match) actedPlayers.add(match[1]);
-                        });
-
-                        if (actedPlayers.size >= activeCount) {
-                            isInheritedReset = true;
-                        }
-                    }
-                    
                     let canReset = isOwnerReset || isInheritedReset;
-                    // ▲▲▲ 修正ここまで ▲▲▲
 
                     if (isMyTurnNow) {
                         if (!wasMyTurn) playSoundEffect('turn');
@@ -2781,13 +2782,6 @@
                 nameBar.style.position = "relative";
                 nameBar.style.overflow = "visible"; // はみ出してもOKにする
 
-                // ★修正: 変数名を「rHolder」に変えて、ここで再定義します
-                // (これで上にあるやつと喧嘩せず、確実に動きます)
-                let rHolder = null;
-                if (data.graveNum && data.graveNum.length > 0) {
-                    rHolder = data.graveNum[data.graveNum.length-1].owner;
-                }
-
                 let myPName = players[myId].name;
                 
                 // 1. 役職のHTML生成
@@ -2805,9 +2799,9 @@
                     myRoleHtml = `<span style="color:${textColor}; margin-left:10px;">【役職】${jpName}</span>`;
                 }
 
+                // ★修正: resetHolder ではなく effectiveResetHolder を使用して判定
                 let resetBadge = "";
-                // ★ここも rHolder を使って判定します
-                if (rHolder === myId) {
+                if (effectiveResetHolder === myId) {
                     // status-resetクラスをそのまま利用（位置調整のためstyleを追加）
                     resetBadge = `<span class="status-reset" style="margin-left:10px; font-size:12px; vertical-align:middle; display:inline-block;">👑 RESET</span>`;
                 }
