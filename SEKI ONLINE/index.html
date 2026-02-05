@@ -1150,6 +1150,7 @@
                     style="padding:5px 12px; font-size:15px; background:#1565c0; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:20px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; align-items:center;">
                     ⚙️
                 </button>
+                <button onclick="showScoreboard()" style="padding:2px 8px; font-size:15px; background:#fbc02d; color:#3e2723; border-radius:15px; border:1px solid rgba(255,255,255,0.3); margin-right:2px;">🏆</button>
                 <button onclick="showRoleList()" style="padding:2px 8px; font-size:15px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職</button>
                 <button onclick="showRule()" style="padding:2px 8px; font-size:15px; ">ルール</button>
                 <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:15px;">🔊</button>
@@ -3125,6 +3126,14 @@
                         } else {
                             await pushLog(`全順位が確定しました！！`, 'public');
                         }
+
+                        // スコア更新を実行 (finalRankingsを組み立てて渡す)
+                        let finalRankings = {...(gameState.rankings || {})};
+                        finalRankings[myId] = currentRank; // 自分の順位
+                        loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
+                        if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
+                        
+                        updateFinalScores(finalRankings, gameState.playerOrder);
                     }
                 }
                 
@@ -3499,6 +3508,13 @@
                         } else {
                             await pushLog(`全順位が確定しました！`, 'public');
                         }
+                        // スコア更新を実行 (finalRankingsを組み立てて渡す)
+                        let finalRankings = {...(gameState.rankings || {})};
+                        finalRankings[myId] = currentRank; // 自分の順位
+                        loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
+                        if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
+                        
+                        updateFinalScores(finalRankings, gameState.playerOrder);
                 }
             }
 
@@ -4425,6 +4441,13 @@ function toggleGamblerSelect(el, maxCount) {
                         } else {
                             await pushLog(`全順位が確定しました！！`, 'public');
                         }
+                        // スコア更新を実行 (finalRankingsを組み立てて渡す)
+                        let finalRankings = {...(gameState.rankings || {})};
+                        finalRankings[myId] = currentRank; // 自分の順位
+                        loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
+                        if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
+                        
+                        updateFinalScores(finalRankings, gameState.playerOrder);
                 }
             }
 
@@ -5824,6 +5847,13 @@ async function execAlchemist(resultVal) {
                         } else {
                             await pushLog(`全順位が確定しました！！`, 'public');
                         }
+                        // スコア更新を実行 (finalRankingsを組み立てて渡す)
+                        let finalRankings = {...(gameState.rankings || {})};
+                        finalRankings[myId] = currentRank; // 自分の順位
+                        loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
+                        if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
+                        
+                        updateFinalScores(finalRankings, gameState.playerOrder);
                     }           
     }
     
@@ -6179,6 +6209,7 @@ function setupEffectListener() {
                 mBox.style.maxWidth = "95%"; // スマホでは画面いっぱいまで使う
             }
         }
+
         // --- ★追加: プレイヤー別ログ表示機能 ---
         function showPlayerLogs(targetId) {
             if (!gameState || !gameState.logs) return showInfoModal("履歴なし", "まだ記録がありません。");
@@ -6216,6 +6247,70 @@ function setupEffectListener() {
                 mBox.style.width = "400px";
                 mBox.style.maxWidth = "90%";
             }
+        }
+
+        // --- スコア更新関数 ---
+        async function updateFinalScores(finalRankings, playerOrder) {
+            let currentScores = gameState.scores || {};
+            let totalPlayers = playerOrder.length;
+            let updates = {};
+
+            playerOrder.forEach(pid => {
+                let rank = finalRankings[pid];
+                if (rank) {
+                    // スコア計算式: 2 * (人数 - 順位) + 1
+                    let roundPoint = 2 * (totalPlayers - rank) + 1;
+                    let oldScore = currentScores[pid] || 0;
+                    updates[`rooms/${currentRoom}/scores/${pid}`] = oldScore + roundPoint;
+                }
+            });
+            await db.ref().update(updates);
+        }
+
+        // --- スコアボード表示関数 ---
+        function showScoreboard() {
+            if (!gameState) return;
+            let scores = gameState.scores || {};
+            let players = gameState.players || {};
+            
+            // スコア順にソート
+            let sortedPids = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+
+            let html = `<table style="width:100%; border-collapse:collapse; font-size:14px;">
+                        <tr style="border-bottom:2px solid #ccc; background:#f5f5f5;">
+                            <th style="padding:8px; text-align:left;">名 前</th>
+                            <th style="padding:8px; text-align:right;">合計点数</th>
+                        </tr>`;
+
+            if (sortedPids.length === 0) {
+                html += `<tr><td colspan="2" style="padding:20px; color:#999;">まだ記録がありません</td></tr>`;
+            }
+
+            sortedPids.forEach(pid => {
+                let pName = players[pid] ? players[pid].name : "不明なユーザー";
+                let score = scores[pid];
+                let isMe = (pid === myId) ? "color:#d32f2f; font-weight:bold;" : "";
+                html += `<tr style="border-bottom:1px solid #eee; ${isMe}">
+                            <td style="padding:8px;">${pName}</td>
+                            <td style="padding:8px; text-align:right; font-weight:bold;">${score} pt</td>
+                        </tr>`;
+            });
+            html += `</table>`;
+            
+            // ホストのみスコアリセットボタンを表示
+            const effectiveHostId = (gameState.playerOrder && gameState.playerOrder.length > 0) ? gameState.playerOrder[0] : null;
+            if (myId === effectiveHostId) {
+                html += `<div style="margin-top:20px;">
+                            <button onclick="confirmResetScores()" style="font-size:11px; color:#888; background:none; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer;">スコアを全てリセット</button>
+                        </div>`;
+            }
+
+            openModal("🏆 総合ランキング", html);
+        }
+
+        // スコアリセット用（ホスト用）
+        function confirmResetScores() {
+            showConfirmModal("スコアリセット", "部屋全体の累積スコアを消去しますか？", "db.ref(`rooms/${currentRoom}/scores`).remove()");
         }
         
 
