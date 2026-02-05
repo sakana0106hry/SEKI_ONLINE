@@ -6298,22 +6298,7 @@ function setupEffectListener() {
             html += `</table>`;
             
             // ホストのみスコアリセットボタンを表示
-            // ★追加: 実質的なホスト（権限者）を決定する
-            // 通常は先頭の人だが、ゲーム終了時は「最下位の人」に権限を移す
-            let pIdsForHost = getSortedPlayerIds(players);
-            if (data.playerOrder) pIdsForHost = data.playerOrder;
-            
-            let effectiveHostId = (pIdsForHost.length > 0) ? pIdsForHost[0] : null;
-
-            if (data.status === "finished" && data.rankings) {
-                let loserId = Object.keys(data.rankings).reduce((a, b) => 
-                    data.rankings[a] > data.rankings[b] ? a : b
-                , null);
-                
-                if (loserId && players[loserId]) {
-                    effectiveHostId = loserId;
-                }
-            }
+            let hostId = getEffectiveHostId(gameState);
 
             if (myId === effectiveHostId) {
                 html += `<div style="margin-top:20px;">
@@ -6328,6 +6313,24 @@ function setupEffectListener() {
         function confirmResetScores() {
             showConfirmModal("スコアリセット", "部屋全体の累積スコアを消去しますか？", "db.ref(`rooms/${currentRoom}/scores`).remove()");
         }
+
+        // 1. 共通のホスト判定関数（これを一度作っておけば、どこでも使えます）
+    function getEffectiveHostId(data) {
+        if (!data) return null;
+        let pIds = data.playerOrder || getSortedPlayerIds(data.players || {});
+        let hostId = (pIds.length > 0) ? pIds[0] : null;
+
+        // ゲーム終了時は最下位（敗者）にホスト権限を移す
+        if (data.status === "finished" && data.rankings) {
+            let loserId = Object.keys(data.rankings).reduce((a, b) => 
+                data.rankings[a] > data.rankings[b] ? a : b
+            , null);
+            if (loserId && data.players[loserId]) {
+                hostId = loserId;
+            }
+        }
+        return hostId;
+    }
         
 
     
