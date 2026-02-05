@@ -1154,7 +1154,7 @@
                 <button onclick="showRoleList()" style="padding:2px 8px; font-size:15px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職</button>
                 <button onclick="showRule()" style="padding:2px 8px; font-size:15px; ">ルール</button>
                 <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:15px;">🔊</button>
-                <button onclick="location.reload()" style="padding:2px 8px; font-size:15px;">🚪</button>
+                <button onclick="leaveRoom()" style="padding:2px 8px; font-size:15px;">🚪</button>
             </div>
         </div>
 
@@ -1540,13 +1540,21 @@
         const ROLE_INFO = {
             "ALCHEMIST": { 
                 jp: "錬金術師", 
-                summary: "数字山札を引き、手札と足し算／引き算して出す",
+                summary: "数字山札を引き、手札と四則演算して出す",
                 desc: `<ol>
 <li>数字山札から、1枚カードを引く。</li>
-<li>そのカードと、手札の好きな<span style="color: #3598db;"><strong>数字カード</strong></span>を、足し算もしくは引き算する。</li>
-<li>その和もしくは差を、数字墓地に出せるとき、出すことができる。</li>
+<li>そのカードと、手札の好きな<span style="color: #3598db;"><strong>数字カード</strong></span>で、いずれかの四則演算をする。</li>
+<li>その和差積商の下一桁を、数字墓地に出せるとき、出すことができる。</li>
 <li>もし出せない場合は、引いたカードが手札に加わる（デメリット）。</li>
 </ol>
+<ul>
+<li style="list-style-type: none;">
+<ul style="list-style-type: circle;">
+<li>割り算では、大きい方&divide;小さい方になり、0除算は不可能</li>
+<li>差が負の数の場合は絶対値を取る</li>
+</ul>
+</li>
+</ul>
 <div><strong>ターン終了！</strong></div>`
             },
             "ANGLER": { 
@@ -1961,6 +1969,26 @@
                 if (tA === tB) return a.localeCompare(b);
                 return tA - tB;
             });
+        }
+
+        async function leaveRoom() {
+            if (!currentRoom || !myId) {
+                location.reload();
+                return;
+            }
+
+            if (window.confirm("部屋を抜けてタイトルに戻りますか？")) {
+                try {
+                    // 1. Firebaseから自分のプレイヤーデータを削除
+                    await db.ref(`rooms/${currentRoom}/players/${myId}`).remove();
+                    
+                    // 2. ページをリロードして初期状態に戻る
+                    location.reload();
+                } catch (e) {
+                    console.error("退室エラー:", e);
+                    location.reload(); // エラーが起きても強制的にタイトルへ
+                }
+            }
         }
 
         async function joinGame() {
@@ -6381,6 +6409,7 @@ function setupEffectListener() {
         window.confirmInitGameWithSettings = confirmInitGameWithSettings;
         window.showRoleList = showRoleList;
         window.showRule = showRule;
+        window.leaveRoom = leaveRoom; // これを追加
         // windowオブジェクトに登録してHTMLから呼べるようにする
         window.showPlayerLogs = showPlayerLogs;
         // 釣り人
