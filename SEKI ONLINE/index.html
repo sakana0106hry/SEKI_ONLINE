@@ -6287,10 +6287,6 @@ function setupEffectListener() {
             }
 
             sortedPids.forEach(pid => {
-                // ★自分なら名前の右に (自分) を追加
-                if (pid === myId) {
-                    pName += " (自分)";
-                }
                 let pName = players[pid] ? players[pid].name : "不明なユーザー";
                 let score = scores[pid];
                 let isMe = (pid === myId) ? "color:#d32f2f; font-weight:bold;" : "";
