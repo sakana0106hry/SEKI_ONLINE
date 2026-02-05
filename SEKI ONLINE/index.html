@@ -5659,7 +5659,7 @@ function renderAlchemistUI() {
             canDiv = canPlay({type:'num', val:divVal}, top, gameState.isReverse);
         }
 
-        const makeBtn = (label, val, can) => {
+        const makeBtn = (label, val, can, isInvalidCalc) => {
             let bg = can ? "#7b1fa2" : "#e0e0e0"; 
             let color = can ? "white" : "#999";
             let cursor = can ? "pointer" : "not-allowed"; // カーソルを禁止マークに
