@@ -6278,7 +6278,7 @@ function setupEffectListener() {
 
             let html = `<table style="width:100%; border-collapse:collapse; font-size:14px;">
                         <tr style="border-bottom:2px solid #ccc; background:#f5f5f5;">
-                            <th style="padding:8px; text-align:left;">名 前</th>
+                            <th style="padding:8px; text-align:center;">名 前</th>
                             <th style="padding:8px; text-align:right;">合計点数</th>
                         </tr>`;
 
@@ -6298,7 +6298,23 @@ function setupEffectListener() {
             html += `</table>`;
             
             // ホストのみスコアリセットボタンを表示
-            const effectiveHostId = (gameState.playerOrder && gameState.playerOrder.length > 0) ? gameState.playerOrder[0] : null;
+            // ★追加: 実質的なホスト（権限者）を決定する
+            // 通常は先頭の人だが、ゲーム終了時は「最下位の人」に権限を移す
+            let pIdsForHost = getSortedPlayerIds(players);
+            if (data.playerOrder) pIdsForHost = data.playerOrder;
+            
+            let effectiveHostId = (pIdsForHost.length > 0) ? pIdsForHost[0] : null;
+
+            if (data.status === "finished" && data.rankings) {
+                let loserId = Object.keys(data.rankings).reduce((a, b) => 
+                    data.rankings[a] > data.rankings[b] ? a : b
+                , null);
+                
+                if (loserId && players[loserId]) {
+                    effectiveHostId = loserId;
+                }
+            }
+
             if (myId === effectiveHostId) {
                 html += `<div style="margin-top:20px;">
                             <button onclick="confirmResetScores()" style="font-size:11px; color:#888; background:none; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer;">スコアを全てリセット</button>
