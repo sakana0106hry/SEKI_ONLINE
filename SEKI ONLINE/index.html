@@ -3121,9 +3121,9 @@
                             let lName = gameState.players[loserId].name;
                             
                             // 全員に見えるログとして送信
-                            await pushLog(`全順位確定！　最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                            await pushLog(`全順位確定！！最下位 ${lName} の残り手札: [${lText}]`, 'public');
                         } else {
-                            await pushLog(`全順位が確定しました！`, 'public');
+                            await pushLog(`全順位が確定しました！！`, 'public');
                         }
                     }
                 }
@@ -4421,9 +4421,9 @@ function toggleGamblerSelect(el, maxCount) {
                             let lName = gameState.players[loserId].name;
                             
                             // 全員に見えるログとして送信
-                            await pushLog(`全順位確定！　最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                            await pushLog(`全順位確定！！最下位 ${lName} の残り手札: [${lText}]`, 'public');
                         } else {
-                            await pushLog(`全順位が確定しました！`, 'public');
+                            await pushLog(`全順位が確定しました！！`, 'public');
                         }
                 }
             }
@@ -4534,7 +4534,7 @@ async function execMagicianReverse() {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
     // ログなど
-    await pushLog(`${myName}が[手品師]でREVERSEを発動！`, 'public');
+    await pushLog(`${myName}が[手品師]で [REVERSE] を発動！`, 'public');
     //playSoundEffect('SKILL');
     //playSoundEffect('REVERSE');
     
@@ -4664,7 +4664,7 @@ async function execMagicianTrade(targetId, giveIdx, takeIdx) {
 
     const targetName = gameState.players[targetId].name;
 
-    await pushLog(`${myName}が[手品師]でTRADEを発動！`, 'public');
+    await pushLog(`${myName}が[手品師]で [TRADE] を発動！`, 'public');
     await pushLog(`${targetName}から [${receiveCard.val}] を盗み、[${giveCard.val}] を渡しました。`, 'private', myId);
     await pushLog(`${myName}の手品で [${receiveCard.val}] を盗まれ、[${giveCard.val}] を渡されました。`, 'private', targetId);
 
@@ -4721,7 +4721,7 @@ async function execMagicianDigUp(buryIdx) {
     actList[myId] = "DIG UP"; 
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
-    await pushLog(`${myName}が[手品師]でDIG UPを発動！`, 'public');
+    await pushLog(`${myName}が[手品師]で [DIG UP] を発動！`, 'public');
     //playSoundEffect('SKILL');
     //playSoundEffect('DIG UP');
 
@@ -4784,8 +4784,8 @@ async function execMillionaire(excludeIdx) {
     actList[myId] = true;
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
-    await pushLog(`${myName}が[富豪]を発動！手札の[${excludedCard.val}]を支払って記号カードを買いました`, 'public');
-    await pushLog(`【富豪の買い物】買ったカード: ${drawnCard.val}`, 'private', myId);
+    await pushLog(`${myName}が[富豪]を発動！手札の [${excludedCard.val}] を支払って記号カードを買いました`, 'public');
+    await pushLog(`【富豪の買い物】買ったカード: [${drawnCard.val}]`, 'private', myId);
 
     await db.ref().update(updates);
 }
@@ -4822,8 +4822,8 @@ function activateEmperor() {
     // モーダル表示
     let html = `
         <p style="font-size:14px;">
-            民の手札をすべて回収しました。<br>
-            <strong>あなたが欲しい「最強の1枚」を選んでください。</strong><br>
+            市民の手札をすべて回収しました。<br>
+            <strong>あなたが望む「1枚」を選んでください。</strong><br>
             <span style="font-size:11px; color:#888;">残りは自動的に再分配されます。</span>
         </p>
         <div class="modal-list">
@@ -4918,7 +4918,7 @@ async function execEmperorSelect(selectedIdx) {
     });
 
     // 6. ログと演出
-    await pushLog(`${myName}が[皇帝]を発動！手札を全て回収し、再分配しました。`, 'public');
+    await pushLog(`${myName}が[皇帝]を発動！市民の手札を全て回収し、再分配しました。`, 'public');
 
 
     // 7. ターン終了
@@ -5429,7 +5429,7 @@ async function execHacker() {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
     
     updates[`rooms/${currentRoom}/lastSound`] = { type: 'SKILL_HACKER', id: Date.now() };
-    await pushLog(`${myName}が[ハッカー]を発動！システムを掌握しました`, 'public');
+    await pushLog(`${myName}が[ハッカー]を発動！システムをハッキングしました`, 'public');
 
     // ★削除: 以下の3行を削除（またはコメントアウト）してください！
     // ハッカーは能力使用後も自分のターンが続くルールです。
@@ -5551,11 +5551,6 @@ function renderAlchemistUI() {
         let style = "margin-right:15px; cursor:default; transform:scale(0.9);"; // 少しだけ小さくしてレイアウトに合わせる
         let cssClass = `card ${top.type}`;
         
-        // 0のスタイル
-        if (Number(top.val) === 0) {
-            style += 'color:#6a1b9a; border-color:#6a1b9a; background:#f3e5f5;';
-        }
-        
         // 画像対応
         let imgUrl = CARD_IMAGES[top.val];
         if (imgUrl) {
@@ -5638,9 +5633,31 @@ function renderAlchemistUI() {
         let sumVal = (val1 + val2) % 10;
         let diffVal = Math.abs(val1 - val2);
 
+        // 3. 積 (×)
+        let prodVal = val1 * val2 % 10; // そのまま掛ける
+
+        // 4. 商 (÷)
+        // 大きい方を小さい方で割る
+        let big = Math.max(val1, val2);
+        let small = Math.min(val1, val2);
+        let divVal = null;
+        let divValid = false;
+
+        // 0除算防止のみ (割り切れなくても切り捨てて商とする)
+        if (small !== 0) {
+            divVal = Math.floor(big / small); // ★ Math.floor() で切り捨て
+            divValid = true;
+        }
+
         // 判定
         let canSum = canPlay({type:'num', val:sumVal}, top, gameState.isReverse);
         let canDiff = canPlay({type:'num', val:diffVal}, top, gameState.isReverse);
+        let canProd = canPlay({type:'num', val:prodVal}, top, gameState.isReverse);
+        
+        let canDiv = false;
+        if (divValid) {
+            canDiv = canPlay({type:'num', val:divVal}, top, gameState.isReverse);
+        }
 
         const makeBtn = (label, val, can) => {
             let bg = can ? "#7b1fa2" : "#e0e0e0"; 
@@ -5651,9 +5668,20 @@ function renderAlchemistUI() {
             let onClick = can ? `onclick="execAlchemist(${val})"` : "";
             // 出せない時は disabled 属性をつける
             let disabledAttr = can ? "" : "disabled";
-
-            let note = can ? "" : "<br><span style='font-size:10px; opacity:0.8;'>(不可)</span>";
             
+            // 計算不能(0除算など)の場合の注記
+            let note = "";
+            if (!can) {
+                if (isInvalidCalc) {
+                    note = "<br><span style='font-size:10px; opacity:0.8;'>(不可)</span>";
+                } else {
+                    note = "<br><span style='font-size:10px; opacity:0.8;'>(ルール違反)</span>";
+                }
+            }
+
+            // 表示値がnullの場合は "?" と表示
+            let dispVal = (val !== null) ? val : "?";
+
             return `<button ${onClick} ${disabledAttr} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                         ${label} <span style="font-size:18px;">[${val}]</span>${note}
                     </button>`;
@@ -5665,6 +5693,8 @@ function renderAlchemistUI() {
                 <div style="display:flex; justify-content:space-between; gap:5px;">
                     ${makeBtn("和 (+)", sumVal, canSum)}
                     ${makeBtn("差 (-)", diffVal, canDiff)}
+                    ${makeBtn("積 (×)", prodVal, canProd, false)}
+                    ${makeBtn("商 (÷)", divVal, canDiv, !divValid)}
                 </div>
             </div>
         `;
@@ -5790,9 +5820,9 @@ async function execAlchemist(resultVal) {
                             let lName = gameState.players[loserId].name;
                             
                             // 全員に見えるログとして送信
-                            await pushLog(`全順位確定！　最下位 ${lName} の残りの手札: [${lText}]`, 'public');
+                            await pushLog(`全順位確定！！最下位 ${lName} の残りの手札: [${lText}]`, 'public');
                         } else {
-                            await pushLog(`全順位が確定しました！`, 'public');
+                            await pushLog(`全順位が確定しました！！`, 'public');
                         }
                     }           
     }
