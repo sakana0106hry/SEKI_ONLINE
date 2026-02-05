@@ -5683,7 +5683,7 @@ function renderAlchemistUI() {
             let dispVal = (val !== null) ? val : "?";
 
             return `<button ${onClick} ${disabledAttr} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-                        ${label} <span style="font-size:18px;">[${val}]</span>${note}
+                        ${label} <span style="font-size:18px;">[${dispVal}]</span>${note}
                     </button>`;
         };
 
