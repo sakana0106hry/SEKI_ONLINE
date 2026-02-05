@@ -6272,11 +6272,31 @@ function setupEffectListener() {
             if (!gameState) return;
             let scores = gameState.scores || {};
             let players = gameState.players || {};
-            
+
+            // 現在の参加人数を取得（ゲーム開始前なら現在のプレイヤー数を使用）
+            let playerOrder = gameState.playerOrder || Object.keys(players);
+            let totalPlayers = playerOrder.length;
+
+            // 1. 点数配分のテキストを作成
+            let distributionText = "";
+            if (totalPlayers >= 2) {
+                let distArray = [];
+                for (let r = 1; r <= totalPlayers; r++) {
+                    let pts = 2 * (totalPlayers - r) + 1;
+                    distArray.push(`${r}位:${pts}pt`);
+                }
+                distributionText = `<div style="font-size:11px; color:#666; margin-bottom:10px; background:#fff9c4; padding:5px; border-radius:4px; text-align:center; border:1px solid #fbc02d;">
+                    現在の配分 (${totalPlayers}人戦): ${distArray.join(' / ')}
+                </div>`;
+            }
+
             // スコア順にソート
             let sortedPids = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
 
-            let html = `<table style="width:100%; border-collapse:collapse; font-size:14px;">
+            // 2. HTMLの組み立て
+            let html = distributionText; // タイトルのすぐ下に配分を表示
+
+            html = `<table style="width:100%; border-collapse:collapse; font-size:14px;">
                         <tr style="border-bottom:2px solid #ccc; background:#f5f5f5;">
                             <th style="padding:8px; text-align:center;">名 前</th>
                             <th style="padding:8px; text-align:right;">合計点数</th>
