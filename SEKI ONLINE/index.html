@@ -90,53 +90,7 @@
 
     /* --- ▼▼▼ ここから新規追加（四隅の豪華装飾） ▼▼▼ --- */
 
-    /* 装飾の共通設定 */
-    #login-screen::before,
-    #login-screen::after {
-        content: "";
-        position: absolute;
-        width: 80px;  /* 装飾のサイズ */
-        height: 80px;
-        border: 3px solid #ffd700; /* 金色の線 */
-        z-index: -1; /* コンテンツの後ろに配置 */
-        opacity: 0.8;
-        filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); /* 発光させる */
-    }
-
-    /* 左上と右下の装飾 */
-    #login-screen::before {
-        top: -15px;
-        left: -15px;
-        border-right: none;
-        border-bottom: none;
-        border-top-left-radius: 30px; /* 角を丸くして優雅に */
-        
-        /* 右下にも同じものを反転して表示させるテクニック */
-        box-shadow: 
-            /* 右下の装飾 */
-            calc(100% + 30px - 6px) calc(100% + 30px - 6px) 0 0 #ffd700,
-            /* 内側の装飾線（左上） */
-            inset 10px 10px 0 0 rgba(255, 215, 0, 0.5);
-    }
-
-    /* 右上と左下の装飾 */
-    #login-screen::after {
-        top: -15px;
-        right: -15px;
-        border-left: none;
-        border-bottom: none;
-        border-top-right-radius: 30px;
-        
-        /* 左下にも同じものを表示 */
-        box-shadow: 
-            /* 左下の装飾 */
-            calc(-100% - 30px + 6px) calc(100% + 30px - 6px) 0 0 #ffd700,
-            /* 内側の装飾線（右上） */
-            inset -10px 10px 0 0 rgba(255, 215, 0, 0.5);
-    }
-
-    /* --- ▲▲▲ 新規追加ここまで ▲▲▲ --- */
-
+    
     @keyframes fadeInUp {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
