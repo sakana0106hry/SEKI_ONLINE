@@ -50,40 +50,121 @@
         flex: 0 0 40px;       /* 高さ40px固定 */
         padding: 10px;        /* 余白 */
     }
-    /* ログイン画面（画面中央に配置） */
+    .hidden { display: none !important; }
+    
+    /* --- ゴージャス・ログイン画面用CSS --- */
+
+    /* ログイン画面（画面中央） */
     #login-screen {
-        width: 90%;             /* スマホで横幅いっぱいにならないように */
-        max-width: 400px;       /* PCで広がりすぎないように */
+        width: 90%;
+        max-width: 420px;       /* 少しだけ幅を広げる */
+        margin: auto;
         
-        /* Flexboxの魔法：これで上下左右のど真ん中に来ます */
-        margin: auto;           
+        padding: 50px 30px;     /* 余白を広めに */
         
-        padding: 40px 30px;     /* 内側の余白を少しリッチに */
+        /* 以前より濃い黒 + 強いぼかしで高級感を出す */
+        background: rgba(0, 0, 0, 0.65); 
+        backdrop-filter: blur(15px);
         
-        /* デザイン装飾 */
-        background: rgba(0, 0, 0, 0.5); /* 少し濃いめにして文字を見やすく */
-        backdrop-filter: blur(10px);    /* すりガラス効果を強く */
+        /* ★金色の枠線と発光エフェクト */
         border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); /* 浮遊感のある影 */
+        border: 1px solid rgba(255, 215, 0, 0.4); /* ゴールドの枠 */
+        box-shadow: 
+            0 20px 50px rgba(0, 0, 0, 0.8),         /* 深い影 */
+            0 0 20px rgba(255, 215, 0, 0.1),        /* ほのかな金色の光 */
+            inset 0 0 30px rgba(255, 215, 0, 0.05); /* 内側の輝き */
         
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 15px;              /* 要素間の隙間 */
+        gap: 20px;
+        
+        /* 登場アニメーション */
+        animation: fadeInUp 1s ease-out;
     }
-    .hidden { display: none !important; }
-    
-    /* 入力フォームとボタンのリッチ化 */
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* タイトルロゴ画像 */
+    #title-logo {
+        width: 100%;            /* 親要素に合わせてリサイズ */
+        max-width: 320px;       /* 最大幅 */
+        height: auto;           /* 比率を維持 */
+        object-fit: contain;
+        
+        /* ★ロゴを光らせる（金色の影） */
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+        
+        /* ふわふわ浮遊させるアニメーション */
+        animation: floatLogo 3s ease-in-out infinite alternate;
+        margin-bottom: 5px;
+    }
+
+    @keyframes floatLogo {
+        0% { transform: translateY(0); filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+        100% { transform: translateY(-8px); filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9)); }
+    }
+
+    /* バージョン表記 */
+    .version-text {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-size: 13px;
+        color: #ffd700;         /* ゴールド文字 */
+        letter-spacing: 2px;    /* 文字間隔を広げて高級感 */
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        opacity: 0.9;
+        margin-top: -10px;      /* ロゴに近づける */
+        margin-bottom: 10px;
+    }
+
+    /* 入力フォーム（リッチ版） */
     input { 
-        padding: 12px; 
+        padding: 15px; 
         font-size: 16px; 
-        margin: 10px 0; 
-        border-radius: 8px; 
-        border: 2px solid rgba(255,255,255,0.3);
-        background: rgba(255,255,255,0.9);
-        width: 80%;
+        margin: 5px 0; 
+        border-radius: 30px;    /* 完全な丸み（ピル型） */
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1); /* 背景を少し透けさせる */
+        color: white;           /* 入力文字を白に */
+        width: 85%;
+        text-align: center;
+        transition: 0.3s;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
     }
+    input::placeholder { color: rgba(255,255,255,0.5); }
+    input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #ffd700;  /* フォーカス時に金色 */
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+
+    /* ボタン（さらに輝きを増す） */
+    #btn-join { 
+        padding: 14px 40px; 
+        font-size: 18px; 
+        margin-top: 10px;
+        cursor: pointer; 
+        /* プレミアムなゴールドグラデーション */
+        background: linear-gradient(135deg, #fff176 0%, #fbc02d 50%, #f57f17 100%);
+        border: 1px solid #fff;
+        border-radius: 30px; 
+        font-weight: 800; 
+        color: #3e2723; 
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5), 0 0 10px rgba(255,235,59,0.5);
+        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        width: 70%;
+    }
+    #btn-join:hover { 
+        filter: brightness(1.2); 
+        transform: translateY(-2px) scale(1.02); 
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6); 
+    }
+    #btn-join:active { transform: translateY(1px); }
+    
     button { 
         padding: 12px 24px; 
         font-size: 16px; 
@@ -1133,8 +1214,8 @@
 <body>
 
     <div id="login-screen">
-        <h1>SEKI Online</h1>
-        <p>Ver 21.00 (死霊の導き)</p>
+        <img src="./images/logo.png" alt="SEKI Online" id="title-logo">
+        <p class="version-text">Ver 22.00 色々追加版</p>
         <input type="text" id="roomName" placeholder="合言葉 (例: seki123)">
         <br>
         <input type="text" id="playerName" placeholder="あなたの名前">
