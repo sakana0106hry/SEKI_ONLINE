@@ -58,114 +58,57 @@
 
     /* 1. ログイン画面本体（枠線を表示） */
     /* ログイン画面（画面中央） */
-    /* ▼▼▼ 超・ゴージャス（魔王城）スタイル ▼▼▼ */
-
-    /* 1. ログイン画面本体（立体的な額縁デザイン） */
     #login-screen {
-        position: relative !important;
-        overflow: visible !important; /* 装飾のはみ出しを許可 */
-        
+        /* --- 既存の設定 --- */
         width: 90%;
         max-width: 420px;
         margin: auto;
-        padding: 60px 30px; /* 枠が太くなるので余白を増やす */
+        padding: 50px 30px;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
         
-        /* --- 背景：高級クロス模様 --- */
-        background-color: #0f0500; /* ベースの暗い赤茶色 */
-        background-image: 
-            radial-gradient(#ffd700 1px, transparent 1px), /* 金の粒 */
-            repeating-linear-gradient(45deg, rgba(255, 215, 0, 0.05) 0, rgba(255, 215, 0, 0.05) 1px, transparent 1px, transparent 10px);
-        background-size: 20px 20px, 20px 20px;
+        /* --- ▼ 変更点 ▼ --- */
+        /* position: relative; を追加（必須） */
+        position: relative;
+        /* 枠線を豪華な二重線に変更 */
+        border: 4px double rgba(255, 223, 80, 0.7); 
         
-        /* --- 枠線：何層にも重なる黄金のフレーム --- */
-        border: 4px solid #ffd700; /* 中心の金線 */
-        border-radius: 10px;
-        
-        /* 影を駆使して「額縁」を作るテクニック */
+        /* 既存の影設定 */
         box-shadow: 
-            /* 内側の影（奥行き） */
-            inset 0 0 20px #000,
-            /* 1層目：黒い縁取り */
-            0 0 0 4px #000,
-            /* 2層目：外側の太い金枠 */
-            0 0 0 10px #b8860b,
-            /* 3層目：さらに外の黒枠 */
-            0 0 0 14px #000,
-            /* 4層目：全体を包む発光 */
-            0 0 40px rgba(255, 215, 0, 0.4),
-            0 20px 50px rgba(0, 0, 0, 0.8);
-
+            0 20px 50px rgba(0, 0, 0, 0.8),
+            0 0 20px rgba(255, 215, 0, 0.1),
+            inset 0 0 30px rgba(255, 215, 0, 0.05);
+        
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 20px;
-        z-index: 100;
-        
         animation: fadeInUp 1s ease-out;
+        /* --- ▲ 変更点ここまで ▲ --- */
     }
 
-    /* 2. 四隅の「留め具」装飾（ダイヤモンド型） */
-    #login-screen::before {
-        content: "";
-        position: absolute;
-        top: -20px; left: -20px; right: -20px; bottom: -20px;
-        z-index: 101;
-        pointer-events: none;
-        
-        /* CSSグラデーションで「四隅のひし形」を描画 */
-        background: 
-            /* 左上 */
-            linear-gradient(135deg, #ffd700 0%, #b8860b 50%, transparent 50%) top left,
-            /* 右上 */
-            linear-gradient(225deg, #ffd700 0%, #b8860b 50%, transparent 50%) top right,
-            /* 左下 */
-            linear-gradient(45deg, #ffd700 0%, #b8860b 50%, transparent 50%) bottom left,
-            /* 右下 */
-            linear-gradient(315deg, #ffd700 0%, #b8860b 50%, transparent 50%) bottom right;
-        
-        background-size: 40px 40px; /* 装飾のサイズ */
-        background-repeat: no-repeat;
-        
-        filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));
+    /* --- ▼▼▼ ここから新規追加（四隅の豪華装飾） ▼▼▼ --- */
+
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 3. 上下の「エンブレム」風装飾 */
-    #login-screen::after {
-        content: "";
-        position: absolute;
-        
-        /* 上の中央と下の中央に配置 */
-        top: -25px; bottom: -25px;
-        left: 50%;
-        width: 60px;
-        margin-left: -30px; /* センタリング */
-        
-        z-index: 102;
-        pointer-events: none;
-        
-        /* 上下の飾りをグラデーションで作る */
-        background: 
-            /* 上の飾り */
-            radial-gradient(circle, #fff 10%, #ffd700 40%, #b8860b 70%, transparent 71%) top center,
-            /* 下の飾り */
-            radial-gradient(circle, #fff 10%, #ffd700 40%, #b8860b 70%, transparent 71%) bottom center;
-            
-        background-size: 100% 50px;
-        background-repeat: no-repeat;
-        
-        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8)); /* 宝石のように光らせる */
-    }
-
-    /* タイトルロゴ（少し大きくして負けじと目立たせる） */
+    /* タイトルロゴ画像 */
     #title-logo {
-        width: 100%;
-        max-width: 350px; /* 少し大きく */
-        height: auto;
+        width: 100%;            /* 親要素に合わせてリサイズ */
+        max-width: 320px;       /* 最大幅 */
+        height: auto;           /* 比率を維持 */
         object-fit: contain;
-        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)); /* 強めの発光 */
+        
+        /* ★ロゴを光らせる（金色の影） */
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+        
+        /* ふわふわ浮遊させるアニメーション */
         animation: floatLogo 3s ease-in-out infinite alternate;
         margin-bottom: 5px;
-        z-index: 103; /* 装飾より手前 */
     }
 
     @keyframes floatLogo {
