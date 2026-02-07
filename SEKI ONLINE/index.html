@@ -118,7 +118,7 @@
 
     /* バージョン表記 */
     .version-text {
-        font-family: "Helvetica Neue", Arial, sans-serif;
+        font-family: "M PLUS Rounded 1c", "Rounded Mplus 1c", sans-serif, Arial, sans-serif;
         font-size: 13px;
         color: #ffd700;         /* ゴールド文字 */
         letter-spacing: 2px;    /* 文字間隔を広げて高級感 */
@@ -1209,28 +1209,6 @@
     @media (max-width: 600px) {
         .chat-bubble { max-width: 90px; font-size: 10px; }
     }
-
-    /* --- タブレット・PC向け：画面幅リミッター解除 --- */
-    @media (min-width: 801px) {
-        #game-screen {
-            /* 幅制限を800pxから1200px（iPad Pro相当）まで緩和 */
-            max-width: 1200px !important; 
-        }
-
-        /* 中央フィールドが広がりすぎないように少し調整 */
-        #area-middle {
-            gap: 20px !important; /* 左右のプレイヤーとの間隔を少し広げる */
-        }
-        
-        /* 縦画面（ポートレート）の時の隙間対策 */
-        /* 縦に間延びしないよう、中央寄せにする */
-        #field-center {
-            justify-content: center !important; /* 上下に分散させず中央に寄せる */
-            gap: 30px !important;               /* 適度な間隔を空ける */
-        }
-    }
-
-    
 
 
 
