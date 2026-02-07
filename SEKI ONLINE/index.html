@@ -2007,7 +2007,7 @@
 
             let html = `
                 <div id="chat-input-container">
-                    <input type="text" id="chat-input" placeholder="メッセージを入力...">
+                    <input type="text" id="chat-input" placeholder="メッセージを入力..." onkeydown="if(event.key==='Enter' && !event.isComposing){sendChat();}">
                     <button id="chat-send-btn" onclick="sendChat()">送信</button>
                 </div>
                 <div id="log-list-container">
