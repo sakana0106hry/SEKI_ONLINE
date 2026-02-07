@@ -229,7 +229,7 @@
     
     .card.num { color: #1565c0; font-family: 'Arial Black', sans-serif; }
     .card.sym { color: #c62828; font-size: 11px; text-align:center; line-height:1.1; letter-spacing: -0.5px;}
-    .card[data-val="0"] { border: 2px solid #ab47bc; color: #8e24aa; background: #f3e5f5; }
+    /*.card[data-val="0"] { border: 2px solid #ab47bc; color: #8e24aa; background: #f3e5f5; }*/
 
     /* 選択状態：光るエフェクト */
     .selected { 
@@ -537,7 +537,7 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.4);
     }
     /* 0のカード */
-    .mini-card[data-val="0"] { border: 1px solid #ab47bc; color: #8e24aa; background: #f3e5f5; }
+    /*.mini-card[data-val="0"] { border: 1px solid #ab47bc; color: #8e24aa; background: #f3e5f5; }*/
 
     /* --- その他微調整 --- */
     /* 自分エリアが隠れないようにマージン確保 */
@@ -2419,7 +2419,7 @@
                         if (c.isOpen) cssClass += " revealed";
 
                         div.className = cssClass;
-                        if(c.val === 0) div.setAttribute("data-val", "0");
+                        // if(c.val === 0) div.setAttribute("data-val", "0");
                         if(i === selectedIdx) div.classList.add("selected");
                         
                         let valNode = document.createTextNode(c.val);
@@ -2453,7 +2453,7 @@
                         
                         let valNode = document.createTextNode(c.val);
                         div.appendChild(valNode);
-                        if(c.val === 0) div.setAttribute("data-val", "0");
+                        // if(c.val === 0) div.setAttribute("data-val", "0");
 
                         div.onclick = () => showInfoModal("ロック中", "このカードは機能停止しています。");
                         fragment.appendChild(div);
@@ -2892,7 +2892,6 @@
                 const getNotifDisplay = (val) => {
                     if (CARD_IMAGES[val]) return `<img src="${CARD_IMAGES[val]}" style="height:80px; width:auto; display:block; margin:0 auto;">`;
                     let style = "font-size:32px; font-weight:bold; line-height:80px;";
-                    if (val == 0) style += "color:#8e24aa;";
                     return `<div style="${style}">${val}</div>`;
                 };
                 let html = `
@@ -2987,7 +2986,7 @@
             
             let html = '<div class="modal-list">';
             list.slice().reverse().forEach(c => {
-                let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+                let style = '';
                 let imgUrl = CARD_IMAGES[c.val];
                 let imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;` : '';
                 html += `<div class="card ${c.type}" style="${style} ${imgStyle}">${c.val}</div>`;
@@ -2999,7 +2998,7 @@
         function renderPile(arr) {
             if (!arr || arr.length === 0) return "";
             let c = arr[arr.length-1];
-            let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+            let style = '';
             let imgUrl = CARD_IMAGES[c.val];
             let imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;` : '';
             return `<div class="card ${c.type}" style="${style} ${imgStyle}">${c.val}</div>`;
@@ -3288,7 +3287,7 @@
                 currentHand.forEach((c, i) => {
                     if (i === idx) return; 
                     if (c.type !== 'num') return; 
-                    let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+                    let style = '';
                     let cImg = CARD_IMAGES[c.val];
                     if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
                     html += `<div class="card ${c.type}" style="${style}" onclick="execDigUp(${idx}, ${i})">${c.val}</div>`;
@@ -3318,7 +3317,7 @@
 
                 let html = `<p>捨てるカードを選んでください。</p><div class="modal-list">`;
                 discardable.forEach((c, i) => {
-                    let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+                    let style = '';
                     let cImg = CARD_IMAGES[c.val];
                     if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
                     html += `<div class="card ${c.type}" style="${style}" onclick="execDiscard(${idx}, ${i})">${c.val}</div>`;
@@ -3448,7 +3447,6 @@
                     style = "cursor:pointer; ";
                     let cImg = CARD_IMAGES[c.val];
                     if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-                    else if(c.val===0) style += `border:2px solid #ab47bc; color:#8e24aa; background:#f3e5f5;`;
                 }
 
                 html += `<div class="${cssClass}" style="${style}" 
@@ -3473,8 +3471,6 @@
                 let cImg = CARD_IMAGES[c.val];
                 if (cImg) {
                     style = `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-                } else if (c.val === 0) {
-                    style = `border:2px solid #ab47bc; color:#8e24aa; background:#f3e5f5;`;
                 }
 
                 // 実行 (execTrade に takeIdx を渡す)
@@ -3659,7 +3655,7 @@
         function renderPile(arr) {
             if (!arr || arr.length === 0) return "";
             let c = arr[arr.length-1];
-            let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+            let style = '';
             let imgUrl = CARD_IMAGES[c.val];
             let imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;` : '';
             return `<div class="card ${c.type}" style="${style} ${imgStyle}">${c.val}</div>`;
@@ -3700,7 +3696,7 @@ function activateAngler() {
     let html = `<p>エサとして除外する手札を選んでください。</p><div class="modal-list">`;
     hand.forEach((c, i) => {
         // カード表示用の共通処理（画像など）
-        let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+        let style = '';
         let cImg = CARD_IMAGES[c.val];
         if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         
@@ -3720,7 +3716,7 @@ function anglerStep2(excludeIdx) {
     
     // 数字墓地
     gn.forEach((c, i) => {
-        let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+        let style = '';
         html += `<div class="card num" style="${style}" onclick="execAngler(${excludeIdx}, 'num', ${i})">${c.val}<span style="font-size:8px; display:block;"></span></div>`;
     });
     // 記号墓地
@@ -3815,9 +3811,6 @@ async function activateFortuneTeller() {
              
              // 画像がない場合（数字など）：数字を表示
              // 数字の「0」だけは紫色にする
-             if (c.val == 0) {
-                 return `<span class="card ${c.type}" style="${baseStyle} border:2px solid #ab47bc; color:#8e24aa; background:#f3e5f5;">${c.val}</span>`;
-             }
              
              // 普通の数字
              return `<span class="card ${c.type}" style="${baseStyle}">${c.val}</span>`;
@@ -3929,7 +3922,6 @@ function thiefSelectTake(targetId, count) {
             style = "cursor:pointer; "; 
             let cImg = CARD_IMAGES[c.val];
             if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-            else if (c.val === 0) style += `border:2px solid #ab47bc; color:#8e24aa; background:#f3e5f5;`;
         }
 
         html += `<div class="${cssClass}" style="${style}" ${onClick}>${content}</div>`;
@@ -3949,7 +3941,6 @@ function thiefSelectGive(targetId, takeIdx, count) {
     
     myHand.forEach((c, idx) => {
         let style = "";
-        if (c.val === 0) style = 'color:#6a1b9a; border-color:#6a1b9a;';
         let cImg = CARD_IMAGES[c.val];
         if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         
@@ -3980,7 +3971,6 @@ function thiefSelectGive(targetId, takeIdx, count) {
     
     myHand.forEach((c, idx) => {
         let style = "";
-        if (c.val === 0) style = 'color:#6a1b9a; border-color:#6a1b9a;';
         
         let cImg = CARD_IMAGES[c.val];
         if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
@@ -4428,7 +4418,6 @@ function gamblerSelectDiscard(count) {
         let imgUrl = CARD_IMAGES[c.val];
         let style = "width:40px; height:60px; font-size:10px; cursor:pointer; transition:transform 0.1s; border:1px solid #999;";
         if (imgUrl) style += `background-image:url('${imgUrl}'); color:transparent; border:none;`;
-        else if(c.val==0) style += `border:2px solid #ab47bc; color:#8e24aa; background:#f3e5f5;`;
 
         handHtml += `<div class="card ${c.type} gambler-item" data-idx="${i}" 
                     style="${style}" 
@@ -4743,7 +4732,6 @@ function magicianSelectTake(targetId) {
             style = "cursor:pointer; ";
             let cImg = CARD_IMAGES[c.val];
             if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-            else if (c.val === 0) style += `border:2px solid #ab47bc; color:#8e24aa; background:#f3e5f5;`;
         }
 
         html += `<div class="${cssClass}" style="${style}" ${onClick}>${content}</div>`;
@@ -4759,7 +4747,7 @@ function magicianSelectGive(targetId, takeIdx) {
     let html = `<p>相手に渡すカードを選んでください。<br><span style="font-size:11px;">(手品師の効果なのでTRADEカード自体は不要です)</span></p><div class="modal-list">`;
     
     hand.forEach((c, i) => {
-        let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+        let style = '';
         let cImg = CARD_IMAGES[c.val];
         if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         
@@ -4834,7 +4822,7 @@ function activateMagicianDigUp() {
     let html = `<p>墓地の一番上を拾います。<br>代わりに埋めるカード(数字)を選んでください。</p><div class="modal-list">`;
     hand.forEach((c, i) => {
         if (c.type !== 'num') return; // 数字以外は埋められないルール
-        let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+        let style = '';
         html += `<div class="card ${c.type}" style="${style}" onclick="execMagicianDigUp(${i})">${c.val}</div>`;
     });
     html += `</div>`;
@@ -4887,7 +4875,7 @@ function activateMillionaire() {
     hand.forEach((c, i) => {
         if (c.type !== 'num') return; 
         
-        let style = (c.val === 0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+        let style = '';
         let cImg = CARD_IMAGES[c.val];
         if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         
@@ -4972,11 +4960,6 @@ function activateEmperor() {
     allCards.forEach((c, i) => {
         // 通常のカードスタイル生成
         let style = "";
-        
-        // ★0はいつもの紫色
-        if (c.val === 0) {
-            style = 'color:#6a1b9a; border-color:#6a1b9a; background:#f3e5f5;';
-        }
         
         // 画像があるなら背景にセット
         let cImg = CARD_IMAGES[c.val];
@@ -5147,7 +5130,6 @@ function policeTradeStart() {
         // 画像・色設定
         let cImg = CARD_IMAGES[c.val];
         if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:none;`;
-        else if (Number(c.val) === 0) style += `border:1px solid #ab47bc; background:#f3e5f5; color:#8e24aa;`;
         
         myHandHtml += `<div class="${cssClass}" style="${style}">${c.val}</div>`;
     });
@@ -5238,7 +5220,6 @@ function policeSelectTake(targetId) {
             content = c.val;
             let cImg = CARD_IMAGES[c.val];
             if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-            else if (c.val === 0) style += `border:2px solid #ab47bc; color:#8e24aa; background:#f3e5f5;`;
         } else {
             content = "?";
             style += "background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
@@ -5258,7 +5239,7 @@ function policeSelectGive(targetId, takeIdx) {
     let html = `<p>相手に渡すカードを選んでください。</p><div class="modal-list">`;
     
     hand.forEach((c, i) => {
-        let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+        let style = '';
         let cImg = CARD_IMAGES[c.val];
         if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         
@@ -5278,7 +5259,7 @@ function policeSelectGive(targetId, takeIdx) {
     let html = `<p>相手に渡すカードを選んでください。</p><div class="modal-list">`;
     
     hand.forEach((c, i) => {
-        let style = (c.val===0) ? 'style="color:#6a1b9a; border-color:#6a1b9a;"' : '';
+        let style = '';
         let cImg = CARD_IMAGES[c.val];
         if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         
@@ -5490,7 +5471,6 @@ function renderHackerUI() {
                 content = c.val;
                 let cImg = CARD_IMAGES[c.val];
                 if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:none;`;
-                else if (c.val===0) style += `border:1px solid #ab47bc; background:#f3e5f5; color:#8e24aa;`;
             } else {
                 style += "background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
             }
@@ -5708,7 +5688,6 @@ function renderAlchemistUI() {
     let drawImg = CARD_IMAGES[alchemyDrawnCard.val];
     let drawStyle = "border:3px solid #7b1fa2; box-shadow:0 0 10px #7b1fa2; transform:scale(1.1);";
     if (drawImg) drawStyle += `background-image:url('${drawImg}'); color:transparent;`;
-    else if (Number(alchemyDrawnCard.val) === 0) drawStyle += `background:#f3e5f5; color:#8e24aa; border-color:#ab47bc;`;
 
     // HTML組み立て
     let html = `
@@ -5745,7 +5724,6 @@ function renderAlchemistUI() {
 
         if (isNum) {
             style += "cursor:pointer; ";
-            if (Number(c.val) === 0) style += 'color:#6a1b9a; border-color:#6a1b9a; ';
             if (isSelected) style += "border:3px solid #7b1fa2; transform:scale(1.1); box-shadow:0 0 10px #7b1fa2;";
             
             if (c.isHacked) {
@@ -5858,7 +5836,6 @@ function renderAlchemistUI() {
             prev.style.color = "#7b1fa2";
             prev.style.fontWeight = "bold";
             prev.style.fontSize = "22px";
-            if(Number(c.val)===0) { prev.style.background="#f3e5f5"; prev.style.color="#8e24aa"; prev.style.borderColor="#ab47bc"; }
         }
     }
 }
@@ -6043,7 +6020,6 @@ function activateNecromancer() {
     
     // 画像表示用のスタイル作成
     let style = "";
-    if (Number(topCard.val) === 0) style = 'color:#6a1b9a; border-color:#6a1b9a; background:#f3e5f5;';
     let cImg = CARD_IMAGES[topCard.val];
     if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
 
