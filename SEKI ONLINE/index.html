@@ -6573,11 +6573,13 @@ function setupEffectListener() {
         
         <div class="hud-section-title">NUMBER (残/全4)</div>
         <div class="hud-grid" id="hud-grid-num">
-            </div>
+            <div style="grid-column:1/-1; text-align:center; color:#555; font-size:10px;">Loading...</div>
+        </div>
 
         <div class="hud-section-title">SYMBOL</div>
         <div class="hud-grid-sym" id="hud-grid-sym">
-            </div>
+            <div style="grid-column:1/-1; text-align:center; color:#555; font-size:10px;">Loading...</div>
+        </div>
         
         <div style="font-size:10px; color:#777; margin-top:5px; text-align:center;">
             ※山札 + 相手の手札にある数
@@ -6590,6 +6592,7 @@ function setupEffectListener() {
     #counter-hud-wrapper {
         font-family: "M PLUS Rounded 1c", sans-serif;
         user-select: none;
+        z-index: 9999; /* 最前面に */
     }
 
     /* 1. 開閉ボタン（スマホで邪魔にならないサイズ） */
@@ -6597,7 +6600,7 @@ function setupEffectListener() {
         position: fixed;
         top: 60px;       /* ヘッダーの下あたり */
         right: 15px;     /* 右端に配置 */
-        z-index: 2000;   /* 最前面 */
+        z-index: 2000;   
         
         width: 44px; height: 44px;
         background: rgba(0, 0, 0, 0.6);
@@ -6692,7 +6695,7 @@ function setupEffectListener() {
 </style>
 
 <script>
-    /* --- カウンティングロジック --- */
+    /* --- カウンティングロジック (改修版) --- */
     
     // カードの初期枚数定義
     const INITIAL_COUNTS = {
@@ -6706,17 +6709,21 @@ function setupEffectListener() {
     };
 
     // パネル開閉関数
-    function toggleCounterHUD() {
+    window.toggleCounterHUD = function() {
         const panel = document.getElementById("counter-panel");
-        panel.classList.toggle("active");
-        // 更新を即時実行
-        updateCounterHUD();
-    }
+        if(panel) {
+            panel.classList.toggle("active");
+            updateCounterHUD(); // 開いた瞬間に更新
+        }
+    };
 
     // カウント更新関数（メインロジック）
     function updateCounterHUD() {
-        // ゲームデータがまだなければ何もしない
-        if (typeof gameState === 'undefined' || !gameState || typeof currentHand === 'undefined') return;
+        // ゲームデータがまだなければ中断 (エラー回避)
+        if (typeof gameState === 'undefined' || !gameState) return;
+        
+        // 自分の手札変数がなければ空配列として扱う
+        let myHandRef = (typeof currentHand !== 'undefined') ? currentHand : [];
 
         // 1. カウント用オブジェクトを初期化（コピー）
         let remaining = Object.assign({}, INITIAL_COUNTS);
@@ -6725,18 +6732,31 @@ function setupEffectListener() {
         const subtractVisible = (cardList) => {
             if (!cardList || !Array.isArray(cardList)) return;
             cardList.forEach(c => {
-                if (c && c.val !== undefined && remaining[c.val] !== undefined) {
+                if (!c || c.val === undefined) return;
+
+                // ★重要: 錬金術師によって生成されたカード(isAlchemy=true)は
+                // 「本来の山札の枚数」ではないため、カウントから除外しない（無視する）。
+                // これにより、生成された「5」が出ても、山札の「5」は減らない。
+                if (c.isAlchemy) return;
+
+                if (remaining[c.val] !== undefined) {
                     remaining[c.val]--;
                 }
             });
         };
 
-        // 3. 各場所から減算
-        subtractVisible(currentHand);              // 自分の手札
+        // 3. 各場所から減算 (gameStateのキー名に注意)
+        subtractVisible(myHandRef);                // 自分の手札
         subtractVisible(gameState.graveNum);       // 数字墓地
         subtractVisible(gameState.graveSym);       // 記号墓地
-        subtractVisible(gameState.removed);        // 除外エリア(removed)
-        subtractVisible(gameState.exclusionList);  // 除外リスト(念のため両方チェック)
+        
+        // ★除外エリア (gameState.exclusion または gameState.removed)
+        // コード解析の結果、gameState.exclusion に格納されていることが判明
+        if (gameState.exclusion) subtractVisible(gameState.exclusion);
+        
+        // 念のため removed もチェック (古いバージョン対策)
+        if (gameState.removed) subtractVisible(gameState.removed);
+
 
         // 4. HTMLへの描画（数字）
         const gridNum = document.getElementById("hud-grid-num");
@@ -6789,11 +6809,16 @@ function setupEffectListener() {
         return "#69f0ae"; // 緑
     }
 
-    // 6. 定期実行（1秒ごとに更新）
-    // render関数をフックするのは複雑なので、setIntervalで監視します
-    setInterval(updateCounterHUD, 1000);
+    // 6. 定期実行（0.5秒ごとに更新）
+    // ゲーム開始前などでエラーが出ないよう try-catch で囲む
+    setInterval(() => {
+        try {
+            updateCounterHUD();
+        } catch(e) {
+            console.error("HUD Update Error:", e);
+        }
+    }, 500);
 
 </script>
-
 </body>
 </html>
