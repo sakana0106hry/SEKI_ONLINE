@@ -3312,15 +3312,33 @@
             }
             if (card.val === "DISCARD") {
                 let newHand = [...currentHand];
+                // 使用したDISCARDカード以外をリスト化
                 let discardable = newHand.filter((_, i) => i !== idx);
-                if (discardable.length === 0) return showInfoModal("エラー", "捨てる手札がありません");
+                
+                // ★追加: 捨てられる数字カードがあるかチェック
+                let hasNum = discardable.some(c => c.type === 'num');
+                if (!hasNum) return showInfoModal("エラー", "捨てることのできる数字カードがありません");
 
-                let html = `<p>捨てるカードを選んでください。</p><div class="modal-list">`;
+                let html = `<p>捨てるカードを選んでください<br><span style="font-size:12px; color:#ef5350;">※数字カードのみ選択可能です</span></p><div class="modal-list">`;
                 discardable.forEach((c, i) => {
                     let style = '';
+                    let onClick = '';
                     let cImg = CARD_IMAGES[c.val];
-                    if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-                    html += `<div class="card ${c.type}" style="${style}" onclick="execDiscard(${idx}, ${i})">${c.val}</div>`;
+
+                    // ★変更: 数字カードなら選択可能、記号カードなら選択不可
+                    if (c.type === 'num') {
+                        // 選択可能
+                        style = 'cursor:pointer; transition:transform 0.1s; ';
+                        if(cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
+                        onClick = `onclick="execDiscard(${idx}, ${i})"`;
+                    } else {
+                        // 選択不可 (グレーアウト)
+                        style = 'opacity:0.3; cursor:not-allowed; border:1px dashed #777; background:rgba(0,0,0,0.2); transform:scale(0.95);';
+                        if(cImg) style += `background-image:url('${cImg}'); color:transparent;`;
+                        // onclickは設定しない
+                    }
+
+                    html += `<div class="card ${c.type}" style="${style}" ${onClick}>${c.val}</div>`;
                 });
                 html += `</div>`;
                 openModal("DISCARD: 手札破棄", html);
