@@ -6560,7 +6560,7 @@ function setupEffectListener() {
 
 
     </script>
-    <div id="counter-hud-wrapper">
+    <div id="counter-hud-wrapper" style="display:none;">
     <div id="counter-toggle-btn" onclick="toggleCounterHUD()">
         📊
     </div>
@@ -6732,7 +6732,7 @@ function setupEffectListener() {
         if(wrapper && wrapper.style.display === "none") {
             wrapper.style.display = "block";
         }
-        
+
         // ★修正ポイント: 手札の取得方法を変更
         // 以前の currentHand は更新されていない場合があるため、
         // 確実な gameState.hands[myId] から取得します。
