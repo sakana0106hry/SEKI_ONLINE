@@ -6560,5 +6560,240 @@ function setupEffectListener() {
 
 
     </script>
+    <div id="counter-hud-wrapper">
+    <div id="counter-toggle-btn" onclick="toggleCounterHUD()">
+        📊
+    </div>
+
+    <div id="counter-panel">
+        <div class="hud-header">
+            <span>CARD COUNTER</span>
+            <span class="close-btn" onclick="toggleCounterHUD()">×</span>
+        </div>
+        
+        <div class="hud-section-title">NUMBER (残/全4)</div>
+        <div class="hud-grid" id="hud-grid-num">
+            </div>
+
+        <div class="hud-section-title">SYMBOL</div>
+        <div class="hud-grid-sym" id="hud-grid-sym">
+            </div>
+        
+        <div style="font-size:10px; color:#777; margin-top:5px; text-align:center;">
+            ※山札 + 相手の手札にある数
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- カウンティングHUDのスタイル --- */
+    #counter-hud-wrapper {
+        font-family: "M PLUS Rounded 1c", sans-serif;
+        user-select: none;
+    }
+
+    /* 1. 開閉ボタン（スマホで邪魔にならないサイズ） */
+    #counter-toggle-btn {
+        position: fixed;
+        top: 60px;       /* ヘッダーの下あたり */
+        right: 15px;     /* 右端に配置 */
+        z-index: 2000;   /* 最前面 */
+        
+        width: 44px; height: 44px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 215, 0, 0.6);
+        border-radius: 50%;
+        
+        display: flex; justify-content: center; align-items: center;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        transition: transform 0.2s, background 0.2s;
+    }
+    #counter-toggle-btn:active { transform: scale(0.9); background: rgba(0,0,0,0.8); }
+
+    /* 2. パネル本体（グラスモーフィズム） */
+    #counter-panel {
+        position: fixed;
+        top: 115px;
+        right: 15px;
+        z-index: 1999;
+        
+        width: 240px;    /* スマホでも見やすい幅 */
+        background: rgba(20, 20, 20, 0.85);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 12px;
+        padding: 12px;
+        
+        /* アニメーション（右上から展開） */
+        transform-origin: top right;
+        transform: scale(0);
+        opacity: 0;
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: none;
+        
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    /* 開いた状態 */
+    #counter-panel.active {
+        transform: scale(1);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* 内部レイアウト */
+    .hud-header {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 12px; font-weight: bold; color: #ffd700;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 5px; margin-bottom: 8px;
+    }
+    .close-btn { cursor: pointer; padding: 0 5px; font-size: 16px; color: #fff; }
+
+    .hud-section-title {
+        font-size: 10px; color: #aaa; margin-bottom: 4px; letter-spacing: 1px;
+    }
+
+    .hud-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr); /* 5列 (0-4, 5-9) */
+        gap: 4px;
+        margin-bottom: 12px;
+    }
+    .hud-grid-sym {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 記号は2列 */
+        gap: 4px;
+    }
+
+    .hud-item {
+        background: rgba(255,255,255,0.05);
+        border-radius: 6px;
+        padding: 4px 0;
+        text-align: center;
+        border: 1px solid transparent;
+    }
+    /* 残り0枚になったら暗くする */
+    .hud-item.zero { opacity: 0.3; background: transparent; border: 1px dashed #444; }
+    /* 残り枚数が多いときは強調 */
+    .hud-item.rich { border-color: rgba(255,215,0,0.3); background: rgba(255,215,0,0.05); }
+
+    .hud-val { font-size: 11px; font-weight: bold; color: #ccc; display: block; line-height: 1; margin-bottom: 2px; }
+    .hud-count { font-size: 15px; font-weight: 800; color: #fff; display: block; line-height: 1; }
+    
+    /* 記号ごとの色分け */
+    .hud-item.sym-rev .hud-val { color: #e91e63; } /* REVERSE: 赤 */
+    .hud-item.sym-tra .hud-val { color: #ff9800; } /* TRADE: オレンジ */
+    .hud-item.sym-dig .hud-val { color: #795548; } /* DIG UP: 茶 */
+    .hud-item.sym-dis .hud-val { color: #9e9e9e; } /* DISCARD: グレー */
+
+</style>
+
+<script>
+    /* --- カウンティングロジック --- */
+    
+    // カードの初期枚数定義
+    const INITIAL_COUNTS = {
+        // 数字 (各4枚)
+        0:4, 1:4, 2:4, 3:4, 4:4, 5:4, 6:4, 7:4, 8:4, 9:4,
+        // 記号
+        "REVERSE": 4,
+        "TRADE": 4,
+        "DIG UP": 4,
+        "DISCARD": 1
+    };
+
+    // パネル開閉関数
+    function toggleCounterHUD() {
+        const panel = document.getElementById("counter-panel");
+        panel.classList.toggle("active");
+        // 更新を即時実行
+        updateCounterHUD();
+    }
+
+    // カウント更新関数（メインロジック）
+    function updateCounterHUD() {
+        // ゲームデータがまだなければ何もしない
+        if (typeof gameState === 'undefined' || !gameState || typeof currentHand === 'undefined') return;
+
+        // 1. カウント用オブジェクトを初期化（コピー）
+        let remaining = Object.assign({}, INITIAL_COUNTS);
+
+        // 2. 「見えているカード」を減算するヘルパー関数
+        const subtractVisible = (cardList) => {
+            if (!cardList || !Array.isArray(cardList)) return;
+            cardList.forEach(c => {
+                if (c && c.val !== undefined && remaining[c.val] !== undefined) {
+                    remaining[c.val]--;
+                }
+            });
+        };
+
+        // 3. 各場所から減算
+        subtractVisible(currentHand);              // 自分の手札
+        subtractVisible(gameState.graveNum);       // 数字墓地
+        subtractVisible(gameState.graveSym);       // 記号墓地
+        subtractVisible(gameState.removed);        // 除外エリア(removed)
+        subtractVisible(gameState.exclusionList);  // 除外リスト(念のため両方チェック)
+
+        // 4. HTMLへの描画（数字）
+        const gridNum = document.getElementById("hud-grid-num");
+        if(gridNum) {
+            let html = "";
+            for (let i = 0; i <= 9; i++) {
+                let count = remaining[i];
+                if (count < 0) count = 0; // エラー防止
+                let cls = count === 0 ? "zero" : (count >= 3 ? "rich" : "");
+                html += `
+                    <div class="hud-item ${cls}">
+                        <span class="hud-val">${i}</span>
+                        <span class="hud-count" style="color:${getColorForCount(count)}">${count}</span>
+                    </div>
+                `;
+            }
+            gridNum.innerHTML = html;
+        }
+
+        // 5. HTMLへの描画（記号）
+        const gridSym = document.getElementById("hud-grid-sym");
+        if(gridSym) {
+            const syms = [
+                {k: "REVERSE", l:"REV", c:"sym-rev"}, 
+                {k: "TRADE",   l:"TRA", c:"sym-tra"}, 
+                {k: "DIG UP",  l:"DIG", c:"sym-dig"}, 
+                {k: "DISCARD", l:"DIS", c:"sym-dis"}
+            ];
+            let html = "";
+            syms.forEach(s => {
+                let count = remaining[s.k];
+                if (count < 0) count = 0;
+                let cls = count === 0 ? "zero" : "";
+                html += `
+                    <div class="hud-item ${s.c} ${cls}">
+                        <span class="hud-val">${s.l}</span>
+                        <span class="hud-count">${count}</span>
+                    </div>
+                `;
+            });
+            gridSym.innerHTML = html;
+        }
+    }
+
+    // カウントの色分け（多いと緑、少ないと赤）
+    function getColorForCount(n) {
+        if (n === 0) return "#555";
+        if (n === 1) return "#ff5252"; // 赤
+        if (n === 2) return "#ffeb3b"; // 黄
+        return "#69f0ae"; // 緑
+    }
+
+    // 6. 定期実行（1秒ごとに更新）
+    // render関数をフックするのは複雑なので、setIntervalで監視します
+    setInterval(updateCounterHUD, 1000);
+
+</script>
+
 </body>
 </html>
