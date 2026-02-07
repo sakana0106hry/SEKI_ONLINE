@@ -6722,8 +6722,14 @@ function setupEffectListener() {
         // ゲームデータがまだなければ中断 (エラー回避)
         if (typeof gameState === 'undefined' || !gameState) return;
         
-        // 自分の手札変数がなければ空配列として扱う
-        let myHandRef = (typeof currentHand !== 'undefined') ? currentHand : [];
+        // ★修正ポイント: 手札の取得方法を変更
+        // 以前の currentHand は更新されていない場合があるため、
+        // 確実な gameState.hands[myId] から取得します。
+        let myHandRef = [];
+        // myId が定義されているか念のためチェック
+        if (typeof myId !== 'undefined' && gameState.hands && gameState.hands[myId]) {
+            myHandRef = gameState.hands[myId];
+        }
 
         // 1. カウント用オブジェクトを初期化（コピー）
         let remaining = Object.assign({}, INITIAL_COUNTS);
@@ -6736,7 +6742,6 @@ function setupEffectListener() {
 
                 // ★重要: 錬金術師によって生成されたカード(isAlchemy=true)は
                 // 「本来の山札の枚数」ではないため、カウントから除外しない（無視する）。
-                // これにより、生成された「5」が出ても、山札の「5」は減らない。
                 if (c.isAlchemy) return;
 
                 if (remaining[c.val] !== undefined) {
@@ -6746,11 +6751,11 @@ function setupEffectListener() {
         };
 
         // 3. 各場所から減算 (gameStateのキー名に注意)
-        subtractVisible(myHandRef);                // 自分の手札
+        subtractVisible(myHandRef);                // 自分の手札（これで正しく引かれます！）
         subtractVisible(gameState.graveNum);       // 数字墓地
         subtractVisible(gameState.graveSym);       // 記号墓地
         
-        // ★除外エリア (gameState.exclusion または gameState.removed)
+        // ★除外エリアの対応
         // コード解析の結果、gameState.exclusion に格納されていることが判明
         if (gameState.exclusion) subtractVisible(gameState.exclusion);
         
@@ -6815,7 +6820,7 @@ function setupEffectListener() {
         try {
             updateCounterHUD();
         } catch(e) {
-            console.error("HUD Update Error:", e);
+            // エラーは無視（コンソールを汚さない）
         }
     }, 500);
 
