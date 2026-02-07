@@ -4275,7 +4275,7 @@ async function execHunterSwap(isSkip = false) {
         updates[`rooms/${currentRoom}/deckSym`] = deckSym; 
         // updates[`rooms/${currentRoom}/exclusion`] = excl; // 除外場は変わらないので更新不要（またはそのまま更新してもOK）
         
-        await pushLog(`${myName}が[狩人]を発動！手札 [${handIndices.length}] 枚を記号山札と交換しました。`, 'public');
+        await pushLog(`${myName}が[狩人]を発動！手札 ${handIndices.length} 枚を記号山札と交換しました。`, 'public');
         await pushLog(`【狩りの成果】<br>使用武器(山札へ): ${outNames.join(', ')}<br>獲物: ${inNames.join(', ')}`, 'private', myId);
 
     } else {
@@ -6825,5 +6825,141 @@ function setupEffectListener() {
     }, 500);
 
 </script>
+
+<div id="sub-modal-overlay" class="hidden" onclick="closeSubModal()">
+    <div id="sub-modal-box" onclick="event.stopPropagation()">
+        <span class="close-btn" onclick="closeSubModal()">×</span>
+        <h3 id="sub-modal-title">タイトル</h3>
+        <div id="sub-modal-body">
+            </div>
+    </div>
+</div>
+
+<style>
+    /* メインのモーダルと同じようなデザインにしつつ、さらに上に表示 */
+    #sub-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9999; /* ★メイン(1000くらい)よりずっと上 */
+        display: flex; justify-content: center; align-items: center;
+        backdrop-filter: blur(4px);
+        transition: opacity 0.2s;
+    }
+    #sub-modal-overlay.hidden { display: none !important; opacity: 0; }
+    
+    #sub-modal-box {
+        background: #fff; color: #333;
+        width: 90%; max-width: 600px;
+        max-height: 80vh;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        display: flex; flex-direction: column;
+        animation: subPopIn 0.2s ease-out;
+    }
+    @keyframes subPopIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    #sub-modal-title { margin: 0 0 10px 0; border-bottom: 2px solid #2e7d32; padding-bottom: 5px; color: #2e7d32; }
+    #sub-modal-body { overflow-y: auto; flex: 1; text-align: left; font-size: 14px; line-height: 1.6; }
+    
+    /* 既存の閉じるボタンのスタイルを流用 */
+    #sub-modal-box .close-btn {
+        position: absolute; top: 10px; right: 15px;
+        font-size: 24px; cursor: pointer; color: #999;
+    }
+    
+    /* 追加する「便利ボタン」のスタイル */
+    #modal-help-btns {
+        position: absolute; top: 10px; left: 10px;
+        display: flex; gap: 5px; z-index: 100;
+    }
+    .help-icon-btn {
+        background: none; border: 1px solid rgba(0,0,0,0.2);
+        border-radius: 4px; cursor: pointer; font-size: 14px; padding: 2px 6px;
+        background: rgba(255,255,255,0.8); transition: 0.2s;
+    }
+    .help-icon-btn:hover { transform: scale(1.1); background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+</style>
+
+<script>
+    /* --- 1. 既存の openModal を改造して「ボタン」を注入 --- */
+    // 既存の関数を退避（二重適用防止）
+    if (!window._origOpenModal) window._origOpenModal = window.openModal;
+
+    window.openModal = function(title, html) {
+        // まず普通に開く
+        window._origOpenModal(title, html);
+
+        // モーダルボックスを取得
+        const box = document.getElementById("modal-box");
+        if (box) {
+            // boxのpositionがstaticだとabsoluteが効かないので補正
+            if(getComputedStyle(box).position === 'static') box.style.position = 'relative';
+
+            // 既にボタンがあるか確認（重複防止）
+            if (document.getElementById("modal-help-btns")) return;
+
+            // ボタンコンテナを作成（左上に配置）
+            const btnDiv = document.createElement("div");
+            btnDiv.id = "modal-help-btns";
+            btnDiv.innerHTML = `
+                <button class="help-icon-btn" onclick="showRuleSub()" title="ルール">📖</button>
+                <button class="help-icon-btn" onclick="showRoleSub()" title="役職一覧">👥</button>
+            `;
+            box.appendChild(btnDiv);
+        }
+    };
+
+    /* --- 2. サブモーダル制御（ルールなどを上に重ねる用） --- */
+    function openSubModal(title, html) {
+        document.getElementById("sub-modal-title").innerText = title;
+        document.getElementById("sub-modal-body").innerHTML = html;
+        document.getElementById("sub-modal-overlay").classList.remove("hidden");
+    }
+    function closeSubModal() {
+        document.getElementById("sub-modal-overlay").classList.add("hidden");
+    }
+    // windowに登録（HTMLから呼べるように）
+    window.closeSubModal = closeSubModal;
+    window.showRuleSub = showRuleSub;
+    window.showRoleSub = showRoleSub;
+
+    /* --- 3. ルール・役職の中身定義（サブモーダルを開く版） --- */
+    function showRuleSub() {
+        // 既存のshowRuleの中身と同じテキストを使用
+        let html = `
+            <div>
+                <h4>基本ルール</h4>
+                <p>・手札を0枚にすれば勝ち。<br>・場のカードより強い数字を出す。<br>・「0」は最強のジョーカー。</p>
+                <h4>記号カード</h4>
+                <ul>
+                    <li><span style="color:#e91e63">REVERSE</span>: 強弱逆転</li>
+                    <li><span style="color:#ff9800">TRADE</span>: 手札交換</li>
+                    <li><span style="color:#795548">DIG UP</span>: 墓地回収</li>
+                    <li><span style="color:#9e9e9e">DISCARD</span>: 手札捨て</li>
+                </ul>
+                <p style="font-size:12px; color:#666;">※この画面を閉じても元の画面に戻ります</p>
+            </div>
+        `;
+        openSubModal("📖 ルール確認", html);
+    }
+
+    function showRoleSub() {
+        if (typeof ROLE_INFO === 'undefined') return;
+        let html = '<div style="display:flex; flex-direction:column; gap:8px;">';
+        Object.keys(ROLE_INFO).forEach(key => {
+            const info = ROLE_INFO[key];
+            html += `
+                <div style="border-bottom:1px solid #eee; padding-bottom:4px;">
+                    <strong style="color:#2e7d32;">${info.jp || key}</strong>
+                    <div style="font-size:12px; color:#555;">${info.summary || ""}</div>
+                </div>`;
+        });
+        html += '</div>';
+        openSubModal("👥 役職一覧", html);
+    }
+</script>
+
 </body>
 </html>
