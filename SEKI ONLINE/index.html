@@ -3334,8 +3334,9 @@
                     } else {
                         // 選択不可 (グレーアウト)
                         style = 'opacity:0.3; cursor:not-allowed; border:1px dashed #777; background:rgba(0,0,0,0.2); transform:scale(0.95);';
-                        if(cImg) style += `background-image:url('${cImg}'); color:transparent;`;
-                        // onclickは設定しない
+                        if(cImg) {
+                            style += `background-image:url('${cImg}'); background-size:cover; background-position:center; color:transparent;`;
+                        }
                     }
 
                     html += `<div class="card ${c.type}" style="${style}" ${onClick}>${c.val}</div>`;
