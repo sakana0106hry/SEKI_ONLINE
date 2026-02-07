@@ -6267,7 +6267,7 @@ function setupEffectListener() {
                     </details>`;
             });
             html += '</div>';
-            openModal("役職一覧", html);
+            openModal("👥役職一覧", html);
 
             // ★追加: このモーダルだけ幅を広げる (600px)
             const mBox = document.getElementById("modal-box");
@@ -6313,7 +6313,7 @@ function setupEffectListener() {
                     </ul>
                 </div>
             `;
-            openModal("ルール", html);
+            openModal("📖ルール", html);
 
             // ★追加: このモーダルだけ幅を広げる (600px)
             const mBox = document.getElementById("modal-box");
@@ -6719,8 +6719,19 @@ function setupEffectListener() {
 
     // カウント更新関数（メインロジック）
     function updateCounterHUD() {
-        // ゲームデータがまだなければ中断 (エラー回避)
-        if (typeof gameState === 'undefined' || !gameState) return;
+        const wrapper = document.getElementById("counter-hud-wrapper");
+        
+        // ★重要: ゲームに参加していない（ログイン画面）ときは隠す
+        // gameStateがない、または myId がない場合は非表示にして終了
+        if (typeof gameState === 'undefined' || !gameState || typeof myId === 'undefined' || !myId) {
+            if(wrapper) wrapper.style.display = "none";
+            return;
+        }
+
+        // ゲーム中なら表示する
+        if(wrapper && wrapper.style.display === "none") {
+            wrapper.style.display = "block";
+        }
         
         // ★修正ポイント: 手札の取得方法を変更
         // 以前の currentHand は更新されていない場合があるため、
@@ -6965,19 +6976,30 @@ function setupEffectListener() {
             const info = ROLE_INFO[key];
             let imgHtml = "";
             if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
-                imgHtml = `<img src="${ROLE_IMAGES[key]}" style="width:30px; height:30px; margin-right:5px; vertical-align:middle;">`;
-            }
-            html += `
-                <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                    <div style="font-weight:bold; font-size:15px; color:#2e7d32; display:flex; align-items:center;">
-                        ${imgHtml} ${info.jp || key}
-                    </div>
-                    <div style="font-size:12px; font-weight:bold; color:#555; margin:2px 0 5px 0;">${info.summary || ""}</div>
-                    <div style="font-size:12px; color:#333; line-height:1.5; background:#f9f9f9; padding:5px; border-radius:4px;">${info.desc || ""}</div>
-                </div>
-            `;
-        });
-        html += '</div>';
+                    imgHtml = `<img src="${ROLE_IMAGES[key]}" style="height:40px; vertical-align:middle; margin-right:10px; border-radius:4px; border:1px solid #ccc;">`;
+                }
+
+                // ★detailsタグを使って開閉式にする
+                html += `
+                    <details style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">
+                        <summary style="cursor:pointer; display:flex; align-items:center; outline:none; list-style:none;">
+                            ${imgHtml}
+                            <div style="flex:1;">
+                                <div style="font-weight:bold; color:#e050fa; font-size:15px;">
+                                    ${info.jp} 
+                                    <span style="font-size:13px; color:#e050fa; font-weight:normal; margin-left:4px;">${key}</span>
+                                </div>
+                                <div style="font-size:12px; color:#000000; display: flex; justify-content: space-between; align-items: baseline;">
+                                <div>${info.summary}</div>
+                                <span style="font-size:10px; color:#888; white-space: nowrap;">▼詳細　</span>
+                            </div>
+                            </div>
+                        </summary>
+                        
+                        <div style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.1); border-radius:5px; font-size:12px; color:#000000; line-height:1.6;">${info.desc}</div>
+                    </details>`;
+            });
+            html += '</div>';
         openSubModal("👥 役職一覧", html);
     }
 </script>
