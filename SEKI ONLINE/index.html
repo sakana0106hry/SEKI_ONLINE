@@ -510,7 +510,7 @@
     }
     /* 修正: 役職の補足情報（手品師のスキル名など）を横並びにする */
     .role-sub { 
-        font-size: 10px; 
+        font-size: 12px; 
         display: inline;      /* 横に並べる */
         opacity: 0.9; 
         margin-left: 4px;
@@ -2861,7 +2861,7 @@
                         }
 
                         if (roleSub) {
-                            roleHtml = `<div class="role-badge-pill">${rJp}: ${roleSub}</div>`;
+                            roleHtml = `<div class="role-badge-pill">${rJp}: <span class="role-sub">${roleSub}</span></div>`;
                         } else {
                             roleHtml = `<div class="role-badge-pill">${rJp}</div>`;
                         }
@@ -3925,8 +3925,8 @@
             const state = getAstronomerState(data);
             if (!state) return "";
             return state.isStrongest
-                ? `観測:${state.value}`
-                : `観測:${state.value}`;
+                ? `観測 ${state.value}`
+                : `観測 ${state.value}`;
         }
         function getNumberStrengthOrder(isRev, data = gameState) {
             const baseOrder = isRev
