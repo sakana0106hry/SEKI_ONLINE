@@ -6987,11 +6987,14 @@ function setupEffectListener() {
     const modalOverlay = document.getElementById("modal-overlay");
     if (modalOverlay && !window._modalBoardObserverAttached) {
         window._modalBoardObserverAttached = true;
+        let lastMainModalHiddenState = modalOverlay.classList.contains("hidden");
         const observer = new MutationObserver(() => {
-            if (!modalOverlay.classList.contains("hidden")) {
+            const isHidden = modalOverlay.classList.contains("hidden");
+            if (lastMainModalHiddenState && !isHidden) {
                 ensureMainModalTools();
                 setMainModalBoardMode(false);
             }
+            lastMainModalHiddenState = isHidden;
         });
         observer.observe(modalOverlay, { attributes: true, attributeFilter: ["class"] });
         if (!modalOverlay.classList.contains("hidden")) {
