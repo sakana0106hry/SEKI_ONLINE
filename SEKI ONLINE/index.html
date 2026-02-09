@@ -2532,12 +2532,12 @@
                     
                     if (myRole === "EMPEROR") {
                         if (bgUrl) {
-                            bgStyle = `background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(0,0,0,0.6)), url('${bgUrl}'); background-size: cover; background-position: center; border: 3px solid #fff; animation: goldPulse 2s infinite alternate;`;
+                            bgStyle = `background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(0,0,0,0.6)), url('${bgUrl}'); background-size: cover; background-position: top center; border: 3px solid #fff; animation: goldPulse 2s infinite alternate;`;
                         } else {
                             bgStyle = `background: linear-gradient(45deg, #FFD700, #FDB931, #FFED86, #FFD700); background-size: 200% 200%; border: 3px solid #fff; animation: goldShine 3s ease infinite, goldPulse 2s infinite alternate; color: #3e2723; text-shadow: none;`;
                         }
                     } else if (bgUrl) {
-                        bgStyle = `background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('${bgUrl}'); background-size: cover; background-position: center;`;
+                        bgStyle = `background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('${bgUrl}'); background-size: cover; background-position: top center;`;
                     } else {
                         bgStyle = `background: linear-gradient(135deg, #6a1b9a, #4a148c);`;
                     }
