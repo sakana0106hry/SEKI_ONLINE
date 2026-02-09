@@ -2031,14 +2031,8 @@
             return !!(pid && getPoliticianShieldMap(data)[pid]);
         }
 
-        function showPoliticianBlockedInfo(targetId) {
-            const targetName = (gameState && gameState.players && gameState.players[targetId]) ? gameState.players[targetId].name : "Target";
-            showInfoModal("対象不可", `${targetName} は [政治家] の効果で手札干渉の対象外です。`);
-        }
-
         function canTargetByHandInterference(targetId) {
             if (!isPoliticianShieldActive(targetId)) return true;
-            showPoliticianBlockedInfo(targetId);
             return false;
         }
 
@@ -3481,7 +3475,7 @@
                     let count = gameState.hands[pid] ? gameState.hands[pid].length : 0;
                     if (count > 0) {
                         if (isPoliticianShieldActive(pid)) {
-                            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+                            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
                         } else {
                             canUseTarget = true;
                             html += `<button class="modal-btn" onclick="tradeStep2('${pid}', ${idx})">${p.name} (手札${count})</button>`;
@@ -4313,7 +4307,7 @@ function activateThief(count = 1) {
         let revealedInfo = revealed ? `<br><span style="font-size:11px; color:#000000;">(公開: ${revealed})</span>` : "";
 
         if (isPoliticianShieldActive(pid)) {
-            html += `<button onclick="showPoliticianBlockedInfo('${pid}')" style="display:block; width:100%; margin:5px 0; padding:10px; background:#9e9e9e; color:#fff; opacity:0.7; border:none; border-radius:6px;">
+            html += `<button disabled style="display:block; width:100%; margin:5px 0; padding:10px; background:#9e9e9e; color:#fff; opacity:0.7; border:none; border-radius:6px; cursor:not-allowed;">
                 ${pName} (政治家で対象外)
             </button>`;
         } else {
@@ -5155,7 +5149,7 @@ function activateMagicianTrade() {
         // ★変更: 次は「奪うカード選択 (magicianSelectTake)」へ
         if (count > 0) {
             if (isPoliticianShieldActive(pid)) {
-                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
             } else {
                 canUseTarget = true;
                 html += `<button class="modal-btn" onclick="magicianSelectTake('${pid}')">${p.name} (手札${count})</button>`;
@@ -5629,7 +5623,7 @@ function policeTradeStart() {
 
         if (count > 0) {
             if (isPoliticianShieldActive(pid)) {
-                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">
+                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>
                             ${p.name} (政治家で対象外)
                          </button>`;
             } else {
@@ -5831,7 +5825,7 @@ function renderHackerUI() {
         html += `<p style="text-align:center; color:#d32f2f;">※政治家の保護中プレイヤーは対象外です</p>`;
         blockedTargets.forEach(pid => {
             const p = gameState.players[pid];
-            html += `<button class="modal-btn" style="width:100%; margin:4px 0; background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+            html += `<button class="modal-btn" style="width:100%; margin:4px 0; background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
         });
     }
 
@@ -5902,10 +5896,7 @@ function selectHackerTarget(targetId, idx) {
 // 3. 実行処理 (手札からhackedHandsへ移動)
 async function execHacker() {
     const blockedId = Object.keys(hackerTargets).find(pid => isPoliticianShieldActive(pid));
-    if (blockedId) {
-        showPoliticianBlockedInfo(blockedId);
-        return;
-    }
+    if (blockedId) return;
     closeModal();
     let updates = {};
     
@@ -6598,7 +6589,7 @@ function activateAgent() {
         html += `<p style="font-size:12px; color:#d32f2f; margin-top:8px;">※政治家の保護中プレイヤーは対象外です</p>`;
         blockedCandidates.forEach(pid => {
             const p = gameState.players[pid];
-            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
         });
     }
 
@@ -6641,7 +6632,7 @@ function agentSelectSecondTarget(firstId) {
         html += `<p style="font-size:12px; color:#d32f2f; margin-top:8px;">※政治家の保護中プレイヤーは対象外です</p>`;
         blockedCandidates.forEach(pid => {
             const p = gameState.players[pid];
-            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
         });
     }
 
@@ -7114,7 +7105,6 @@ function setupEffectListener() {
         window.leaveRoom = leaveRoom; // これを追加
         // windowオブジェクトに登録してHTMLから呼べるようにする
         window.showPlayerLogs = showPlayerLogs;
-        window.showPoliticianBlockedInfo = showPoliticianBlockedInfo;
         // 釣り人
         window.activateAngler = activateAngler;
         window.anglerStep2 = anglerStep2;
