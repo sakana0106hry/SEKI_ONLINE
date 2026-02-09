@@ -1391,7 +1391,6 @@
         "MAGICIAN": "./images/magician.png",
         "MILLIONAIRE": "./images/millionaire.png",
         "EMPEROR": "./images/emperor.png",
-        "NEW GRAD": "./images/newgrad.png",
         "HACKER": "./images/hacker.png",
         "POLICE OFFICER": "./images/policeofficer.png",
         "ALCHEMIST": "./images/alchemist.png",
@@ -1437,7 +1436,6 @@
             'SKILL_MAGICIAN': "./sounds/skill_magician.mp3",
             'SKILL_MILLIONAIRE': "./sounds/skill_millionaire.mp3",
             'SKILL_EMPEROR': "./sounds/skill_emperor.mp3",
-            'SKILL_NEW GRAD': "./sounds/skill_newgrad.mp3",
             'SKILL_HACKER': "./sounds/skill_hacker.mp3",
             'SKILL_POLICE OFFICER': "./sounds/skill_policeofficer.mp3",
             'SKILL_ALCHEMIST': "./sounds/skill_alchemist.mp3",
@@ -1621,7 +1619,7 @@
         const ROLES = [
             "ALCHEMIST", "ANGLER", "EMPEROR", "FORTUNE TELLER", 
             "GAMBLER", "HACKER", "HUNTER", "MAGICIAN", 
-            "MILLIONAIRE", "NEW GRAD", "POLICE OFFICER", "THIEF", "NECROMANCER", "AGENT"
+            "MILLIONAIRE", "POLICE OFFICER", "THIEF", "NECROMANCER", "AGENT"
         ];
 
         // 【追加】役職の日本語名と簡易説明（表示用）
@@ -1744,17 +1742,6 @@
 <li>自分の手札の好きな<span style="color: #3598db;"><strong>数字カード</strong></span>を1枚除外する。</li>
 <li>記号山札の一番上の<strong><span style="color: #e03e2d;">記号カード</span></strong>を手札に加える。</li>
 <li>自分のターンを行う。</li>
-</ol>
-<div><strong>ターン終了！</strong></div>`
-            },
-            "NEW GRAD": { 
-                jp: "新卒",     
-                summary: "既に使用された役職の効果をコピー",
-                desc: `<ul style="list-style-type: square;">
-<li>ゲーム開始時に自分が「新卒」であることが他プレイヤー全員に通知される。</li>
-</ul>
-<ol>
-<li>既にゲーム中で使用された役職（「皇帝」を除く）があるとき、その<span style="color: #843fa1;"><strong>役職能力</strong></span>を1つだけ使用することができる。</li>
 </ol>
 <div><strong>ターン終了！</strong></div>`
             },
@@ -2258,13 +2245,13 @@
                     roles[pid] = availRoles.pop();
                 });
 
-                // ★追加: 皇帝と新卒のカミングアウト判定
+                // ★追加: 皇帝のカミングアウト判定
                 let revealedRoles = {};
                 let coLogs = [];
                 
                 playerIds.forEach(pid => {
                     const r = roles[pid];
-                    if (r === "EMPEROR" || r === "NEW GRAD") {
+                    if (r === "EMPEROR") {
                         revealedRoles[pid] = true; // 最初から公開状態にする
                         let rNameJP = (ROLE_INFO[r]) ? ROLE_INFO[r].jp : r;
                         coLogs.push({
@@ -2502,7 +2489,6 @@
                         else if (myRole === "POLICE OFFICER") funcName = "activatePoliceOfficer()";
                         else if (myRole === "HACKER") funcName = "activateHacker()";
                         else if (myRole === "ALCHEMIST") funcName = "activateAlchemist()";
-                        else if (myRole === "NEW GRAD") funcName = "activateNewGrad()";
                         else if (myRole === "NECROMANCER") funcName = "activateNecromancer()";
                         else if (myRole === "AGENT") funcName = "activateAgent()";
 
@@ -2512,8 +2498,8 @@
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
                         
-                        // ▼▼▼ 修正: 手品師 または 新卒 の場合、中身を表示 ▼▼▼
-                        if ((myRole === "MAGICIAN" || myRole === "NEW GRAD") && typeof isActivated === 'string') {
+                        // ▼▼▼ 修正: 手品師の場合、中身を表示 ▼▼▼
+                        if (myRole === "MAGICIAN" && typeof isActivated === 'string') {
                             // 役職IDなら日本語に変換、そうでなければそのまま表示(REVERSE等)
                             let val = isActivated;
                             if (ROLE_INFO[val]) val = ROLE_INFO[val].jp;
@@ -2570,7 +2556,7 @@
                 Object.keys(currentRev).forEach(pid => {
                     if (!prevRevealedRoles[pid] && currentRev[pid]) {
                         const rKey = roles[pid];
-                        if (rKey === "EMPEROR" || rKey === "NEW GRAD") {
+                        if (rKey === "EMPEROR") {
                             const rNameJP = (typeof ROLE_INFO !== 'undefined' && ROLE_INFO[rKey]) ? ROLE_INFO[rKey].jp : rKey;
                             const pName = players[pid].name;
                             if (typeof playCutInAnimation === 'function') playCutInAnimation(rKey, rNameJP, pName);
@@ -2701,14 +2687,6 @@
                         if (rName === "MAGICIAN" && typeof currentAct[pid] === 'string') {
                             // 手品師: 内容をそのまま表示
                             roleHtml = `<div class="role-badge-pill">手品師: ${currentAct[pid]}</div>`;
-                        } 
-                        else if (rName === "NEW GRAD" && typeof currentAct[pid] === 'string') {
-                            // ★新卒: 役職IDを日本語に変換して表示
-                            let copiedRoleKey = currentAct[pid];
-                            let copiedRoleJp = (ROLE_INFO[copiedRoleKey]) ? ROLE_INFO[copiedRoleKey].jp : copiedRoleKey;
-                            
-                            // バッジの中身自体を「新卒: 〇〇」にする
-                            roleHtml = `<div class="role-badge-pill">新卒: ${copiedRoleJp}</div>`;
                         } 
                         else {
                             // 通常
@@ -5339,116 +5317,6 @@ async function execPoliceTrade(targetId, giveIdx, takeIdx) {
     await db.ref().update(updates);
 }
 
-/* --- NEW GRAD (新卒) の実装 --- */
-// 効果: すでに使用された他の人のスキルをコピーする（就職する）
-
-function activateNewGrad() {
-    // 1. 就職可能な（コピーできる）役職リストを作成
-    const actList = gameState.activatedList || {};
-    const usedRoles = new Set(); 
-    
-    gameState.playerOrder.forEach(pid => {
-        // 自分自身はコピーできない
-        if (pid === myId) return;
-        
-        // スキル使用済みフラグがあるか？
-        // ※手品師の場合は "REVERSE" 等の文字列が入っていることもあるので、truthyならOK
-        if (actList[pid]) {
-            const role = gameState.roles[pid];
-            // 皇帝 (EMPEROR) はコピー不可（ルール定義）
-            if (role !== "EMPEROR") {
-                usedRoles.add(role);
-            }
-        }
-    });
-
-    // まだ誰も使っていない（就職先がない）場合
-    if (usedRoles.size === 0) {
-        return showInfoModal("就職難", "まだ先輩たちが働いていません。<br>（コピーできる役職がありません）");
-    }
-
-    // 2. 選択モーダル表示
-    let html = `<p>就職先（コピーする役職）を選んでください。</p>
-                <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">`;
-
-    usedRoles.forEach(role => {
-        // 日本語名を取得
-        const rInfo = ROLE_INFO[role];
-        const rName = rInfo ? rInfo.jp : role;
-        const rDesc = rInfo ? rInfo.summary : "";
-
-        // ボタン生成
-        html += `
-            <button onclick="execNewGradCopy('${role}')" style="padding:12px; background:#5c6bc0; color:white; font-weight:bold; border-radius:8px; text-align:left; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
-                <span style="font-size:16px;">${rName}</span><br>
-                <span style="font-size:10px; opacity:0.8;">${rDesc}</span>
-            </button>
-        `;
-    });
-    
-    html += `</div>`;
-    openModal("新卒: 合同説明会", html);
-}
-
-// 就職（コピー）実行処理
-async function execNewGradCopy(targetRole) {
-    const rInfo = ROLE_INFO[targetRole];
-    const rName = rInfo ? rInfo.jp : targetRole;
-
-    // 1. 就職ログを表示！
-    await pushLog(`${myName}が [${rName}] に就職しました！`, 'public');
-
-    // 2. モーダルを閉じる
-    closeModal();
-
-    // 3. 新卒としての使用済みフラグを立てる
-    // (コピー先の役職でさらに上書きされることもありますが、まずは「新卒を使った」事実を記録)
-    let updates = {};
-    let actList = {...(gameState.activatedList || {})};
-
-    actList[myId] = targetRole; 
-
-    updates[`rooms/${currentRoom}/activatedList`] = actList;
-    
-    // スキル発動音 (新卒用)
-    const soundKey = (typeof SOUND_FILES !== 'undefined' && SOUND_FILES['SKILL_NEW GRAD']) ? 'SKILL_NEW GRAD' : 'SKILL';
-    updates[`rooms/${currentRoom}/lastSound`] = { type: soundKey, id: Date.now() };
-    
-    await db.ref().update(updates);
-
-    // 4. その役職の業務（関数）を開始する
-    // 少しウェイトを入れて、ログや音が流れた後に画面を切り替える
-    setTimeout(() => {
-        if (targetRole === "THIEF") {
-            activateThief(1);
-        } else if (targetRole === "ANGLER") {
-            activateAngler();
-        } else if (targetRole === "FORTUNE TELLER") {
-            activateFortuneTeller();
-        } else if (targetRole === "HUNTER") {
-            activateHunter();
-        } else if (targetRole === "GAMBLER") {
-            activateGambler();
-        } else if (targetRole === "MAGICIAN") {
-            activateMagician();
-        } else if (targetRole === "MILLIONAIRE") {
-            activateMillionaire();
-        } else if (targetRole === "POLICE OFFICER") {
-            activatePoliceOfficer();
-        } else if (targetRole === "HACKER") {
-            activateHacker();
-        } else if (targetRole === "ALCHEMIST") {
-            activateAlchemist();
-        } else if (targetRole === "NECROMANCER") {
-            activateNecromancer();
-        } else if (targetRole === "AGENT") {
-            activateAgent();
-        } else {
-            showInfoModal("エラー", `[${rName}] の業務内容は未定義です`);
-        }
-    }, 800);
-}
-
 /* --- HACKER (ハッカー) Ver 4.0 [隔離リスト方式] --- */
 
 let hackerTargets = {}; 
@@ -6665,9 +6533,6 @@ function setupEffectListener() {
         window.policeSelectTake = policeSelectTake; // ★追加: 奪うカード選択
         window.policeSelectGive = policeSelectGive;
         window.execPoliceTrade = execPoliceTrade;
-        // 新卒
-        window.activateNewGrad = activateNewGrad;
-        window.execNewGradCopy = execNewGradCopy;
         // ハッカー
         window.activateHacker = activateHacker;
         window.selectHackerTarget = selectHackerTarget;
