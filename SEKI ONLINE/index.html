@@ -5134,40 +5134,10 @@ async function activatePoliceOfficer() {
 
 // ステップ2: トレード相手選択
 function policeTradeStart() {
-
-    // ▼▼▼ 1. 自分の手札を表示するためのHTML生成 ▼▼▼
-    let myHand = sortCards(deepCopy(gameState.hands[myId] || []));
-    let myHandHtml = `<div style="display:flex; justify-content:center; gap:5px; margin-bottom:15px; flex-wrap:wrap;">`;
-    
-    myHand.forEach(c => {
-        let style = "width:40px; height:60px; font-size:12px; border:1px solid #999; cursor:default;";
-        let cssClass = `card ${c.type}`;
-        
-        // 公開・ハック状態の反映
-        if (c.isOpen) cssClass += " revealed";
-        if (c.isHacked) {
-            cssClass += " locked";
-            style += "filter:grayscale(1); border:1px dashed red;";
-        }
-
-        // 画像・色設定
-        let cImg = CARD_IMAGES[c.val];
-        if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:none;`;
-        
-        myHandHtml += `<div class="${cssClass}" style="${style}">${c.val}</div>`;
-    });
-    myHandHtml += `</div>`;
-    // ▲▲▲ ここまで ▲▲▲
-
     let html = `
         <p><strong>【捜査協力の要請】</strong><br>続けてトレード(交換)を行いますか？<br>
         <span style="font-size:11px; color:#666;">(任意: 行わない場合は下のボタンで終了)</span>
         </p>
-        
-        <div style="background:rgba(0,0,0,0.05); padding:5px; border-radius:5px;">
-            <div style="font-size:10px; font-weight:bold; color:#333; margin-bottom:5px;">あなたの手札</div>
-            ${myHandHtml}
-        </div>
 
         <p style="margin-top:10px;">相手を選んでください</p>
     `;
