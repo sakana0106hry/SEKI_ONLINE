@@ -570,7 +570,7 @@
     }
     #indicator { 
         width: auto;
-        height: 60px;         /* 右側UIと高さを揃える */
+        height: 70px;         /* 右側UIと高さを揃える */
         object-fit: contain;
         
         border-radius: 8px;
@@ -582,7 +582,7 @@
     }
     #astronomer-indicator {
         min-width: 92px;
-        height: 60px;         /* 順行/逆行画像と同じ高さ */
+        height: 70px;         /* 順行/逆行画像と同じ高さ */
         padding: 4px 8px;
         border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.35);
@@ -610,11 +610,6 @@
         box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 10px rgba(144, 202, 249, 0.4);
         filter: saturate(0.75);
     }
-    .astro-tag {
-        font-size: 9px;
-        letter-spacing: 0.6px;
-        opacity: 0.9;
-    }
     #astronomer-indicator-value {
         width: 30px;
         height: 40px;
@@ -634,7 +629,7 @@
     }
     #astronomer-indicator-state {
         font-size: 10px;
-        margin-top: 2px;
+        margin-bottom: 2px;
         font-weight: bold;
         white-space: nowrap;
     }
@@ -1331,9 +1326,8 @@
                     <div id="flow-indicator-row">
                         <img id="indicator" src="./images/reverse_blue.jpg" alt="順行/逆行">
                         <div id="astronomer-indicator" aria-live="polite">
-                            <div class="astro-tag">ASTRO</div>
-                            <div id="astronomer-indicator-value">-</div>
                             <div id="astronomer-indicator-state">観測待機</div>
+                            <div id="astronomer-indicator-value">-</div>
                         </div>
                     </div>
                     
@@ -3923,8 +3917,8 @@
             const state = getAstronomerState(data);
             if (!state) return "";
             return state.isStrongest
-                ? `観測:${state.value}(最強)`
-                : `観測:${state.value}(最弱)`;
+                ? `観測:${state.value}`
+                : `観測:${state.value}`;
         }
         function getNumberStrengthOrder(isRev, data = gameState) {
             const baseOrder = isRev
