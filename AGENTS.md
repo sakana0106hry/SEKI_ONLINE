@@ -16,13 +16,17 @@
 ## Shell
 - Use PowerShell
 - Use encoding utf-8
+- Prefer `npm.cmd` / `npx.cmd` over `npm` / `npx` in PowerShell (ExecutionPolicy-safe)
 
 ## Validation
 - JavaScript を編集したら、最低限の構文チェックを実行する。
+- PowerShell 上で npm / npx 系コマンドを使う場合は `npm.cmd` / `npx.cmd` を使う。
+- 構文チェック手順は作業報告に実行コマンドを明記する（失敗時は理由と代替手段も明記）。
 - public/private ログの追加時は、送信タイミングと対象種別を確認する。
 
 ## Game-Specific Rules
 - 新役職・効果追加時は次を必ず確認する。
+- 対象外案内は原則 `disabled` ボタンと注記で表現し、対象外クリック時に別モーダルを開かない。
 1. 発動条件（自ターン/使用済み判定）
 2. 対象選択UI（対象外表示・押下時の案内）
 3. 実行時ガード（UIすり抜け防止）
