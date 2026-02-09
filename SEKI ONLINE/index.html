@@ -6124,8 +6124,8 @@ function activateAgent() {
         return showInfoModal("発動不可", "手札を持つプレイヤーが2人未満のため、交換できません。");
     }
 
-    let html = `<p>ランダム交換する<strong>1人目</strong>を選んでください。<br>
-        <span style="font-size:12px; color:#666;">※このあと2人目を選びます。</span>
+    let html = `<p>ランダム交換する<strong>1人目（対象A）</strong>を選んでください。<br>
+        <span style="font-size:12px; color:#666;">※このあと2人目（対象B）を選びます。</span>
     </p>`;
 
     candidates.forEach(pid => {
@@ -6135,7 +6135,7 @@ function activateAgent() {
         html += `<button class="modal-btn" onclick="agentSelectSecondTarget('${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
     });
 
-    openModal("工作員: 対象1選択", html);
+    openModal("工作員: 対象A選択", html);
     if (document.getElementById("modal-footer")) {
         document.getElementById("modal-footer").innerHTML = "";
     }
@@ -6165,7 +6165,7 @@ function agentSelectSecondTarget(firstId) {
         html += `<button class="modal-btn" onclick="execAgentSwap('${firstId}', '${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
     });
 
-    openModal("工作員: 対象2選択", html);
+    openModal("工作員: 対象B選択", html);
     if (document.getElementById("modal-footer")) {
         document.getElementById("modal-footer").innerHTML = "";
     }
@@ -6202,7 +6202,8 @@ async function execAgentSwap(pidA, pidB) {
     const nameB = gameState.players[pidB] ? gameState.players[pidB].name : "不明";
 
     await pushLog(`${myName}が[工作員]を発動！${nameA}と${nameB}の手札をランダムに1枚交換しました。`, 'public');
-    await pushLog(`【工作員メモ】${nameA}:[${cardA.val}] ↔ ${nameB}:[${cardB.val}]`, 'private', myId);
+    await pushLog(`【工作員の策略】${nameA}:[${cardA.val}] ↔ ${nameB}:[${cardB.val}]`, 'private', pidA);
+    await pushLog(`【工作員の策略】${nameA}:[${cardA.val}] ↔ ${nameB}:[${cardB.val}]`, 'private', pidB);
 
     if (pidA !== myId) {
         updates[`rooms/${currentRoom}/players/${pidA}/notification`] = {
