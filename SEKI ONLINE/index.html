@@ -510,7 +510,7 @@
     }
     /* 修正: 役職の補足情報（手品師のスキル名など）を横並びにする */
     .role-sub { 
-        font-size: 12px; 
+        font-size: 13px; 
         display: inline;      /* 横に並べる */
         opacity: 0.9; 
         margin-left: 4px;
@@ -1100,11 +1100,18 @@
         }
         
         /* 役職の補足（REVERSEなど）のデザイン調整 */
-        .player-zone.col .p-box-new .role-sub {
+        .player-zone.col .p-box-new {
             display: block;        /* 改行させる */
             margin-left: 0;
             margin-top: 3px;
             font-size: 9px;        /* 少し小さく */
+            opacity: 0.9;
+        }
+        .role-sub {
+            display: block;        /* 改行させる */
+            margin-left: 0;
+            margin-top: 3px;
+            font-size: 12px;        /* 少し小さく */
             opacity: 0.9;
         }
 
