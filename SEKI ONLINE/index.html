@@ -1781,13 +1781,14 @@
                 desc: `<ol>
 <li>数字山札の一番上のカードについて、A: 小さい【1, 2, 3, 4】、B: 大きい【6, 7, 8, 9】、C: 命知らず【0, 5】の3つの組から予想する。</li>
 <li>演出が入り、数字山札の1番上のカードが明らかになる。</li>
-<li>結果により、手札の好きな<strong>カード</strong>を1枚or2枚捨てる、もしくは引いた<strong><span style="color: #3598db;">数字カード</span></strong>を手札に加える。</li>
+<li>結果により、手札の好きな<strong>カード</strong>を1枚or2枚捨てる、もしくは見た<strong><span style="color: #3598db;">数字カード</span></strong>を手札に加える。</li>
 </ol>
 <ul>
 <li style="list-style-type: none;">
 <ul>
 <li>AおよびBを予想した場合、当たったとき自分の手札から好きな<strong>カード</strong>を<strong>1枚</strong>捨てる。</li>
-<li>Cを予想した場合、 当たったときは自分の手札から好きな<strong>カード</strong>を<strong>2枚</strong>捨て，外れたときは数字山札の一番上のカードを手札に加える。</li>
+<li>Cを予想した場合、 当たったときは自分の手札から好きな<strong>カード</strong>を<strong>2枚</strong>捨て，外れたときは見た<strong><span style="color: #3598db;">数字カード</span></strong>を手札に加える。</li>
+<li>Cの外れ以外では、見たカードは除外される。</li>
 </ul>
 </li>
 </ul>
@@ -4715,7 +4716,7 @@ async function execHunterSwap(isSkip = false) {
 }
 
 /* --- GAMBLER (賭博師) の実装 --- */
-// 効果: 山札の数字を予想し、当たれば手札を捨て、外れればペナルティ。
+// 効果: 山札の数字を予想し、結果に応じて手札破棄・除外・獲得を行う。
 
 // 1. 予想を選択する画面
 function activateGambler() {
@@ -4729,15 +4730,15 @@ function activateGambler() {
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
             <button onclick="execGamblerGuess('A')" style="padding:15px; background:#4fc3f7; color:#01579b; font-weight:bold; border-radius:8px;">
                 A: 小さい (1, 2, 3, 4)<br>
-                <span style="font-size:10px;">的中: 手札1枚捨て / 外れ: そのカード獲得</span>
+                <span style="font-size:10px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
             </button>
             <button onclick="execGamblerGuess('B')" style="padding:15px; background:#ffb74d; color:#e65100; font-weight:bold; border-radius:8px;">
                 B: 大きい (6, 7, 8, 9)<br>
-                <span style="font-size:10px;">的中: 手札1枚捨て / 外れ: そのカード獲得</span>
+                <span style="font-size:10px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
             </button>
             <button onclick="execGamblerGuess('C')" style="padding:15px; background:#ba68c8; color:#4a148c; font-weight:bold; border-radius:8px;">
                 C: 命知らず (0, 5)<br>
-                <span style="font-size:10px;">的中: 手札2枚捨て / 外れ: 獲得 + 1ドロー</span>
+                <span style="font-size:10px;">的中: 手札2枚捨て / 外れ: カードを獲得しターン終了</span>
             </button>
         </div>
     `;
@@ -4749,8 +4750,10 @@ async function execGamblerGuess(type) {
     closeModal();
     let updates = {};
     let deck = [...(gameState.deckNum || [])];
+    let excl = [...(gameState.exclusion || [])];
     
     let card = deck.pop(); 
+    if (!card) return showInfoModal("エラー", "数字山札が空になりました。");
     let val = card.val;
     let win = false;
 
@@ -4786,6 +4789,10 @@ async function execGamblerGuess(type) {
     actList[myId] = true;
     updates[`rooms/${currentRoom}/activatedList`] = actList;
     updates[`rooms/${currentRoom}/deckNum`] = deck;
+    if (win || type !== 'C') {
+        excl.push(card);
+        updates[`rooms/${currentRoom}/exclusion`] = excl;
+    }
 
     //playSoundEffect('SKILL'); // 演出開始の合図音
 
@@ -4801,26 +4808,29 @@ async function execGamblerGuess(type) {
 
     } else {
         // ハズレ処理
-        let hand = sortCards(deepCopy(gameState.hands[myId]));
-        hand.push(card);
-        if (type === 'C' && deck.length > 0) {
-            let penaltyCard = deck.pop();
-            hand.push(penaltyCard);
-            updates[`rooms/${currentRoom}/deckNum`] = deck;
+        let hand = null;
+        if (type === 'C') {
+            hand = sortCards(deepCopy(gameState.hands[myId]));
+            hand.push(card);
+            hand = sortCards(hand);
         }
-        hand = sortCards(hand);
         
-        // 遅延更新のために再度updatesを作る必要がある
-        // （最初のupdateでDBは書き換わっているので、ここは追加処理）
+        // 遅延更新
         setTimeout(async () => {
             let finalUpdates = {};
-            finalUpdates[`rooms/${currentRoom}/hands/${myId}`] = hand;
+            if (type === 'C') {
+                finalUpdates[`rooms/${currentRoom}/hands/${myId}`] = hand;
+            }
             finalUpdates[`rooms/${currentRoom}/passCount`] = 0;
             let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
             finalUpdates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
             
             await db.ref().update(finalUpdates);
-            await pushLog(`結果: [${val}] でした。ペナルティを受けます。`, 'public');
+            if (type === 'C') {
+                await pushLog(`結果: [${val}] でした。開いたカードを手札に加えました。`, 'public');
+            } else {
+                await pushLog(`結果: [${val}] でした。開いたカードは除外されました。`, 'public');
+            }
         }, 6000);
     }
 }
@@ -6194,7 +6204,7 @@ function renderAlchemistUI() {
 
     // 中止ボタン
     let footerHtml = `<button onclick="execAlchemistKeep()" class="modal-btn" style="background:#78909c; margin-top:10px; width:100%;">
-                        錬金失敗 (素材を手札に加える)
+                        錬金失敗 (ドロー素材を除外する)
                       </button>`;
 
     openModal("錬金術師: 素材融合", html);
@@ -6338,13 +6348,13 @@ async function execAlchemist(resultVal) {
     alchemyHandIdx = -1;
 }
 
-// 実行: 中止（手札に加える）
+// 実行: 中止（ドロー素材を除外）
 async function execAlchemistKeep() {
     closeModal();
     let updates = {};
     
-    let hand = sortCards(deepCopy(gameState.hands[myId]));
     let deck = [...(gameState.deckNum || [])];
+    let excl = [...(gameState.exclusion || [])];
     
     // 山札チェック
     let realDrawn = deck[deck.length - 1]; 
@@ -6352,16 +6362,14 @@ async function execAlchemistKeep() {
         return showInfoModal("エラー", "山札の不整合が発生しました。");
     }
     
-    // 手札に加える
+    // 除外する
     deck.pop(); 
-    realDrawn.owner = myId; 
-    hand.push(realDrawn);
-    hand = sortCards(hand);
+    excl.push(realDrawn);
     
-    updates[`rooms/${currentRoom}/hands/${myId}`] = hand;
     updates[`rooms/${currentRoom}/deckNum`] = deck;
+    updates[`rooms/${currentRoom}/exclusion`] = excl;
 
-    await pushLog(`${myName}の錬金は失敗し、素材を手札に追加しました。`, 'public');
+    await pushLog(`${myName}の錬金は失敗し、ドロー素材 [${realDrawn.val}] を除外しました。`, 'public');
 
     // スキル使用済み & パスカウントリセット
     let actList = {...(gameState.activatedList || {})};
