@@ -1299,7 +1299,7 @@
 
     <div id="login-screen">
         <img src="./images/logo.png" alt="SEKI Online" id="title-logo">
-        <p class="version-text">Ver 24.00 働いて働く政治家、潜んで潜む工作員</p>
+        <p class="version-text">Ver 25.00 働く政治家、潜む工作員、覗く天文学者</p>
         <input type="text" id="roomName" placeholder="合言葉 (例: seki123)">
         <br>
         <input type="text" id="playerName" placeholder="あなたの名前">
@@ -1946,6 +1946,8 @@
         let prevSoundId = 0;
         let lastGraveNumCount = -1; // 前回の数字墓地の枚数
         let lastGraveSymCount = -1; // 前回の記号墓地の枚数
+        let necromancerTargetType = null;
+        let necromancerTargetIdx = -1;
         // ★追加: ハッカー解除制御用の変数
         let lastCleanupTurnIdx = -1;
         let myRankPlayed = false; // ★追加: 順位決定音が再生済みかどうかのフラグ
@@ -6406,6 +6408,9 @@ function activateNecromancer() {
         return showInfoModal("発動不可", "数字墓地・記号墓地ともにカードがないため、除外できません。");
     }
 
+    necromancerTargetType = null;
+    necromancerTargetIdx = -1;
+
     let html = `
         <p>除外するカードを1枚選んでください。<br>
         <span style="font-size:12px; color:#ef5350;">※除外した後、あなたのターンが続きます。</span>
@@ -6425,12 +6430,12 @@ function activateNecromancer() {
             if (i === gn.length - 1) {
                 html += `
                     <div style="position:relative; display:inline-block;">
-                        <div class="card num" style="${style}" onclick="execNecromancer('num', ${i})">${c.val}</div>
+                        <div class="card num necromancer-item" data-card-val="${c.val}" style="${style}" onclick="selectNecromancerTarget('num', ${i}, this)">${c.val}</div>
                         <span style="position:absolute; top:-8px; right:-6px; background:#ffca28; color:#3e2723; font-size:9px; font-weight:bold; padding:1px 5px; border-radius:10px; border:1px solid #fff;">TOP</span>
                     </div>
                 `;
             } else {
-                html += `<div class="card num" style="${style}" onclick="execNecromancer('num', ${i})">${c.val}</div>`;
+                html += `<div class="card num necromancer-item" data-card-val="${c.val}" style="${style}" onclick="selectNecromancerTarget('num', ${i}, this)">${c.val}</div>`;
             }
         }
         html += `<div style="width:100%; font-size:11px; color:#ef5350; margin-top:2px;">※TOP が数字墓地の一番上です</div>`;
@@ -6450,7 +6455,7 @@ function activateNecromancer() {
             let style = "";
             let cImg = CARD_IMAGES[c.val];
             if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-            html += `<div class="card sym" style="${style}" onclick="execNecromancer('sym', ${i})">${c.val}</div>`;
+            html += `<div class="card sym necromancer-item" data-card-val="${c.val}" style="${style}" onclick="selectNecromancerTarget('sym', ${i}, this)">${c.val}</div>`;
         }
     } else {
         html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.75;" onclick="showInfoModal('対象外', '記号墓地は空です。数字墓地から選んでください。')">記号墓地は空です</button>`;
@@ -6458,14 +6463,58 @@ function activateNecromancer() {
     html += `</div>`;
 
     html += `
-        <p style="font-size:11px; color:#666; margin-top:10px;">※1枚選ぶと即時に除外を実行します。</p>
+        <div style="margin-top:12px; text-align:center;">
+            <p id="necromancer-msg" style="font-size:12px; color:#666; margin:0 0 8px;">カードを1枚選択してください</p>
+            <button id="btn-necromancer-exec" onclick="execNecromancer()" disabled style="background:#ccc; color:#fff; padding:10px 30px; font-weight:bold; border-radius:20px; border:none; cursor:not-allowed;">
+                除外を実行
+            </button>
+        </div>
+        <p style="font-size:11px; color:#666; margin-top:10px;">※選択後に「除外を実行」を押してください。</p>
     `;
 
     openModal("ネクロマンサー: 死者蘇生", html);
 }
 
+function selectNecromancerTarget(targetType, targetIdx, el) {
+    if (targetType !== 'num' && targetType !== 'sym') return;
+    if (!Number.isInteger(targetIdx) || targetIdx < 0) return;
+
+    let items = document.querySelectorAll('#modal-content .necromancer-item');
+    items.forEach(item => item.classList.remove('selected'));
+    if (el && el.classList) el.classList.add('selected');
+
+    necromancerTargetType = targetType;
+    necromancerTargetIdx = targetIdx;
+
+    let msg = document.getElementById('necromancer-msg');
+    if (msg) {
+        let zone = (targetType === 'num') ? '数字墓地' : '記号墓地';
+        let val = (el && el.dataset && el.dataset.cardVal !== undefined) ? el.dataset.cardVal : '?';
+        msg.innerText = `選択中: ${zone} [${val}]`;
+        msg.style.color = '#4a148c';
+    }
+
+    let btn = document.getElementById('btn-necromancer-exec');
+    if (btn) {
+        btn.disabled = false;
+        btn.style.background = '#4a148c';
+        btn.style.color = '#fff';
+        btn.style.cursor = 'pointer';
+    }
+}
+
 // 2. 実行処理
-async function execNecromancer(targetType, targetIdx) {
+async function execNecromancer() {
+    let targetType = necromancerTargetType;
+    let targetIdx = necromancerTargetIdx;
+
+    if (targetType !== 'num' && targetType !== 'sym') {
+        return showInfoModal("エラー", "除外するカードを選択してください。");
+    }
+    if (!Number.isInteger(targetIdx) || targetIdx < 0) {
+        return showInfoModal("エラー", "除外するカードを選択してください。");
+    }
+
     closeModal();
     let updates = {};
 
@@ -6519,6 +6568,8 @@ async function execNecromancer(targetType, targetIdx) {
     */
 
     await db.ref().update(updates);
+    necromancerTargetType = null;
+    necromancerTargetIdx = -1;
 }
 
 /* --- AGENT (工作員) の実装 --- */
@@ -7126,6 +7177,7 @@ function setupEffectListener() {
         window.execAlchemistKeep = execAlchemistKeep; // ★名前変更 (Keep)
         // ネクロマンサー
         window.activateNecromancer = activateNecromancer; // ★追加
+        window.selectNecromancerTarget = selectNecromancerTarget; // ★追加
         window.execNecromancer = execNecromancer;         // ★追加
         // 工作員
         window.activateAgent = activateAgent;
