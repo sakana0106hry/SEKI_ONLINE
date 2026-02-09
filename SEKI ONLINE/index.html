@@ -630,7 +630,7 @@
     #astronomer-indicator-state {
         font-size: 10px;
         margin-bottom: 2px;
-        font-weight: bold;
+        /* font-weight: bold;*/
         white-space: nowrap;
     }
 
@@ -3964,7 +3964,7 @@
             panel.classList.remove("state-strongest", "state-weakest");
             panel.classList.add(state.isStrongest ? "state-strongest" : "state-weakest");
             valEl.innerText = state.value;
-            stateEl.innerText = state.isStrongest ? "最強観測中" : "反転で最弱化";
+            stateEl.innerText = state.isStrongest ? "観測中（最強）" : "観測不可（最弱）";
         }
         function shuffle(arr) { for(let i=arr.length-1; i>0; i--){ let j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
         function renderPile(arr) {
