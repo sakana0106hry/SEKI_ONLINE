@@ -1396,6 +1396,7 @@
         "POLICE OFFICER": "./images/policeofficer.png",
         "ALCHEMIST": "./images/alchemist.png",
         "NECROMANCER": "./images/necromancer.png",
+        "AGENT": "./images/agent.png",
         //他もあれば追加
         };
 
@@ -1441,6 +1442,7 @@
             'SKILL_POLICE OFFICER': "./sounds/skill_policeofficer.mp3",
             'SKILL_ALCHEMIST': "./sounds/skill_alchemist.mp3",
             'SKILL_NECROMANCER': "./sounds/skill_necromancer.mp3",
+            'SKILL_AGENT': "./sounds/skill_agent.mp3",
         };
         
         /* ===============================================
@@ -1619,7 +1621,7 @@
         const ROLES = [
             "ALCHEMIST", "ANGLER", "EMPEROR", "FORTUNE TELLER", 
             "GAMBLER", "HACKER", "HUNTER", "MAGICIAN", 
-            "MILLIONAIRE", "NEW GRAD", "POLICE OFFICER", "THIEF", "NECROMANCER"
+            "MILLIONAIRE", "NEW GRAD", "POLICE OFFICER", "THIEF", "NECROMANCER", "AGENT"
         ];
 
         // 【追加】役職の日本語名と簡易説明（表示用）
@@ -1792,6 +1794,16 @@
                 summary: "数字墓地の一番上を除外",
                 desc: `<ol>
 <li>数字墓地の一番上のカードを除外する。</li>
+<li>自分のターンを行う。</li>
+</ol>
+<div><strong>ターン終了！</strong></div>`
+            },
+            "AGENT": {
+                jp: "工作員",
+                summary: "任意の2人の手札をランダムに1枚交換",
+                desc: `<ol>
+<li>自分を含む任意のプレイヤー2人を選ぶ。</li>
+<li>選ばれた2人の手札から、ランダムに1枚ずつ交換する。</li>
 <li>自分のターンを行う。</li>
 </ol>
 <div><strong>ターン終了！</strong></div>`
@@ -2492,6 +2504,7 @@
                         else if (myRole === "ALCHEMIST") funcName = "activateAlchemist()";
                         else if (myRole === "NEW GRAD") funcName = "activateNewGrad()";
                         else if (myRole === "NECROMANCER") funcName = "activateNecromancer()";
+                        else if (myRole === "AGENT") funcName = "activateAgent()";
 
                         if (funcName) {
                             actBtnHtml = `<button onclick="${funcName}" style="margin-top:8px; padding:6px 12px; font-size:12px; background:#fff; color:#4a148c; border:none; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.2);">スキル発動</button>`;
@@ -5428,6 +5441,8 @@ async function execNewGradCopy(targetRole) {
             activateAlchemist();
         } else if (targetRole === "NECROMANCER") {
             activateNecromancer();
+        } else if (targetRole === "AGENT") {
+            activateAgent();
         } else {
             showInfoModal("エラー", `[${rName}] の業務内容は未定義です`);
         }
@@ -6098,6 +6113,116 @@ async function execNecromancer() {
     await db.ref().update(updates);
 }
 
+/* --- AGENT (工作員) の実装 --- */
+
+// 1. 1人目選択
+function activateAgent() {
+    const pIds = gameState.playerOrder || [];
+    const candidates = pIds.filter(pid => (gameState.hands[pid] || []).length > 0);
+
+    if (candidates.length < 2) {
+        return showInfoModal("発動不可", "手札を持つプレイヤーが2人未満のため、交換できません。");
+    }
+
+    let html = `<p>ランダム交換する<strong>1人目</strong>を選んでください。<br>
+        <span style="font-size:12px; color:#666;">※このあと2人目を選びます。</span>
+    </p>`;
+
+    candidates.forEach(pid => {
+        const p = gameState.players[pid];
+        const handCount = (gameState.hands[pid] || []).length;
+        const selfLabel = (pid === myId) ? " (あなた)" : "";
+        html += `<button class="modal-btn" onclick="agentSelectSecondTarget('${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
+    });
+
+    openModal("工作員: 対象1選択", html);
+    if (document.getElementById("modal-footer")) {
+        document.getElementById("modal-footer").innerHTML = "";
+    }
+}
+
+// 2. 2人目選択
+function agentSelectSecondTarget(firstId) {
+    const pIds = gameState.playerOrder || [];
+    const candidates = pIds.filter(pid =>
+        pid !== firstId &&
+        (gameState.hands[pid] || []).length > 0
+    );
+
+    if (candidates.length === 0) {
+        return showInfoModal("発動不可", "2人目の候補がいません。");
+    }
+
+    const firstName = gameState.players[firstId] ? gameState.players[firstId].name : "不明";
+    let html = `<p><strong>2人目</strong>を選んでください。<br>
+        <span style="font-size:12px; color:#666;">選択済み: ${firstName}</span>
+    </p>`;
+
+    candidates.forEach(pid => {
+        const p = gameState.players[pid];
+        const handCount = (gameState.hands[pid] || []).length;
+        const selfLabel = (pid === myId) ? " (あなた)" : "";
+        html += `<button class="modal-btn" onclick="execAgentSwap('${firstId}', '${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
+    });
+
+    openModal("工作員: 対象2選択", html);
+    if (document.getElementById("modal-footer")) {
+        document.getElementById("modal-footer").innerHTML = "";
+    }
+}
+
+// 3. 実行処理（ランダム1枚交換）
+async function execAgentSwap(pidA, pidB) {
+    closeModal();
+
+    let handA = deepCopy(gameState.hands[pidA] || []);
+    let handB = deepCopy(gameState.hands[pidB] || []);
+
+    if (handA.length === 0 || handB.length === 0) {
+        return showInfoModal("エラー", "対象プレイヤーの手札が不足しています。");
+    }
+
+    const idxA = Math.floor(Math.random() * handA.length);
+    const idxB = Math.floor(Math.random() * handB.length);
+
+    const cardA = handA.splice(idxA, 1)[0];
+    const cardB = handB.splice(idxB, 1)[0];
+    handA.push(cardB);
+    handB.push(cardA);
+
+    const updates = {};
+    updates[`rooms/${currentRoom}/hands/${pidA}`] = sortCards(handA);
+    updates[`rooms/${currentRoom}/hands/${pidB}`] = sortCards(handB);
+
+    let actList = {...(gameState.activatedList || {})};
+    actList[myId] = true;
+    updates[`rooms/${currentRoom}/activatedList`] = actList;
+
+    const nameA = gameState.players[pidA] ? gameState.players[pidA].name : "不明";
+    const nameB = gameState.players[pidB] ? gameState.players[pidB].name : "不明";
+
+    await pushLog(`${myName}が[工作員]を発動！${nameA}と${nameB}の手札をランダムに1枚交換しました。`, 'public');
+    await pushLog(`【工作員メモ】${nameA}:[${cardA.val}] ↔ ${nameB}:[${cardB.val}]`, 'private', myId);
+
+    if (pidA !== myId) {
+        updates[`rooms/${currentRoom}/players/${pidA}/notification`] = {
+            fromName: `${myName}(工作員)`,
+            lostVal: cardA.val,
+            gotVal: cardB.val
+        };
+    }
+    if (pidB !== myId) {
+        updates[`rooms/${currentRoom}/players/${pidB}/notification`] = {
+            fromName: `${myName}(工作員)`,
+            lostVal: cardB.val,
+            gotVal: cardA.val
+        };
+    }
+
+    // ターンは進めない（このあと自分のターンを継続）
+    await db.ref().update(updates);
+}
+
 // カットイン再生関数（画像対応版）
 function playCutInAnimation(roleKey, roleNameJp, playerName) {
     const overlay = document.getElementById("cut-in-overlay");
@@ -6555,6 +6680,10 @@ function setupEffectListener() {
         // ネクロマンサー
         window.activateNecromancer = activateNecromancer; // ★追加
         window.execNecromancer = execNecromancer;         // ★追加
+        // 工作員
+        window.activateAgent = activateAgent;
+        window.agentSelectSecondTarget = agentSelectSecondTarget;
+        window.execAgentSwap = execAgentSwap;
 
 
     </script>
