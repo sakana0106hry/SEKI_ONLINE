@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -1406,6 +1406,7 @@
         "MILLIONAIRE": "./images/millionaire.png",
         "EMPEROR": "./images/emperor.png",
         "HACKER": "./images/hacker.png",
+        "POLITICIAN": "./images/politician.png",
         "POLICE OFFICER": "./images/policeofficer.png",
         "ALCHEMIST": "./images/alchemist.png",
         "NECROMANCER": "./images/necromancer.png",
@@ -1451,6 +1452,7 @@
             'SKILL_MILLIONAIRE': "./sounds/skill_millionaire.mp3",
             'SKILL_EMPEROR': "./sounds/skill_emperor.mp3",
             'SKILL_HACKER': "./sounds/skill_hacker.mp3",
+            'SKILL_POLITICIAN': "./sounds/skill_politician.mp3",
             'SKILL_POLICE OFFICER': "./sounds/skill_policeofficer.mp3",
             'SKILL_ALCHEMIST': "./sounds/skill_alchemist.mp3",
             'SKILL_NECROMANCER': "./sounds/skill_necromancer.mp3",
@@ -1633,7 +1635,7 @@
         const ROLES = [
             "ALCHEMIST", "ANGLER", "EMPEROR", "FORTUNE TELLER", 
             "GAMBLER", "HACKER", "HUNTER", "CROWN",
-            "MILLIONAIRE", "POLICE OFFICER", "THIEF", "NECROMANCER", "AGENT"
+            "MILLIONAIRE", "POLITICIAN", "POLICE OFFICER", "THIEF", "NECROMANCER", "AGENT"
         ];
 
         // 【追加】役職の日本語名と簡易説明（表示用）
@@ -1799,6 +1801,16 @@
 </ol>
 <div><strong>ターン終了！</strong></div>`
             },
+            "POLITICIAN": {
+                jp: "\u653F\u6CBB\u5BB6",
+                summary: "手札干渉の対象外（記号カード使用で解除）",
+                desc: `<ol>
+<li>発動すると、手札干渉効果（記号カード、ハッカー、占い師、皇帝、警察官、盗賊、ピエロ、工作員）の対象外になる。</li>
+<li>この発動ではターン終了しない。発動後に通常のターン行動を行える。</li>
+<li>自分が DISCARD / REVERSE / TRADE / DIG UP を使った時点で保護は即時解除される。</li>
+</ol>
+<div><strong>ターン終了:</strong> しない</div>`
+            },
             "AGENT": {
                 jp: "工作員",
                 summary: "任意の2人の手札をランダムに1枚交換",
@@ -1911,6 +1923,39 @@
         }
 
         // --- ログシステム & 色生成 ---
+        function getPoliticianShieldMap(data = gameState) {
+            if (!data || !data.politicianShield) return {};
+            return data.politicianShield;
+        }
+
+        function isPoliticianShieldActive(pid, data = gameState) {
+            return !!(pid && getPoliticianShieldMap(data)[pid]);
+        }
+
+        function showPoliticianBlockedInfo(targetId) {
+            const targetName = (gameState && gameState.players && gameState.players[targetId]) ? gameState.players[targetId].name : "Target";
+            showInfoModal("対象不可", `${targetName} は [政治家] の効果で手札干渉の対象外です。`);
+        }
+
+        function canTargetByHandInterference(targetId) {
+            if (!isPoliticianShieldActive(targetId)) return true;
+            showPoliticianBlockedInfo(targetId);
+            return false;
+        }
+
+        async function clearPoliticianShieldIfNeeded(playerId, updates, reasonText = "") {
+            const shieldMap = {...(getPoliticianShieldMap() || {})};
+            if (!shieldMap[playerId]) return false;
+
+            delete shieldMap[playerId];
+            updates[`rooms/${currentRoom}/politicianShield`] = shieldMap;
+
+            const pName = (gameState && gameState.players && gameState.players[playerId]) ? gameState.players[playerId].name : "Player";
+            const suffix = reasonText ? ` (${reasonText})` : "";
+            await pushLog(`${pName} の[政治家]保護が解除されました${suffix}`, 'public');
+            return true;
+        }
+
         function stringToColor(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -2298,6 +2343,7 @@
                     hands, roles, players, rankings: {}, 
                     // 【追加】能力使用済みフラグ（初期値は空）
                     activatedList: {},
+                    politicianShield: {},
                     revealedRoles: revealedRoles,
 
                     // ★追加: ハッキングされたカードの隔離所
@@ -2488,6 +2534,7 @@
                 if (roleArea && myRole && rInfo) {
                     let actBtnHtml = "";
                     let isActivated = currentAct[myId];
+                    let isPoliticianShielded = isPoliticianShieldActive(myId, data);
                     
                     if (isMyTurn() && !isActivated && data.status === "playing") {
                         let funcName = "";
@@ -2500,6 +2547,7 @@
                         else if (myRole === "CROWN") funcName = "activateMagician()";
                         else if (myRole === "MILLIONAIRE") funcName = "activateMillionaire()";
                         else if (myRole === "EMPEROR") funcName = "activateEmperor()";
+                        else if (myRole === "POLITICIAN") funcName = "activatePolitician()";
                         else if (myRole === "POLICE OFFICER") funcName = "activatePoliceOfficer()";
                         else if (myRole === "HACKER") funcName = "activateHacker()";
                         else if (myRole === "ALCHEMIST") funcName = "activateAlchemist()";
@@ -2511,6 +2559,7 @@
                         }
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
+                        if (myRole === "POLITICIAN") statusText = isPoliticianShielded ? "保護中" : "発動済み(保護解除)";
                         
                         // ▼▼▼ 修正: ピエロの場合、中身を表示 ▼▼▼
                         if (myRole === "CROWN" && typeof isActivated === 'string') {
@@ -3302,14 +3351,37 @@
             if (card.val === "TRADE") {
                 let pIds = gameState.playerOrder;
                 let html = `<p>トレード相手を選んでください。</p>`;
+                let canUseTarget = false;
+                const activePids = pIds.filter(pid => !(gameState.rankings && gameState.rankings[pid]));
+                const onlyOtherPid = (activePids.length === 2) ? activePids.find(pid => pid !== myId) : null;
+                const canWhiffTrade = !!(onlyOtherPid && isPoliticianShieldActive(onlyOtherPid));
                 pIds.forEach(pid => {
                     if (pid === myId || (gameState.rankings && gameState.rankings[pid])) return;
                     let p = gameState.players[pid];
                     let count = gameState.hands[pid] ? gameState.hands[pid].length : 0;
                     if (count > 0) {
-                        html += `<button class="modal-btn" onclick="tradeStep2('${pid}', ${idx})">${p.name} (手札${count})</button>`;
+                        if (isPoliticianShieldActive(pid)) {
+                            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+                        } else {
+                            canUseTarget = true;
+                            html += `<button class="modal-btn" onclick="tradeStep2('${pid}', ${idx})">${p.name} (手札${count})</button>`;
+                        }
                     }
                 });
+                if (!canUseTarget) {
+                    html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
+                    if (canWhiffTrade) {
+                        const otherName = (gameState.players && gameState.players[onlyOtherPid]) ? gameState.players[onlyOtherPid].name : "相手";
+                        html += `
+                            <div style="margin-top:10px; padding:8px; border:1px solid #ffb74d; border-radius:8px; background:rgba(255,183,77,0.12);">
+                                <p style="font-size:12px; color:#ef6c00; margin:0 0 8px;">
+                                    2人終盤かつ ${otherName} が[政治家]保護中のため、TRADEを空振り消費できます。
+                                </p>
+                                <button class="modal-btn primary" onclick="execTradeWhiff(${idx}, '${onlyOtherPid}')">空振りでTRADEを使用する</button>
+                            </div>
+                        `;
+                    }
+                }
                 openModal("TRADE: 相手選択", html);
                 return;
             }
@@ -3372,6 +3444,7 @@
             let newGraveSym = [...(gameState.graveSym || [])];
             newGraveSym.push(card);
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
+            await clearPoliticianShieldIfNeeded(myId, updates, `${card.val}使用`);
 
             let logMsg = `${myName}が [${card.val}] を使用して`;
             if (card.val === "REVERSE") {
@@ -3423,6 +3496,7 @@
 
             updates[`rooms/${currentRoom}/graveNum`] = gn;
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
+            await clearPoliticianShieldIfNeeded(myId, updates, "DIG UP使用");
             updates[`rooms/${currentRoom}/passCount`] = 0;
             let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
             updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
@@ -3439,6 +3513,7 @@
         // (handleSymbol からはこれが呼ばれます)
         /* --- 修正版: tradeStep2 (フォントバレ防止) --- */
         function tradeStep2(targetId, tradeCardIdx) {
+            if (!canTargetByHandInterference(targetId)) return;
             let targetHand = deepCopy(gameState.hands[targetId] || []);
             
             // 元のインデックスを記録してシャッフル
@@ -3504,10 +3579,55 @@
             openModal("TRADE: 譲渡選択", html);
         }
 
+        // 2人終盤かつ相手が政治家保護中のときだけ使えるTRADE空振り消費
+        async function execTradeWhiff(tradeCardIdx, blockedPid) {
+            closeModal();
+            let updates = {};
+            let myHand = sortCards(deepCopy(gameState.hands[myId] || []));
+
+            if (tradeCardIdx < 0 || tradeCardIdx >= myHand.length) {
+                return showInfoModal("エラー", "TRADEカードの位置が不正です。");
+            }
+            if (myHand[tradeCardIdx].val !== "TRADE") {
+                return showInfoModal("エラー", "TRADEカードが見つかりません。");
+            }
+
+            const activePids = (gameState.playerOrder || []).filter(pid => !(gameState.rankings && gameState.rankings[pid]));
+            const onlyOtherPid = (activePids.length === 2) ? activePids.find(pid => pid !== myId) : null;
+            if (!(onlyOtherPid && onlyOtherPid === blockedPid && isPoliticianShieldActive(onlyOtherPid))) {
+                return showInfoModal("使用不可", "この空振り消費は、プレイヤーが2人で相手が政治家保護中のときのみ使用できます。");
+            }
+
+            let usedTrade = myHand.splice(tradeCardIdx, 1)[0];
+            let newGraveSym = [...(gameState.graveSym || []), usedTrade];
+
+            updates[`rooms/${currentRoom}/hands/${myId}`] = myHand;
+            updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
+            await clearPoliticianShieldIfNeeded(myId, updates, "TRADE空振り使用");
+
+            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
+            let nextTotal = myHand.length + myHackedCount;
+            let soundList = ['TRADE'];
+            if (nextTotal === 1) soundList.push('UNO');
+            else if (nextTotal === 2) soundList.push('DOS');
+            updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
+
+            updates[`rooms/${currentRoom}/passCount`] = 0;
+            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
+            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
+
+            const blockedName = (gameState.players && gameState.players[blockedPid]) ? gameState.players[blockedPid].name : "相手";
+            await pushLog(`${myName}が [TRADE] を使用しましたが、${blockedName} は[政治家]保護中のため空振りになりました。`, 'public');
+
+            await db.ref().update(updates);
+            selectedIdx = -1;
+        }
+
         // 実行処理 (引数 takeIdx を追加)
         // ↓↓↓ execTrade関数を丸ごとこれに置き換えてください ↓↓↓
         async function execTrade(targetId, tradeCardIdx, giveCardIdx, takeIdx) {
             closeModal();
+            if (!canTargetByHandInterference(targetId)) return;
             let updates = {};
             let myHand = sortCards(deepCopy(gameState.hands[myId]));
             let targetHand = sortCards(deepCopy(gameState.hands[targetId]));
@@ -3531,6 +3651,7 @@
             updates[`rooms/${currentRoom}/hands/${myId}`] = myHand;
             updates[`rooms/${currentRoom}/hands/${targetId}`] = targetHand;
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
+            await clearPoliticianShieldIfNeeded(myId, updates, "TRADE使用");
             
             await pushLog(`${myName}が [TRADE] を使用して${gameState.players[targetId].name} とカードを交換しました`, 'public');
             await pushLog(`${gameState.players[targetId].name}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
@@ -3602,6 +3723,7 @@
             updates[`rooms/${currentRoom}/graveNum`] = newGraveNum;
             updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
             updates[`rooms/${currentRoom}/hands/${myId}`] = currentHand;
+            await clearPoliticianShieldIfNeeded(myId, updates, "DISCARD使用");
         
             await pushLog(`${myName}が [DISCARD] で [${discardCard.val}] を捨てました！！`, 'public');
 
@@ -3814,6 +3936,17 @@ async function activateFortuneTeller() {
         if (pid === myId) return; // 自分はスキップ
 
         const pName = gameState.players[pid].name;
+        if (isPoliticianShieldActive(pid)) {
+            html += `
+                <div style="margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                    <div style="font-weight:bold; color:#fdd835;">${pName}</div>
+                    <div style="font-size:12px; color:#d32f2f;">[政治家]発動中のため確認できません</div>
+                </div>
+            `;
+            logText += `[${pName}] [政治家]発動中のため確認不可<br>`;
+            return;
+        }
+
         const pRole = gameState.roles[pid];
         const pRoleJP = (ROLE_INFO[pRole]) ? ROLE_INFO[pRole].jp : pRole;
         const pHand = gameState.hands[pid] || [];
@@ -3878,16 +4011,29 @@ async function activateFortuneTeller() {
     openModal("占い師: 千里眼", html);
 }
 
-/* --- THIEF (盗賊) の実装 (修正版) --- */
-// トレードを2回まで行える (1回でやめてもOK)
 
-// 1. ターゲット選択
-/* --- THIEF (盗賊) の実装 (ババ抜き形式) --- */
-// 1. ターゲット選択 -> 2. 奪うカード選択(New) -> 3. 渡すカード選択 -> 4. 実行
+/* --- POLITICIAN (政治家) --- */
+async function activatePolitician() {
+    if (!isMyTurn()) return;
 
-// 1. ターゲット選択
+    let actList = {...(gameState.activatedList || {})};
+    if (actList[myId]) return showInfoModal("使用不可", "政治家はすでに発動済みです。");
+
+    let shieldMap = {...(gameState.politicianShield || {})};
+    shieldMap[myId] = true;
+
+    let updates = {};
+    actList[myId] = true;
+    updates[`rooms/${currentRoom}/activatedList`] = actList;
+    updates[`rooms/${currentRoom}/politicianShield`] = shieldMap;
+
+    await pushLog(`${myName}が[政治家]を発動し、手札干渉の対象外になりました。`, 'public');
+    await db.ref().update(updates);
+}
+
 function activateThief(count = 1) {
     let html = `<p><strong>【盗賊スキル ${count}/2回目】</strong><br>トレードする相手を選んでください。</p>`;
+    let canUseTarget = false;
     
     const pIds = gameState.playerOrder;
     pIds.forEach(pid => {
@@ -3898,18 +4044,30 @@ function activateThief(count = 1) {
         // 公開情報の表示（警察官などでバレている場合）
         const hand = gameState.hands[pid] || [];
         const handLen = hand.length;
+        if (handLen === 0) return;
         let revealed = hand.filter(c => c.isOpen).map(c => c.val).join(", ");
         let revealedInfo = revealed ? `<br><span style="font-size:11px; color:#000000;">(公開: ${revealed})</span>` : "";
 
-        html += `<button onclick="thiefSelectTake('${pid}', ${count})" style="display:block; width:100%; margin:5px 0; padding:10px;">
-            ${pName} (手札${handLen}枚)${revealedInfo}
-        </button>`;
+        if (isPoliticianShieldActive(pid)) {
+            html += `<button onclick="showPoliticianBlockedInfo('${pid}')" style="display:block; width:100%; margin:5px 0; padding:10px; background:#9e9e9e; color:#fff; opacity:0.7; border:none; border-radius:6px;">
+                ${pName} (政治家で対象外)
+            </button>`;
+        } else {
+            canUseTarget = true;
+            html += `<button onclick="thiefSelectTake('${pid}', ${count})" style="display:block; width:100%; margin:5px 0; padding:10px;">
+                ${pName} (手札${handLen}枚)${revealedInfo}
+            </button>`;
+        }
     });
 
+    if (!canUseTarget) {
+        html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
+    }
+
     openModal(`盗賊: ターゲット選択 (${count}回目)`, html);
-    if (document.getElementById("modal-footer")) {
-                    document.getElementById("modal-footer").innerHTML = "";
-                }
+    if (canUseTarget && document.getElementById("modal-footer")) {
+        document.getElementById("modal-footer").innerHTML = "";
+    }
 }
 
 // 2. ★追加: 奪うカードを選ぶ（裏向きシャッフル）
@@ -3917,6 +4075,7 @@ function activateThief(count = 1) {
 
 // 奪うカード選択
 function thiefSelectTake(targetId, count) {
+    if (!canTargetByHandInterference(targetId)) return;
     let targetHand = deepCopy(gameState.hands[targetId] || []);
     targetHand.forEach((c, i) => c.originalIndex = i);
     shuffle(targetHand);
@@ -3957,6 +4116,7 @@ function thiefSelectTake(targetId, count) {
 
 // 渡すカード選択
 function thiefSelectGive(targetId, takeIdx, count) {
+    if (!canTargetByHandInterference(targetId)) return;
     const myHand = sortCards(deepCopy(gameState.hands[myId] || []));
 
     let html = `<p>相手に押し付けるカードを選んでください。</p><div class="modal-list">`;
@@ -3987,6 +4147,7 @@ function thiefSelectGive(targetId, takeIdx, count) {
 
 // 3. 自分の手札から「押し付けるカード」を選ぶ
 function thiefSelectGive(targetId, takeIdx, count) {
+    if (!canTargetByHandInterference(targetId)) return;
     const myHand = sortCards(deepCopy(gameState.hands[myId] || []));
 
     let html = `<p>相手に押し付けるカードを選んでください。</p><div class="modal-list">`;
@@ -4015,6 +4176,7 @@ function thiefSelectGive(targetId, takeIdx, count) {
 // 4. トレード実行処理 (ランダムではなく指定インデックスで)
 async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
     closeModal();
+    if (!canTargetByHandInterference(targetId)) return;
     const updates = {};
     
     let myHand = [...(gameState.hands[myId] || [])];
@@ -4706,6 +4868,7 @@ function activateMagicianTrade() {
     let hand = gameState.hands[myId] || [];
     // 自分の手札が全てハッキングされていたら交換に出せるカードがない
     let availableHand = hand.filter(c => !c.isHacked);
+    let canUseTarget = false;
     
     if (hand.length === 0) return showInfoModal("エラー", "手札がありません");
     if (availableHand.length === 0) return showInfoModal("ロック中", "ハッキングされていない手札がありません");
@@ -4718,14 +4881,21 @@ function activateMagicianTrade() {
         
         // ★変更: 次は「奪うカード選択 (magicianSelectTake)」へ
         if (count > 0) {
-            html += `<button class="modal-btn" onclick="magicianSelectTake('${pid}')">${p.name} (手札${count})</button>`;
+            if (isPoliticianShieldActive(pid)) {
+                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+            } else {
+                canUseTarget = true;
+                html += `<button class="modal-btn" onclick="magicianSelectTake('${pid}')">${p.name} (手札${count})</button>`;
+            }
         }
     });
+    if (!canUseTarget) html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
     openModal("ピエロ(TRADE): 相手選択", html);
 }
 
 // ★新設: 奪うカード選択 (ハッカー & 公開対応)
 function magicianSelectTake(targetId) {
+    if (!canTargetByHandInterference(targetId)) return;
     let targetHand = deepCopy(gameState.hands[targetId] || []);
     targetHand.forEach((c, i) => c.originalIndex = i);
     shuffle(targetHand);
@@ -4765,6 +4935,7 @@ function magicianSelectTake(targetId) {
 
 // 渡すカード選択 (名前変更: SelectTradeCard -> SelectGive)
 function magicianSelectGive(targetId, takeIdx) {
+    if (!canTargetByHandInterference(targetId)) return;
     let hand = sortCards(deepCopy(gameState.hands[myId]));
     let html = `<p>相手に渡すカードを選んでください。<br><span style="font-size:11px;">(ピエロの効果なのでTRADEカード自体は不要です)</span></p><div class="modal-list">`;
     
@@ -4791,6 +4962,7 @@ function magicianSelectGive(targetId, takeIdx) {
 // 実行処理 (引数 takeIdx を追加)
 async function execMagicianTrade(targetId, giveIdx, takeIdx) {
     closeModal();
+    if (!canTargetByHandInterference(targetId)) return;
     let updates = {};
     let myHand = sortCards(deepCopy(gameState.hands[myId]));
     let targetHand = sortCards(deepCopy(gameState.hands[targetId]));
@@ -4948,14 +5120,16 @@ function activateEmperor() {
     // 全員の手札を回収して、ソートして表示する
     let allCards = [];
     let pIds = gameState.playerOrder;
+    const protectedPids = pIds.filter(pid => isPoliticianShieldActive(pid));
+    const targetPids = pIds.filter(pid => !isPoliticianShieldActive(pid));
     
-    // 全回収
-    pIds.forEach(pid => {
+    // 全回収（政治家の保護対象は除外）
+    targetPids.forEach(pid => {
         let h = gameState.hands[pid] || [];
         allCards = allCards.concat(h);
     });
 
-    if (allCards.length === 0) return showInfoModal("エラー", "カードがありません");
+    if (allCards.length === 0) return showInfoModal("使用不可", "政治家の保護により対象にできる手札がありません。");
 
     // ★ご希望のソート処理
     // 数字は小さい順、記号は名前順
@@ -4979,6 +5153,11 @@ function activateEmperor() {
         </p>
         <div class="modal-list">
     `;
+
+    if (protectedPids.length > 0) {
+        const protectedNames = protectedPids.map(pid => gameState.players[pid]?.name || pid).join("、");
+        html += `<p style="font-size:11px; color:#d32f2f; width:100%;">※ ${protectedNames} は[政治家]の効果で対象外です</p>`;
+    }
 
     allCards.forEach((c, i) => {
         // 通常のカードスタイル生成
@@ -5009,14 +5188,19 @@ async function execEmperorSelect(selectedIdx) {
 
     // 1. もう一度全カードを回収・ソート（選択されたカードを特定するため）
     let pIds = gameState.playerOrder;
+    const protectedPids = pIds.filter(pid => isPoliticianShieldActive(pid));
+    const targetPids = pIds.filter(pid => !isPoliticianShieldActive(pid));
     let handCounts = {}; // 元の枚数を記録
     let allCards = [];
     
-    pIds.forEach(pid => {
+    targetPids.forEach(pid => {
         let h = gameState.hands[pid] || [];
         handCounts[pid] = h.length;
         allCards = allCards.concat(h);
     });
+
+    if (allCards.length === 0) return showInfoModal("使用不可", "政治家の保護により対象にできる手札がありません。");
+    if (selectedIdx < 0 || selectedIdx >= allCards.length) return showInfoModal("エラー", "選択カードが不正です。");
 
     // ソート（activateと同じロジック）
     allCards.sort((a, b) => {
@@ -5034,12 +5218,16 @@ async function execEmperorSelect(selectedIdx) {
     // 4. 再分配 (皇帝の次の人から配る)
     // まず皇帝に選んだ1枚を持たせる
     let newHands = {};
-    pIds.forEach(pid => newHands[pid] = []);
+    pIds.forEach(pid => {
+        if (isPoliticianShieldActive(pid)) newHands[pid] = sortCards(deepCopy(gameState.hands[pid] || []));
+        else newHands[pid] = [];
+    });
     newHands[myId].push(emperorCard);
     
-    // 現在の皇帝のインデックス
-    let myTurnIdx = gameState.turnIdx; 
-    let totalPlayers = pIds.length;
+    // 現在の皇帝のインデックス（保護対象を除いた並び）
+    let myTurnIdx = targetPids.indexOf(myId);
+    if (myTurnIdx === -1) return showInfoModal("エラー", "皇帝の配布対象が不正です。");
+    let totalPlayers = targetPids.length;
     
     // カードを配るポインタ
     let cardPtr = 0;
@@ -5048,7 +5236,7 @@ async function execEmperorSelect(selectedIdx) {
     // ループは最大でも (人数 * 最大手札枚数) 回程度なので安全
     for (let i = 1; i <= totalPlayers; i++) {
         let targetIdx = (myTurnIdx + i) % totalPlayers;
-        let targetPid = pIds[targetIdx];
+        let targetPid = targetPids[targetIdx];
         
         // その人が本来持つべき枚数になるまで山から補充
         while (newHands[targetPid].length < handCounts[targetPid] && cardPtr < allCards.length) {
@@ -5065,6 +5253,10 @@ async function execEmperorSelect(selectedIdx) {
 
     // 6. ログと演出
     await pushLog(`${myName}が[皇帝]を発動！市民の手札を全て回収し、再分配しました。`, 'public');
+    if (protectedPids.length > 0) {
+        const protectedNames = protectedPids.map(pid => gameState.players[pid]?.name || pid).join("、");
+        await pushLog(`[政治家]保護により ${protectedNames} の手札は[皇帝]の対象外でした。`, 'public');
+    }
 
 
     // 7. ターン終了
@@ -5087,6 +5279,7 @@ async function execEmperorSelect(selectedIdx) {
 async function activatePoliceOfficer() {
     let updates = {};
     let logs = [];
+    let protectedNames = [];
     
     // ★修正1: 発動した瞬間に「使用済み」にする
     // これにより、render関数が反応して「カットイン」と「音」が自動で流れます
@@ -5098,6 +5291,10 @@ async function activatePoliceOfficer() {
     gameState.playerOrder.forEach(pid => {
         if (pid === myId) return; 
         if (gameState.rankings && gameState.rankings[pid]) return; 
+        if (isPoliticianShieldActive(pid)) {
+            protectedNames.push(gameState.players[pid].name);
+            return;
+        }
 
         let hand = deepCopy(gameState.hands[pid] || []);
         let hiddenIndices = [];
@@ -5121,6 +5318,9 @@ async function activatePoliceOfficer() {
     } else {
         await pushLog(`${myName}が[警察官]を発動しましたが、新たな証拠は見つかりませんでした。`, 'public');
     }
+    if (protectedNames.length > 0) {
+        await pushLog(`[政治家]保護により ${protectedNames.join("、")} は[警察官]の公開対象外でした。`, 'public');
+    }
 
     await db.ref().update(updates);
 
@@ -5141,6 +5341,7 @@ function policeTradeStart() {
 
         <p style="margin-top:10px;">相手を選んでください</p>
     `;
+    let canUseTarget = false;
 
     // 相手リスト生成
     gameState.playerOrder.forEach(pid => {
@@ -5154,11 +5355,19 @@ function policeTradeStart() {
         let revealedInfo = revealed ? `<br><span style="font-size:11px; color:#000000;">(公開: ${revealed})</span>` : "";
 
         if (count > 0) {
-            html += `<button class="modal-btn" onclick="policeSelectTake('${pid}')">
-                        ${p.name} (手札${count})${revealedInfo}
-                     </button>`;
+            if (isPoliticianShieldActive(pid)) {
+                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">
+                            ${p.name} (政治家で対象外)
+                         </button>`;
+            } else {
+                canUseTarget = true;
+                html += `<button class="modal-btn" onclick="policeSelectTake('${pid}')">
+                            ${p.name} (手札${count})${revealedInfo}
+                         </button>`;
+            }
         }
     });
+    if (!canUseTarget) html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
     
     // ▼▼▼ キャンセルボタン（トレードしない）を追加 ▼▼▼
     html += `
@@ -5194,6 +5403,7 @@ async function endPoliceTurn() {
 
 // 奪うカード選択
 function policeSelectTake(targetId) {
+    if (!canTargetByHandInterference(targetId)) return;
     let targetHand = deepCopy(gameState.hands[targetId] || []);
     targetHand.forEach((c, i) => c.originalIndex = i);
     shuffle(targetHand);
@@ -5228,6 +5438,7 @@ function policeSelectTake(targetId) {
 
 // 渡すカード選択
 function policeSelectGive(targetId, takeIdx) {
+    if (!canTargetByHandInterference(targetId)) return;
     let hand = sortCards(deepCopy(gameState.hands[myId]));
     let html = `<p>相手に渡すカードを選んでください。</p><div class="modal-list">`;
     
@@ -5248,6 +5459,7 @@ function policeSelectGive(targetId, takeIdx) {
 
 // ステップ3: 自分のカード選択 (引数に takeIdx を追加)
 function policeSelectGive(targetId, takeIdx) {
+    if (!canTargetByHandInterference(targetId)) return;
     let hand = sortCards(deepCopy(gameState.hands[myId]));
     let html = `<p>相手に渡すカードを選んでください。</p><div class="modal-list">`;
     
@@ -5268,6 +5480,7 @@ function policeSelectGive(targetId, takeIdx) {
 // ステップ4: トレード実行 (ランダムではなく指定インデックスで交換)
 async function execPoliceTrade(targetId, giveIdx, takeIdx) {
     closeModal();
+    if (!canTargetByHandInterference(targetId)) return;
     let updates = {};
     let myHand = sortCards(deepCopy(gameState.hands[myId]));
     let targetHand = sortCards(deepCopy(gameState.hands[targetId])); // 相手の手札はソート済みの状態から取る
@@ -5318,8 +5531,18 @@ function renderHackerUI() {
     let targets = pIds.filter(pid => 
         pid !== myId && 
         !gameState.rankings?.[pid] && 
+        !isPoliticianShieldActive(pid) &&
         (gameState.hands[pid] || []).length > 0
     );
+    let blockedTargets = pIds.filter(pid =>
+        pid !== myId &&
+        !gameState.rankings?.[pid] &&
+        isPoliticianShieldActive(pid) &&
+        (gameState.hands[pid] || []).length > 0
+    );
+    Object.keys(hackerTargets).forEach(pid => {
+        if (!targets.includes(pid)) delete hackerTargets[pid];
+    });
 
     let html = `
         <p><strong>システムへの侵入を開始します...</strong><br>
@@ -5330,6 +5553,13 @@ function renderHackerUI() {
 
     if (targets.length === 0) {
         html += `<p style="text-align:center; color:#ccc;">ハッキング可能な相手がいません。</p>`;
+    }
+    if (blockedTargets.length > 0) {
+        html += `<p style="text-align:center; color:#d32f2f;">※政治家の保護中プレイヤーは対象外です</p>`;
+        blockedTargets.forEach(pid => {
+            const p = gameState.players[pid];
+            html += `<button class="modal-btn" style="width:100%; margin:4px 0; background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+        });
     }
 
     targets.forEach(pid => {
@@ -5398,6 +5628,11 @@ function selectHackerTarget(targetId, idx) {
 
 // 3. 実行処理 (手札からhackedHandsへ移動)
 async function execHacker() {
+    const blockedId = Object.keys(hackerTargets).find(pid => isPoliticianShieldActive(pid));
+    if (blockedId) {
+        showPoliticianBlockedInfo(blockedId);
+        return;
+    }
     closeModal();
     let updates = {};
     
@@ -5971,10 +6206,11 @@ async function execNecromancer() {
 // 1. 1人目選択
 function activateAgent() {
     const pIds = gameState.playerOrder || [];
-    const candidates = pIds.filter(pid => (gameState.hands[pid] || []).length > 0);
+    const candidates = pIds.filter(pid => (gameState.hands[pid] || []).length > 0 && !isPoliticianShieldActive(pid));
+    const blockedCandidates = pIds.filter(pid => (gameState.hands[pid] || []).length > 0 && isPoliticianShieldActive(pid));
 
     if (candidates.length < 2) {
-        return showInfoModal("発動不可", "手札を持つプレイヤーが2人未満のため、交換できません。");
+        return showInfoModal("発動不可", "政治家の保護を除くと、交換対象が2人未満です。");
     }
 
     let html = `<p>ランダム交換する<strong>1人目（対象A）</strong>を選んでください。<br>
@@ -5987,6 +6223,13 @@ function activateAgent() {
         const selfLabel = (pid === myId) ? " (あなた)" : "";
         html += `<button class="modal-btn" onclick="agentSelectSecondTarget('${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
     });
+    if (blockedCandidates.length > 0) {
+        html += `<p style="font-size:12px; color:#d32f2f; margin-top:8px;">※政治家の保護中プレイヤーは対象外です</p>`;
+        blockedCandidates.forEach(pid => {
+            const p = gameState.players[pid];
+            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+        });
+    }
 
     openModal("工作員: 対象A選択", html);
     if (document.getElementById("modal-footer")) {
@@ -5999,6 +6242,12 @@ function agentSelectSecondTarget(firstId) {
     const pIds = gameState.playerOrder || [];
     const candidates = pIds.filter(pid =>
         pid !== firstId &&
+        !isPoliticianShieldActive(pid) &&
+        (gameState.hands[pid] || []).length > 0
+    );
+    const blockedCandidates = pIds.filter(pid =>
+        pid !== firstId &&
+        isPoliticianShieldActive(pid) &&
         (gameState.hands[pid] || []).length > 0
     );
 
@@ -6017,6 +6266,13 @@ function agentSelectSecondTarget(firstId) {
         const selfLabel = (pid === myId) ? " (あなた)" : "";
         html += `<button class="modal-btn" onclick="execAgentSwap('${firstId}', '${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
     });
+    if (blockedCandidates.length > 0) {
+        html += `<p style="font-size:12px; color:#d32f2f; margin-top:8px;">※政治家の保護中プレイヤーは対象外です</p>`;
+        blockedCandidates.forEach(pid => {
+            const p = gameState.players[pid];
+            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7;" onclick="showPoliticianBlockedInfo('${pid}')">${p.name} (政治家で対象外)</button>`;
+        });
+    }
 
     openModal("工作員: 対象B選択", html);
     if (document.getElementById("modal-footer")) {
@@ -6027,6 +6283,7 @@ function agentSelectSecondTarget(firstId) {
 // 3. 実行処理（ランダム1枚交換）
 async function execAgentSwap(pidA, pidB) {
     closeModal();
+    if (!canTargetByHandInterference(pidA) || !canTargetByHandInterference(pidB)) return;
 
     let handA = deepCopy(gameState.hands[pidA] || []);
     let handB = deepCopy(gameState.hands[pidB] || []);
@@ -6486,6 +6743,7 @@ function setupEffectListener() {
         window.leaveRoom = leaveRoom; // これを追加
         // windowオブジェクトに登録してHTMLから呼べるようにする
         window.showPlayerLogs = showPlayerLogs;
+        window.showPoliticianBlockedInfo = showPoliticianBlockedInfo;
         // 釣り人
         window.activateAngler = activateAngler;
         window.anglerStep2 = anglerStep2;
@@ -6520,6 +6778,8 @@ function setupEffectListener() {
         // 富豪
         window.activateMillionaire = activateMillionaire;
         window.execMillionaire = execMillionaire;
+        // 政治家
+        window.activatePolitician = activatePolitician;
         // 皇帝
         window.activateEmperor = activateEmperor;
         window.execEmperorSelect = execEmperorSelect;
