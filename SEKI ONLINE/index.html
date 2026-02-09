@@ -1402,7 +1402,7 @@
         "THIEF": "./images/thief.png",
         "HUNTER": "./images/hunter.png",
         "GAMBLER": "./images/gambler.png",
-        "MAGICIAN": "./images/magician.png",
+        "CROWN": "./images/crown.png",
         "MILLIONAIRE": "./images/millionaire.png",
         "EMPEROR": "./images/emperor.png",
         "HACKER": "./images/hacker.png",
@@ -1447,7 +1447,7 @@
             'SKILL_THIEF': "./sounds/skill_thief.mp3",
             'SKILL_HUNTER': "./sounds/skill_hunter.mp3",
             'SKILL_GAMBLER': "./sounds/skill_gambler.mp3",
-            'SKILL_MAGICIAN': "./sounds/skill_magician.mp3",
+            'SKILL_CROWN': "./sounds/skill_magician.mp3",
             'SKILL_MILLIONAIRE': "./sounds/skill_millionaire.mp3",
             'SKILL_EMPEROR': "./sounds/skill_emperor.mp3",
             'SKILL_HACKER': "./sounds/skill_hacker.mp3",
@@ -1632,7 +1632,7 @@
         // 【修正】Ver 2.0準拠の役職定義
         const ROLES = [
             "ALCHEMIST", "ANGLER", "EMPEROR", "FORTUNE TELLER", 
-            "GAMBLER", "HACKER", "HUNTER", "MAGICIAN", 
+            "GAMBLER", "HACKER", "HUNTER", "CROWN",
             "MILLIONAIRE", "POLICE OFFICER", "THIEF", "NECROMANCER", "AGENT"
         ];
 
@@ -1741,16 +1741,16 @@
 </ul>
 <div><strong>ターン終了！</strong></div>`
             },
-            "MAGICIAN": { 
-                jp: "手品師",   
+            "CROWN": {
+                jp: "ピエロ",
                 summary: "DISCARD以外の記号カードの効果を即座に使用",
                 desc: `<ol>
 <li>DISCARD以外の<span style="color: #e03e2d;"><strong>記号カード</strong></span>の効果を1つだけ即座に使用する。</li>
 </ol>
 <div><strong>ターン終了！</strong></div>`
             },
-            "MILLIONAIRE": { 
-                jp: "富豪",     
+            "MILLIONAIRE": {
+                jp: "富豪",
                 summary: "数字カードを除外し、記号カードを引く",
                 desc: `<ol>
 <li>自分の手札の好きな<span style="color: #3598db;"><strong>数字カード</strong></span>を1枚除外する。</li>
@@ -2497,7 +2497,7 @@
                         else if (myRole === "THIEF") funcName = "activateThief(1)";
                         else if (myRole === "HUNTER") funcName = "activateHunter()";
                         else if (myRole === "GAMBLER") funcName = "activateGambler()";
-                        else if (myRole === "MAGICIAN") funcName = "activateMagician()";
+                        else if (myRole === "CROWN") funcName = "activateMagician()";
                         else if (myRole === "MILLIONAIRE") funcName = "activateMillionaire()";
                         else if (myRole === "EMPEROR") funcName = "activateEmperor()";
                         else if (myRole === "POLICE OFFICER") funcName = "activatePoliceOfficer()";
@@ -2512,8 +2512,8 @@
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
                         
-                        // ▼▼▼ 修正: 手品師の場合、中身を表示 ▼▼▼
-                        if (myRole === "MAGICIAN" && typeof isActivated === 'string') {
+                        // ▼▼▼ 修正: ピエロの場合、中身を表示 ▼▼▼
+                        if (myRole === "CROWN" && typeof isActivated === 'string') {
                             // 役職IDなら日本語に変換、そうでなければそのまま表示(REVERSE等)
                             let val = isActivated;
                             if (ROLE_INFO[val]) val = ROLE_INFO[val].jp;
@@ -2697,11 +2697,11 @@
                         let rName = roles[pid];
                         let rJp = (typeof ROLE_INFO !== 'undefined' && ROLE_INFO[rName]) ? ROLE_INFO[rName].jp : rName;
                         
-                        // ▼▼▼ 修正・追加箇所: 手品師と同じスタイルにする ▼▼▼
-                        if (rName === "MAGICIAN" && typeof currentAct[pid] === 'string') {
-                            // 手品師: 内容をそのまま表示
-                            roleHtml = `<div class="role-badge-pill">手品師: ${currentAct[pid]}</div>`;
-                        } 
+                        // ▼▼▼ 修正・追加箇所: ピエロと同じスタイルにする ▼▼▼
+                        if (rName === "CROWN" && typeof currentAct[pid] === 'string') {
+                            // ピエロ: 内容をそのまま表示
+                            roleHtml = `<div class="role-badge-pill">ピエロ: ${currentAct[pid]}</div>`;
+                        }
                         else {
                             // 通常
                             roleHtml = `<div class="role-badge-pill">${rJp}</div>`;
@@ -4644,19 +4644,19 @@ function showVisualEffect(data) {
     }, 8000);
 }
 
-/* --- MAGICIAN (手品師) の実装 --- */
+/* --- CROWN (ピエロ) の実装 --- */
 // 概要: パネル自体を「REVERSE」「TRADE」「DIG UP」のいずれかとして使う
 
 // 1. 発動：効果を選択する
 function activateMagician() {
     let html = `
-        <p>どのマジックを行いますか？<br>
+        <p>どのサプライズを行いますか？<br>
         <span style="font-size:12px; color:#888;">※手札のカードは消費しません（コストとして必要な場合を除く）</span>
         </p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
             <button onclick="execMagicianReverse()" style="padding:15px; background:#e91e63; color:white; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">🔄 REVERSE</span>
-                <span style="font-size:11px; margin-top:4px;">天地をひっくり返す！</span>
+                <span style="font-size:11px; margin-top:4px;">強弱をひっくり返す！</span>
             </button>
             <button onclick="activateMagicianTrade()" style="padding:15px; background:#ffb74d; color:#e65100; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">🤝 TRADE</span>
@@ -4668,7 +4668,7 @@ function activateMagician() {
             </button>
         </div>
     `;
-    openModal("手品師: マジック選択", html);
+    openModal("ピエロ: サプライズ選択", html);
 }
 
 // --- A: REVERSE (革命) ---
@@ -4685,7 +4685,7 @@ async function execMagicianReverse() {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
     // ログなど
-    await pushLog(`${myName}が[手品師]で [REVERSE] を発動！`, 'public');
+    await pushLog(`${myName}が[ピエロ]で[REVERSE] を使用して強弱を逆転させました`, 'public');
     //playSoundEffect('SKILL');
     //playSoundEffect('REVERSE');
     
@@ -4699,7 +4699,7 @@ async function execMagicianReverse() {
 }
 
 // --- B: TRADE (交換) ---
-/* --- 修正版: 手品師 (ハッカー & 公開対応) --- */
+/* --- 修正版: ピエロ (ハッカー & 公開対応) --- */
 
 // B: TRADE (交換) - 相手選択
 function activateMagicianTrade() {
@@ -4721,7 +4721,7 @@ function activateMagicianTrade() {
             html += `<button class="modal-btn" onclick="magicianSelectTake('${pid}')">${p.name} (手札${count})</button>`;
         }
     });
-    openModal("手品師(TRADE): 相手選択", html);
+    openModal("ピエロ(TRADE): 相手選択", html);
 }
 
 // ★新設: 奪うカード選択 (ハッカー & 公開対応)
@@ -4760,13 +4760,13 @@ function magicianSelectTake(targetId) {
     });
 
     html += `</div>`;
-    openModal("手品師(TRADE): 略奪選択", html);
+    openModal("ピエロ(TRADE): 略奪選択", html);
 }
 
 // 渡すカード選択 (名前変更: SelectTradeCard -> SelectGive)
 function magicianSelectGive(targetId, takeIdx) {
     let hand = sortCards(deepCopy(gameState.hands[myId]));
-    let html = `<p>相手に渡すカードを選んでください。<br><span style="font-size:11px;">(手品師の効果なのでTRADEカード自体は不要です)</span></p><div class="modal-list">`;
+    let html = `<p>相手に渡すカードを選んでください。<br><span style="font-size:11px;">(ピエロの効果なのでTRADEカード自体は不要です)</span></p><div class="modal-list">`;
     
     hand.forEach((c, i) => {
         let style = '';
@@ -4785,7 +4785,7 @@ function magicianSelectGive(targetId, takeIdx) {
         html += `<div class="${cssClass}" style="${style}" ${onClick}>${c.val}</div>`;
     });
     html += `</div>`;
-    openModal("手品師(TRADE): 譲渡選択", html);
+    openModal("ピエロ(TRADE): 譲渡選択", html);
 }
 
 // 実行処理 (引数 takeIdx を追加)
@@ -4814,16 +4814,16 @@ async function execMagicianTrade(targetId, giveIdx, takeIdx) {
 
     const targetName = gameState.players[targetId].name;
 
-    await pushLog(`${myName}が[手品師]で [TRADE] を発動！`, 'public');
-    await pushLog(`${targetName}から [${receiveCard.val}] を盗み、[${giveCard.val}] を渡しました。`, 'private', myId);
-    await pushLog(`${myName}の手品で [${receiveCard.val}] を盗まれ、[${giveCard.val}] を渡されました。`, 'private', targetId);
+    await pushLog(`${myName}が[ピエロ]で[TRADE]を使用して${targetName} とカードを交換しました`, 'public');
+    await pushLog(`[ピエロ]で${targetName}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
+    await pushLog(`[ピエロ]の${gameState.players[myId].name}に [${receiveCard.val}] を奪われ、 [${giveCard.val}] を渡されました。`, 'private', targetId);
 
     updates[`rooms/${currentRoom}/passCount`] = 0;
     let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
     updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
 
     updates[`rooms/${currentRoom}/players/${targetId}/notification`] = {
-        fromName: myName + "(手品師)",
+        fromName: myName + "(ピエロ)",
         lostVal: receiveCard.val,
         gotVal: giveCard.val
     };
@@ -4848,7 +4848,7 @@ function activateMagicianDigUp() {
         html += `<div class="card ${c.type}" style="${style}" onclick="execMagicianDigUp(${i})">${c.val}</div>`;
     });
     html += `</div>`;
-    openModal("手品師(DIG UP): 埋葬選択", html);
+    openModal("ピエロ(DIG UP): 埋葬選択", html);
 }
 
 async function execMagicianDigUp(buryIdx) {
@@ -4870,8 +4870,9 @@ async function execMagicianDigUp(buryIdx) {
     let actList = {...(gameState.activatedList || {})};
     actList[myId] = "DIG UP"; 
     updates[`rooms/${currentRoom}/activatedList`] = actList;
+    updates[`rooms/${currentRoom}/lastSound`] = { type: 'DIG UP', id: Date.now() };
 
-    await pushLog(`${myName}が[手品師]で [DIG UP] を発動！`, 'public');
+    await pushLog(`${myName}が[ピエロ]の[DIG UP] を使用して [${top.val}] を回収し、[${buryCard.val}] を埋めました。`, 'public');
     //playSoundEffect('SKILL');
     //playSoundEffect('DIG UP');
 
