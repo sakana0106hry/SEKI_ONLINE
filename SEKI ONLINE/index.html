@@ -711,14 +711,28 @@
         backdrop-filter: blur(3px); /* 背景をぼかす */
         display: flex; justify-content: center; align-items: center;
         animation: fadeIn 0.2s ease;
+        transition: background 0.2s, backdrop-filter 0.2s;
     }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    #modal-overlay.board-visible {
+        background: rgba(0,0,0,0.05);
+        backdrop-filter: none;
+    }
 
     #modal-box {
         background: #fff; color: #333; padding: 25px; border-radius: 12px;
         max-width: 90%; max-height: 80%; width: 400px;
         overflow-y: auto; text-align: center; display:flex; flex-direction:column;
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border: 2px solid transparent;
+        transition: background 0.2s, opacity 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    #modal-overlay.board-visible #modal-box {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.95);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        opacity: 0.4;
     }
     #modal-content { margin-bottom: 20px; flex: 1; overflow-y: auto; }
     .modal-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
@@ -6843,7 +6857,6 @@ function setupEffectListener() {
 </script>
 <div id="sub-modal-overlay" class="hidden" onclick="closeSubModal()">
     <div id="sub-modal-box" onclick="event.stopPropagation()">
-        <button id="sub-modal-board-toggle" type="button" onclick="toggleSubModalBoardMode()" title="盤面の見やすさを切り替える">👁 盤面OFF</button>
         <span class="close-btn" onclick="closeSubModal()">×</span>
         <h3 id="sub-modal-title">タイトル</h3>
         <div id="sub-modal-body"></div>
@@ -6858,13 +6871,9 @@ function setupEffectListener() {
         z-index: 9999;
         display: flex; justify-content: center; align-items: center;
         backdrop-filter: blur(4px);
-        transition: opacity 0.2s, background 0.2s, backdrop-filter 0.2s;
+        transition: opacity 0.2s;
     }
     #sub-modal-overlay.hidden { display: none !important; opacity: 0; }
-    #sub-modal-overlay.board-visible {
-        background: rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(1px);
-    }
 
     #sub-modal-box {
         background: #fff; color: #333;
@@ -6877,33 +6886,30 @@ function setupEffectListener() {
         display: flex; flex-direction: column;
         animation: subPopIn 0.2s ease-out;
     }
-    #sub-modal-overlay.board-visible #sub-modal-box {
-        box-shadow: 0 6px 20px rgba(0,0,0,0.55);
-    }
     @keyframes subPopIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     #sub-modal-title { margin: 0 0 10px 0; border-bottom: 2px solid #2e7d32; padding-bottom: 5px; color: #2e7d32; }
     #sub-modal-body { overflow-y: auto; flex: 1; text-align: left; font-size: 14px; line-height: 1.6; }
-
-    #sub-modal-board-toggle {
-        position: absolute; top: 12px; right: 48px;
-        border: 1px solid #90a4ae; border-radius: 16px;
-        background: #eceff1; color: #37474f;
-        padding: 3px 10px; font-size: 12px; cursor: pointer;
-        line-height: 1.2;
-    }
-    #sub-modal-board-toggle.active {
-        background: #2e7d32;
-        border-color: #2e7d32;
-        color: #fff;
-    }
 
     #sub-modal-box .close-btn {
         position: absolute; top: 10px; right: 15px;
         font-size: 24px; cursor: pointer; color: #999;
     }
 
-    /* 左上に追加するボタン */
+    /* メインモーダルに追加する共通ボタン */
+    #modal-board-toggle {
+        position: absolute; top: 10px; right: 10px;
+        border: 1px solid #90a4ae; border-radius: 16px;
+        background: #eceff1; color: #37474f;
+        padding: 3px 10px; font-size: 12px; cursor: pointer;
+        line-height: 1.2; z-index: 100;
+    }
+    #modal-board-toggle.active {
+        background: #2e7d32;
+        border-color: #2e7d32;
+        color: #fff;
+    }
+
     #modal-help-btns {
         position: absolute; top: 10px; left: 10px;
         display: flex; gap: 5px; z-index: 100;
@@ -6917,57 +6923,91 @@ function setupEffectListener() {
 </style>
 
 <script>
-    /* --- 1. 既存の openModal を拡張してヘルプボタンを注入 --- */
+    /* --- 1. 既存モーダルに共通補助ボタンを注入 --- */
     if (!window._origOpenModal) window._origOpenModal = window.openModal;
+    if (!window._origCloseModal) window._origCloseModal = window.closeModal;
+
+    let mainModalBoardMode = false;
+
+    function setMainModalBoardMode(enabled) {
+        mainModalBoardMode = !!enabled;
+        const overlay = document.getElementById("modal-overlay");
+        const toggleBtn = document.getElementById("modal-board-toggle");
+
+        if (overlay) overlay.classList.toggle("board-visible", mainModalBoardMode);
+        if (toggleBtn) {
+            toggleBtn.classList.toggle("active", mainModalBoardMode);
+            toggleBtn.textContent = mainModalBoardMode ? "👁 盤面ON" : "👁 盤面OFF";
+        }
+    }
+
+    function toggleMainModalBoardMode() {
+        setMainModalBoardMode(!mainModalBoardMode);
+    }
+
+    function ensureMainModalTools() {
+        const box = document.getElementById("modal-box");
+        if (!box) return;
+
+        if (getComputedStyle(box).position === "static") box.style.position = "relative";
+
+        let btnDiv = document.getElementById("modal-help-btns");
+        if (!btnDiv) {
+            btnDiv = document.createElement("div");
+            btnDiv.id = "modal-help-btns";
+            btnDiv.innerHTML = `
+                <button class="help-icon-btn" onclick="showRuleSub()" title="ルール">📖</button>
+                <button class="help-icon-btn" onclick="showRoleSub()" title="役職一覧">👥</button>
+            `;
+            box.appendChild(btnDiv);
+        }
+
+        let boardBtn = document.getElementById("modal-board-toggle");
+        if (!boardBtn) {
+            boardBtn = document.createElement("button");
+            boardBtn.id = "modal-board-toggle";
+            boardBtn.type = "button";
+            boardBtn.setAttribute("onclick", "toggleMainModalBoardMode()");
+            boardBtn.title = "盤面確認";
+            box.appendChild(boardBtn);
+        }
+    }
 
     window.openModal = function(title, html) {
         window._origOpenModal(title, html);
-
-        const box = document.getElementById("modal-box");
-        if (box) {
-            if (getComputedStyle(box).position === "static") box.style.position = "relative";
-
-            let btnDiv = document.getElementById("modal-help-btns");
-            if (!btnDiv) {
-                btnDiv = document.createElement("div");
-                btnDiv.id = "modal-help-btns";
-                btnDiv.innerHTML = `
-                    <button class="help-icon-btn" onclick="showRuleSub()" title="ルール">📖</button>
-                    <button class="help-icon-btn" onclick="showRoleSub()" title="役職一覧">👥</button>
-                `;
-                box.appendChild(btnDiv);
-            }
-        }
+        ensureMainModalTools();
+        setMainModalBoardMode(false);
     };
 
-    /* --- 2. サブモーダル制御 --- */
-    let subModalBoardMode = false;
+    window.closeModal = function() {
+        setMainModalBoardMode(false);
+        window._origCloseModal();
+    };
 
-    function setSubModalBoardMode(enabled) {
-        subModalBoardMode = !!enabled;
-        const overlay = document.getElementById("sub-modal-overlay");
-        const toggleBtn = document.getElementById("sub-modal-board-toggle");
-
-        if (overlay) overlay.classList.toggle("board-visible", subModalBoardMode);
-        if (toggleBtn) {
-            toggleBtn.classList.toggle("active", subModalBoardMode);
-            toggleBtn.textContent = subModalBoardMode ? "👁 盤面ON" : "👁 盤面OFF";
+    const modalOverlay = document.getElementById("modal-overlay");
+    if (modalOverlay && !window._modalBoardObserverAttached) {
+        window._modalBoardObserverAttached = true;
+        const observer = new MutationObserver(() => {
+            if (!modalOverlay.classList.contains("hidden")) {
+                ensureMainModalTools();
+                setMainModalBoardMode(false);
+            }
+        });
+        observer.observe(modalOverlay, { attributes: true, attributeFilter: ["class"] });
+        if (!modalOverlay.classList.contains("hidden")) {
+            ensureMainModalTools();
+            setMainModalBoardMode(false);
         }
     }
 
-    function toggleSubModalBoardMode() {
-        setSubModalBoardMode(!subModalBoardMode);
-    }
-
+    /* --- 2. サブモーダル制御 --- */
     function openSubModal(title, html) {
         document.getElementById("sub-modal-title").innerText = title;
         document.getElementById("sub-modal-body").innerHTML = html;
-        setSubModalBoardMode(false);
         document.getElementById("sub-modal-overlay").classList.remove("hidden");
     }
 
     function closeSubModal() {
-        setSubModalBoardMode(false);
         document.getElementById("sub-modal-overlay").classList.add("hidden");
     }
 
@@ -6981,7 +7021,7 @@ function setupEffectListener() {
     }
 
     window.closeSubModal = closeSubModal;
-    window.toggleSubModalBoardMode = toggleSubModalBoardMode;
+    window.toggleMainModalBoardMode = toggleMainModalBoardMode;
     window.showRuleSub = showRuleSub;
     window.showRoleSub = showRoleSub;
 </script>
