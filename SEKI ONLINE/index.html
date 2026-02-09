@@ -6226,11 +6226,9 @@ function setupEffectListener() {
             }
         }
 
-        // --- ★追加: 役職一覧表示 ---
-        // --- ★修正: 役職一覧表示 (アコーディオン式) ---
-        function showRoleList() {
+        function buildRoleGuideHtml() {
             let html = '<div style="text-align:left; max-height: 500px; overflow-y: auto;">';
-            
+
             Object.keys(ROLE_INFO).forEach(key => {
                 const info = ROLE_INFO[key];
                 let imgHtml = "";
@@ -6238,39 +6236,31 @@ function setupEffectListener() {
                     imgHtml = `<img src="${ROLE_IMAGES[key]}" style="height:40px; vertical-align:middle; margin-right:10px; border-radius:4px; border:1px solid #ccc;">`;
                 }
 
-                // ★detailsタグを使って開閉式にする
                 html += `
                     <details style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">
                         <summary style="cursor:pointer; display:flex; align-items:center; outline:none; list-style:none;">
                             ${imgHtml}
                             <div style="flex:1;">
                                 <div style="font-weight:bold; color:#e050fa; font-size:15px;">
-                                    ${info.jp} 
+                                    ${info.jp}
                                     <span style="font-size:13px; color:#e050fa; font-weight:normal; margin-left:4px;">${key}</span>
                                 </div>
                                 <div style="font-size:12px; color:#000000; display: flex; justify-content: space-between; align-items: baseline;">
-                                <div>${info.summary}</div>
-                                <span style="font-size:10px; color:#888; white-space: nowrap;">▼詳細　</span>
-                            </div>
+                                    <div>${info.summary}</div>
+                                    <span style="font-size:10px; color:#888; white-space: nowrap;">▼詳細　</span>
+                                </div>
                             </div>
                         </summary>
-                        
                         <div style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.1); border-radius:5px; font-size:12px; color:#000000; line-height:1.6;">${info.desc}</div>
                     </details>`;
             });
-            html += '</div>';
-            openModal("👥役職一覧", html);
 
-            // ★追加: このモーダルだけ幅を広げる (600px)
-            const mBox = document.getElementById("modal-box");
-            if(mBox) {
-                mBox.style.width = "600px";   // PCなどでの幅
-                mBox.style.maxWidth = "95%"; // スマホでは画面いっぱいまで使う
-            }
+            html += "</div>";
+            return html;
         }
-        // --- ★追加: ルール要約表示 ---
-        function showRule() {
-            let html = `
+
+        function buildRuleGuideHtml() {
+            return `
                 <div style="text-align: left; max-height: 400px; overflow-y: auto; font-size: 13px; color: #333;">
                     <h4 style="border-left: 4px solid #2e7d32; padding-left: 8px; margin: 10px 0 5px 0;">基本ルール</h4>
                     <p style="margin: 0 0 10px 0;">・順に回ってくるターンで、手札を先に0枚にした人が勝ち！<br />・自分のターンでは以下から<strong>1つ</strong>の行動ができる<br />　　1. 手札から<span style="color: #3598db;"><strong>数字カード</strong></span>を数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br />　　2. 手札から<span style="color: #e03e2d;"><strong>記号カード</strong></span>を使う<br />　　3. 一度きりの<span style="color: #843fa1;"><strong>役職能力</strong></span>を使う（詳しい説明は<strong><span style="color: #843fa1;">【役職】</span></strong>を参照）<br />　　4. <span style="color: #e67e23;"><strong>パス</strong></span>をして自分のターンを流す（パスの詳細は下部へ）</p>
@@ -6305,15 +6295,37 @@ function setupEffectListener() {
                     </ul>
                 </div>
             `;
-            openModal("📖ルール", html);
+        }
 
-            // ★追加: このモーダルだけ幅を広げる (600px)
+        function openGuide(kind, surface = "main") {
+            let title = "";
+            let html = "";
+
+            if (kind === "role") {
+                title = "👥役職一覧";
+                html = buildRoleGuideHtml();
+            } else if (kind === "rule") {
+                title = "📖ルール";
+                html = buildRuleGuideHtml();
+            } else {
+                return;
+            }
+
+            if (surface === "sub" && typeof openSubModal === "function") {
+                openSubModal(title, html);
+                return;
+            }
+
+            openModal(title, html);
             const mBox = document.getElementById("modal-box");
-            if(mBox) {
-                mBox.style.width = "600px";   // PCなどでの幅
-                mBox.style.maxWidth = "95%"; // スマホでは画面いっぱいまで使う
+            if (mBox) {
+                mBox.style.width = "600px";
+                mBox.style.maxWidth = "95%";
             }
         }
+
+        function showRoleList() { openGuide("role", "main"); }
+        function showRule() { openGuide("rule", "main"); }
 
         // --- ★追加: プレイヤー別ログ表示機能 ---
         function showPlayerLogs(targetId) {
@@ -6831,10 +6843,10 @@ function setupEffectListener() {
 </script>
 <div id="sub-modal-overlay" class="hidden" onclick="closeSubModal()">
     <div id="sub-modal-box" onclick="event.stopPropagation()">
+        <button id="sub-modal-board-toggle" type="button" onclick="toggleSubModalBoardMode()" title="盤面の見やすさを切り替える">👁 盤面OFF</button>
         <span class="close-btn" onclick="closeSubModal()">×</span>
         <h3 id="sub-modal-title">タイトル</h3>
-        <div id="sub-modal-body">
-            </div>
+        <div id="sub-modal-body"></div>
     </div>
 </div>
 
@@ -6846,10 +6858,14 @@ function setupEffectListener() {
         z-index: 9999;
         display: flex; justify-content: center; align-items: center;
         backdrop-filter: blur(4px);
-        transition: opacity 0.2s;
+        transition: opacity 0.2s, background 0.2s, backdrop-filter 0.2s;
     }
     #sub-modal-overlay.hidden { display: none !important; opacity: 0; }
-    
+    #sub-modal-overlay.board-visible {
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(1px);
+    }
+
     #sub-modal-box {
         background: #fff; color: #333;
         width: 90%; max-width: 600px;
@@ -6861,16 +6877,32 @@ function setupEffectListener() {
         display: flex; flex-direction: column;
         animation: subPopIn 0.2s ease-out;
     }
+    #sub-modal-overlay.board-visible #sub-modal-box {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.55);
+    }
     @keyframes subPopIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     #sub-modal-title { margin: 0 0 10px 0; border-bottom: 2px solid #2e7d32; padding-bottom: 5px; color: #2e7d32; }
     #sub-modal-body { overflow-y: auto; flex: 1; text-align: left; font-size: 14px; line-height: 1.6; }
-    
+
+    #sub-modal-board-toggle {
+        position: absolute; top: 12px; right: 48px;
+        border: 1px solid #90a4ae; border-radius: 16px;
+        background: #eceff1; color: #37474f;
+        padding: 3px 10px; font-size: 12px; cursor: pointer;
+        line-height: 1.2;
+    }
+    #sub-modal-board-toggle.active {
+        background: #2e7d32;
+        border-color: #2e7d32;
+        color: #fff;
+    }
+
     #sub-modal-box .close-btn {
         position: absolute; top: 10px; right: 15px;
         font-size: 24px; cursor: pointer; color: #999;
     }
-    
+
     /* 左上に追加するボタン */
     #modal-help-btns {
         position: absolute; top: 10px; left: 10px;
@@ -6885,7 +6917,7 @@ function setupEffectListener() {
 </style>
 
 <script>
-    /* --- 1. 既存の openModal を改造して「ボタン」を注入 --- */
+    /* --- 1. 既存の openModal を拡張してヘルプボタンを注入 --- */
     if (!window._origOpenModal) window._origOpenModal = window.openModal;
 
     window.openModal = function(title, html) {
@@ -6893,108 +6925,65 @@ function setupEffectListener() {
 
         const box = document.getElementById("modal-box");
         if (box) {
-            if(getComputedStyle(box).position === 'static') box.style.position = 'relative';
-            if (document.getElementById("modal-help-btns")) return;
+            if (getComputedStyle(box).position === "static") box.style.position = "relative";
 
-            const btnDiv = document.createElement("div");
-            btnDiv.id = "modal-help-btns";
-            btnDiv.innerHTML = `
-                <button class="help-icon-btn" onclick="showRuleSub()" title="ルール">📖</button>
-                <button class="help-icon-btn" onclick="showRoleSub()" title="役職一覧">👥</button>
-            `;
-            box.appendChild(btnDiv);
+            let btnDiv = document.getElementById("modal-help-btns");
+            if (!btnDiv) {
+                btnDiv = document.createElement("div");
+                btnDiv.id = "modal-help-btns";
+                btnDiv.innerHTML = `
+                    <button class="help-icon-btn" onclick="showRuleSub()" title="ルール">📖</button>
+                    <button class="help-icon-btn" onclick="showRoleSub()" title="役職一覧">👥</button>
+                `;
+                box.appendChild(btnDiv);
+            }
         }
     };
 
     /* --- 2. サブモーダル制御 --- */
+    let subModalBoardMode = false;
+
+    function setSubModalBoardMode(enabled) {
+        subModalBoardMode = !!enabled;
+        const overlay = document.getElementById("sub-modal-overlay");
+        const toggleBtn = document.getElementById("sub-modal-board-toggle");
+
+        if (overlay) overlay.classList.toggle("board-visible", subModalBoardMode);
+        if (toggleBtn) {
+            toggleBtn.classList.toggle("active", subModalBoardMode);
+            toggleBtn.textContent = subModalBoardMode ? "👁 盤面ON" : "👁 盤面OFF";
+        }
+    }
+
+    function toggleSubModalBoardMode() {
+        setSubModalBoardMode(!subModalBoardMode);
+    }
+
     function openSubModal(title, html) {
         document.getElementById("sub-modal-title").innerText = title;
         document.getElementById("sub-modal-body").innerHTML = html;
+        setSubModalBoardMode(false);
         document.getElementById("sub-modal-overlay").classList.remove("hidden");
     }
+
     function closeSubModal() {
+        setSubModalBoardMode(false);
         document.getElementById("sub-modal-overlay").classList.add("hidden");
     }
+
+    /* --- 3. 共通ガイド表示 --- */
+    function showRuleSub() {
+        openGuide("rule", "sub");
+    }
+
+    function showRoleSub() {
+        openGuide("role", "sub");
+    }
+
     window.closeSubModal = closeSubModal;
+    window.toggleSubModalBoardMode = toggleSubModalBoardMode;
     window.showRuleSub = showRuleSub;
     window.showRoleSub = showRoleSub;
-
-    /* --- 3. 元の内容をそのまま使う関数 --- */
-    
-    // ルール表示（元コードから内容をコピー）
-    function showRuleSub() {
-        // 元の showRule() 内の HTML と全く同じ内容
-        let html = `
-            <div style="text-align: left; max-height: 400px; overflow-y: auto; font-size: 13px; color: #333;">
-                <h4 style="border-left: 4px solid #2e7d32; padding-left: 8px; margin: 10px 0 5px 0;">基本ルール</h4>
-                <p style="margin: 0 0 10px 0;">・順に回ってくるターンで、手札を先に0枚にした人が勝ち！<br />・自分のターンでは以下から<strong>1つ</strong>の行動ができる<br />　　1. 手札から<span style="color: #3598db;"><strong>数字カード</strong></span>を数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br />　　2. 手札から<span style="color: #e03e2d;"><strong>記号カード</strong></span>を使う<br />　　3. 一度きりの<span style="color: #843fa1;"><strong>役職能力</strong></span>を使う（詳しい説明は<strong><span style="color: #843fa1;">【役職】</span></strong>を参照）<br />　　4. <span style="color: #e67e23;"><strong>パス</strong></span>をして自分のターンを流す（パスの詳細は下部へ）</p>
-                
-                <h4 style="border-left: 4px solid #c62828; padding-left: 8px; margin: 10px 0 5px 0;">記号カード</h4>
-                <ul style="padding-left: 20px; margin: 0;">
-                <li><strong>REVERSE</strong>（4枚）: <strong><span style="color: #3598db;">数字カード</span></strong>の強弱を逆転させる</li>
-                <li><strong>TRADE</strong>（4枚）: 好きな手札1枚を他のプレイヤーと交換する</li>
-                <li><strong>DIG UP</strong>（4枚）: 数字墓地の1番上のカードと、手札の<strong><span style="color: #3598db;">数字カード</span></strong>を交換する</li>
-                <li><strong>DISCARD</strong>（<strong><span style="color: #e03e2d;">1</span>枚</strong>）: 好きな<strong><span style="color: #3598db;">数字カード</span></strong>を1枚捨てる</li>
-                </ul>
-
-                <h4 style="border-left: 4px solid #1565c0; padding-left: 8px; margin: 10px 0 5px 0;">数字カード</h4>
-                <p style="margin: 0 0 10px 0;">・数字カードは0~9まで各4枚ずつ<br /><strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br /><strong>　🔵 順行🐘 (通常):</strong><br />　　0 < 1 < 2 < 3 < 4 < 5 < 6 < 7 < 8 < 9<br /><strong>　🔴 逆行🐁 (REVERSE中):</strong><br />　　0 < 9 < 8 < 7 < 6 < 5 < 4 < 3 < 2 < 1</p>
-
-                <h4 style="border-left: 4px solid #f76205; padding-left: 8px; margin: 10px 0 5px 0;">パスとリセット</h4>
-                <p style="margin: 0 0 10px 0;">・<strong>パス</strong>では、数字カードを1枚引いても良い<br />　&rArr;その際、出せるなら出しても良い！</p>
-                <p style="margin: 0 0 10px 0;"><strong>【リセットとは】</strong></p>
-                <ul>
-                <li>数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持つ<br />
-                <li><strong>リセット権</strong>を持っているプレイヤーがパスすると、数字墓地のカードが全て除外され、何でも出せる<br />
-                <li><strong>リセット権</strong>は、<strong>👑RESET</strong>で表示されている</li>
-                <li><strong>リセット権</strong>を持ったプレイヤーがあがった場合、<span style="text-decoration: underline;">数字墓地の一番上のカードが変わらない限り、一周後に次のプレイヤーに移動する</span></li>
-                </ul>
-
-                <h4 style="border-left: 4px solid #c62828; padding-left: 8px; margin: 10px 0 5px 0;">🚫禁止事項🚫</h4>
-                <ul style="padding-left: 20px; margin: 0;">
-                <li><strong>記号あがり</strong>: 手札の最後の1枚が記号カードのとき、それを使って0枚にはできない</li>
-                <li><strong>0あがり</strong>: 手札の最後の1枚が0のとき、0を出して0枚にすることはできない</li>
-                </ul>
-            </div>
-        `;
-        openSubModal("📖 ルール", html);
-    }
-
-    // 役職一覧表示（元の ROLE_INFO を使って自動生成）
-    function showRoleSub() {
-        if (typeof ROLE_INFO === 'undefined') return;
-        
-        let html = '<div style="text-align:left; max-height: 500px; overflow-y: auto;">';
-        Object.keys(ROLE_INFO).forEach(key => {
-            const info = ROLE_INFO[key];
-            let imgHtml = "";
-            if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
-                    imgHtml = `<img src="${ROLE_IMAGES[key]}" style="height:40px; vertical-align:middle; margin-right:10px; border-radius:4px; border:1px solid #ccc;">`;
-                }
-
-                // ★detailsタグを使って開閉式にする
-                html += `
-                    <details style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">
-                        <summary style="cursor:pointer; display:flex; align-items:center; outline:none; list-style:none;">
-                            ${imgHtml}
-                            <div style="flex:1;">
-                                <div style="font-weight:bold; color:#e050fa; font-size:15px;">
-                                    ${info.jp} 
-                                    <span style="font-size:13px; color:#e050fa; font-weight:normal; margin-left:4px;">${key}</span>
-                                </div>
-                                <div style="font-size:12px; color:#000000; display: flex; justify-content: space-between; align-items: baseline;">
-                                <div>${info.summary}</div>
-                                <span style="font-size:10px; color:#888; white-space: nowrap;">▼詳細　</span>
-                            </div>
-                            </div>
-                        </summary>
-                        
-                        <div style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.1); border-radius:5px; font-size:12px; color:#000000; line-height:1.6;">${info.desc}</div>
-                    </details>`;
-            });
-            html += '</div>';
-        openSubModal("👥 役職一覧", html);
-    }
 </script>
 
 </body>
