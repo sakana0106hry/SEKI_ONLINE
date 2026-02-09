@@ -2380,8 +2380,17 @@
             // 2. 生存人数計算 (あがっていない人)
             let activePIds = (data.playerOrder || []).filter(pid => !data.rankings || !data.rankings[pid]);
             let activeCount = activePIds.length;
+            if (activeCount <= 0) return false;
+
+            // 3. 一周判定ガード:
+            // 手番が「勝者の次の生存者」に戻っている時だけ継承成立を許可する
+            if (!Array.isArray(data.playerOrder) || typeof data.turnIdx !== 'number') return false;
+            let winnerIdx = data.playerOrder.indexOf(data.lastWinnerId);
+            if (winnerIdx < 0) return false;
+            let cycleStartIdx = getNextActivePlayerIndex(winnerIdx, data.playerOrder, data.rankings || {});
+            if (cycleStartIdx < 0 || data.turnIdx !== cycleStartIdx) return false;
             
-            // 3. ログ解析: 勝った時間より後のログを確認
+            // 4. ログ解析: 勝った時間より後のログを確認
             let winTime = data.lastWinnerTime || 0;
             let logs = data.logs || [];
             let actedNames = new Set();
@@ -2392,7 +2401,7 @@
                 if (match) actedNames.add(match[1]);
             });
 
-            // 4. 除外処理 (勝者本人と、判定者自身を除外)
+            // 5. 除外処理 (勝者本人を除外)
             if (data.players && data.players[data.lastWinnerId]) {
                 actedNames.delete(data.players[data.lastWinnerId].name);
             }
