@@ -1878,9 +1878,9 @@
             },
             "NECROMANCER": {
                 jp: "死霊使い",
-                summary: "数字墓地の一番上を除外",
+                summary: "数字墓地/記号墓地から1枚除外",
                 desc: `<ol>
-<li>数字墓地の一番上のカードを除外する。</li>
+<li>数字墓地もしくは記号墓地の、好きなカード1枚を除外する。</li>
 <li>自分のターンを行う。</li>
 </ol>
 <div><strong>ターン終了！</strong></div>`
@@ -6391,58 +6391,109 @@ async function execAlchemistKeep() {
 
 // 1. 発動確認
 function activateNecromancer() {
-    // 墓地チェック
     let gn = gameState.graveNum || [];
-    if (gn.length === 0) {
-        return showInfoModal("発動不可", "数字墓地にカードがないため、除外できません。");
+    let gs = gameState.graveSym || [];
+
+    // 墓地チェック
+    if (gn.length === 0 && gs.length === 0) {
+        return showInfoModal("発動不可", "数字墓地・記号墓地ともにカードがないため、除外できません。");
     }
 
-    // 除去する対象（一番上のカード）
-    let topCard = gn[gn.length - 1];
-    
-    // 画像表示用のスタイル作成
-    let style = "";
-    let cImg = CARD_IMAGES[topCard.val];
-    if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
-
     let html = `
-        <p>数字墓地の一番上のカードを除外しますか？<br>
+        <p>除外するカードを1枚選んでください。<br>
         <span style="font-size:12px; color:#ef5350;">※除外した後、あなたのターンが続きます。</span>
         </p>
-        
-        <div style="display:flex; justify-content:center; margin:15px 0;">
-            <div class="card ${topCard.type}" style="${style}">${topCard.val}</div>
-        </div>
 
-        <button onclick="execNecromancer()" style="background:#4a148c; color:white; padding:10px 30px; font-weight:bold; border-radius:20px;">
-            蘇生（除外）実行
-        </button>
+        <div style="margin-top:10px; text-align:left;"><strong>数字墓地</strong></div>
+        <div class="modal-list" style="justify-content:flex-start;">
+    `;
+
+    if (gn.length > 0) {
+        for (let i = gn.length - 1; i >= 0; i--) {
+            let c = gn[i];
+            let style = "";
+            let cImg = CARD_IMAGES[c.val];
+            if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
+
+            if (i === gn.length - 1) {
+                html += `
+                    <div style="position:relative; display:inline-block;">
+                        <div class="card num" style="${style}" onclick="execNecromancer('num', ${i})">${c.val}</div>
+                        <span style="position:absolute; top:-8px; right:-6px; background:#ffca28; color:#3e2723; font-size:9px; font-weight:bold; padding:1px 5px; border-radius:10px; border:1px solid #fff;">TOP</span>
+                    </div>
+                `;
+            } else {
+                html += `<div class="card num" style="${style}" onclick="execNecromancer('num', ${i})">${c.val}</div>`;
+            }
+        }
+        html += `<div style="width:100%; font-size:11px; color:#ffca28; margin-top:2px;">※TOP が数字墓地の一番上です</div>`;
+    } else {
+        html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.75;" onclick="showInfoModal('対象外', '数字墓地は空です。記号墓地から選んでください。')">数字墓地は空です</button>`;
+    }
+    html += `</div>`;
+
+    html += `
+        <div style="margin-top:10px; text-align:left;"><strong>記号墓地</strong></div>
+        <div class="modal-list" style="justify-content:flex-start;">
+    `;
+
+    if (gs.length > 0) {
+        for (let i = gs.length - 1; i >= 0; i--) {
+            let c = gs[i];
+            let style = "";
+            let cImg = CARD_IMAGES[c.val];
+            if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
+            html += `<div class="card sym" style="${style}" onclick="execNecromancer('sym', ${i})">${c.val}</div>`;
+        }
+    } else {
+        html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.75;" onclick="showInfoModal('対象外', '記号墓地は空です。数字墓地から選んでください。')">記号墓地は空です</button>`;
+    }
+    html += `</div>`;
+
+    html += `
+        <p style="font-size:11px; color:#666; margin-top:10px;">※1枚選ぶと即時に除外を実行します。</p>
     `;
 
     openModal("ネクロマンサー: 死者蘇生", html);
 }
 
 // 2. 実行処理
-async function execNecromancer() {
+async function execNecromancer(targetType, targetIdx) {
     closeModal();
     let updates = {};
 
     // 最新の墓地データを取得
     let gn = [...(gameState.graveNum || [])];
+    let gs = [...(gameState.graveSym || [])];
     let excl = [...(gameState.exclusion || [])];
     let actList = {...(gameState.activatedList || {})};
 
-    // 念のため再チェック
-    if (gn.length === 0) return showInfoModal("エラー", "墓地が空になりました。");
+    // 念のため再チェック（UIすり抜け防止）
+    if (targetType !== 'num' && targetType !== 'sym') {
+        return showInfoModal("エラー", "除外対象の種類が不正です。");
+    }
+    if (!Number.isInteger(targetIdx) || targetIdx < 0) {
+        return showInfoModal("エラー", "除外対象の指定が不正です。");
+    }
 
-    // 墓地から除去
-    let removedCard = gn.pop();
-    
+    let removedCard = null;
+    let fromLabel = "";
+    if (targetType === 'num') {
+        if (targetIdx >= gn.length) return showInfoModal("エラー", "選択したカードが見つかりません。再度選択してください。");
+        removedCard = gn.splice(targetIdx, 1)[0];
+        updates[`rooms/${currentRoom}/graveNum`] = gn;
+        fromLabel = "数字墓地";
+    } else {
+        if (targetIdx >= gs.length) return showInfoModal("エラー", "選択したカードが見つかりません。再度選択してください。");
+        removedCard = gs.splice(targetIdx, 1)[0];
+        updates[`rooms/${currentRoom}/graveSym`] = gs;
+        fromLabel = "記号墓地";
+    }
+
     // 除外場へ
     excl.push(removedCard);
 
     // データ更新
-    updates[`rooms/${currentRoom}/graveNum`] = gn;
     updates[`rooms/${currentRoom}/exclusion`] = excl;
 
     // スキル使用済みにする
@@ -6450,7 +6501,7 @@ async function execNecromancer() {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
     // ログ＆音
-    await pushLog(`${myName}が[ネクロマンサー]を発動！墓地の [${removedCard.val}] を除外しました`, 'public');
+    await pushLog(`${myName}が[ネクロマンサー]を発動！${fromLabel}の [${removedCard.val}] を蘇生して除外しました`, 'public');
     
     // 音の再生（スキル音があればそれ、なければDISCARD音などを代用）
     let soundType = (typeof SOUND_FILES !== 'undefined' && SOUND_FILES['SKILL_NECROMANCER']) ? 'SKILL_NECROMANCER' : 'DISCARD';
