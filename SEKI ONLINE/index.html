@@ -2569,7 +2569,8 @@
                         }
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
-                        if (myRole === "POLITICIAN") statusText = isPoliticianShielded ? "保護中" : "発動済み(保護解除)";
+                        if (myRole === "POLITICIAN") statusText = isPoliticianShielded ? "保護中" : "使用済み";
+                        else if (myRole === "EMPEROR") statusText = "使用済み";
                         
                         // ▼▼▼ 修正: ピエロの場合、中身を表示 ▼▼▼
                         if (myRole === "CROWN" && typeof isActivated === 'string') {
@@ -2756,16 +2757,20 @@
                         let rName = roles[pid];
                         let rJp = (typeof ROLE_INFO !== 'undefined' && ROLE_INFO[rName]) ? ROLE_INFO[rName].jp : rName;
                         
-                        // ▼▼▼ 修正・追加箇所: ピエロと同じスタイルにする ▼▼▼
+                        let roleSub = "";
                         if (rName === "CROWN" && typeof currentAct[pid] === 'string') {
-                            // ピエロ: 内容をそのまま表示
-                            roleHtml = `<div class="role-badge-pill">ピエロ: ${currentAct[pid]}</div>`;
+                            roleSub = currentAct[pid];
+                        } else if (rName === "POLITICIAN" && currentAct[pid]) {
+                            roleSub = isPoliticianShieldActive(pid, data) ? "保護中" : "使用済み";
+                        } else if (rName === "EMPEROR" && currentAct[pid]) {
+                            roleSub = "使用済み";
                         }
-                        else {
-                            // 通常
+
+                        if (roleSub) {
+                            roleHtml = `<div class="role-badge-pill">${rJp}<span class="role-sub">${roleSub}</span></div>`;
+                        } else {
                             roleHtml = `<div class="role-badge-pill">${rJp}</div>`;
                         }
-                        // ▲▲▲ 修正ここまで ▲▲▲
                     }
 
                     // ヘッダーアイコン
