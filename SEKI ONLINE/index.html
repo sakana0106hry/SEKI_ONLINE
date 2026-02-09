@@ -1111,7 +1111,7 @@
             display: block;        /* 改行させる */
             margin-left: 0;
             margin-top: 3px;
-            font-size: 12px;        /* 少し小さく */
+            font-size: 13px;        /* 少し小さく */
             opacity: 0.9;
         }
 
@@ -3979,7 +3979,7 @@
             panel.classList.remove("state-strongest", "state-weakest");
             panel.classList.add(state.isStrongest ? "state-strongest" : "state-weakest");
             valEl.innerText = state.value;
-            stateEl.innerText = state.isStrongest ? "観測中(最強)" : "観測不可(最弱)";
+            stateEl.innerText = state.isStrongest ? "最強" : "最弱";
         }
         function shuffle(arr) { for(let i=arr.length-1; i>0; i--){ let j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
         function renderPile(arr) {
@@ -6433,7 +6433,7 @@ function activateNecromancer() {
                 html += `<div class="card num" style="${style}" onclick="execNecromancer('num', ${i})">${c.val}</div>`;
             }
         }
-        html += `<div style="width:100%; font-size:11px; color:#ffca28; margin-top:2px;">※TOP が数字墓地の一番上です</div>`;
+        html += `<div style="width:100%; font-size:11px; color:#ef5350; margin-top:2px;">※TOP が数字墓地の一番上です</div>`;
     } else {
         html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.75;" onclick="showInfoModal('対象外', '数字墓地は空です。記号墓地から選んでください。')">数字墓地は空です</button>`;
     }
