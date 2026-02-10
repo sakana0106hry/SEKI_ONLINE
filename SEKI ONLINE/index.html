@@ -140,7 +140,7 @@
 
     #title-logo {
         width: 100%;
-        max-width: 390px;
+        max-width: 450px;
         height: auto;
         object-fit: contain;
         filter:
@@ -167,31 +167,6 @@
         letter-spacing: 0.8px;
         text-shadow: 0 0 8px rgba(0, 216, 255, 0.22);
     }
-
-    .seki-tags {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 8px;
-    }
-
-    .seki-tag {
-        display: inline-flex;
-        align-items: center;
-        padding: 5px 10px;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        background: rgba(255, 255, 255, 0.05);
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        white-space: nowrap;
-    }
-    .seki-tag.tag-s { color: #9eefff; border-color: rgba(0, 216, 255, 0.55); box-shadow: inset 0 0 10px rgba(0, 216, 255, 0.22); }
-    .seki-tag.tag-e { color: #c4ffd8; border-color: rgba(52, 247, 141, 0.5); box-shadow: inset 0 0 10px rgba(52, 247, 141, 0.2); }
-    .seki-tag.tag-k { color: #ffd2dd; border-color: rgba(255, 53, 94, 0.56); box-shadow: inset 0 0 10px rgba(255, 53, 94, 0.2); }
 
     #login-screen input {
         width: 100%;
@@ -282,9 +257,8 @@
             gap: 8px;
             border-radius: 16px;
         }
-        #title-logo { max-width: 290px; }
+        #title-logo { max-width: 340px; }
         .seki-tagline { font-size: 11px; }
-        .seki-tag { font-size: 10px; padding: 4px 8px; }
         #login-screen input { padding: 11px 12px; font-size: 14px; }
         #login-screen #btn-join { font-size: 14px; padding: 12px 14px; }
     }
@@ -1420,14 +1394,9 @@
             <img src="./images/new_logo.png" alt="SEKI Online" id="title-logo">
             <p class="version-text">Ver 25.00 働く政治家、潜む工作員、覗く天文学者</p>
             <p class="seki-tagline">Strategy / Efficiency / Killer を Interfaceする S.E.K.I.</p>
-            <div class="seki-tags" aria-hidden="true">
-                <span class="seki-tag tag-s">S | Strategy（戦略）</span>
-                <span class="seki-tag tag-e">E | Efficiency（英才）</span>
-                <span class="seki-tag tag-k">K | Killer（強襲）</span>
-            </div>
-            <input type="text" id="roomName" placeholder="合言葉 (例: seki123)">
-            <input type="text" id="playerName" placeholder="あなたの名前">
-            <button id="btn-join" onclick="joinGame()">部屋に入る / 作る</button>
+            <input type="text" id="roomName" placeholder="Room Passphrase (e.g. seki123)">
+            <input type="text" id="playerName" placeholder="Your Name">
+            <button id="btn-join" onclick="joinGame()">JOIN / CREATE ROOM</button>
         </div>
     </div>
 
