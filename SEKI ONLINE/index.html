@@ -130,12 +130,23 @@
     #login-panel::before {
         content: "";
         position: absolute;
-        left: -75%;
-        top: 0;
-        width: 65%;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, var(--seki-s), transparent);
-        animation: loginPanelScan 4s linear infinite;
+        inset: -1px;
+        border-radius: inherit;
+        padding: 1px;
+        background: conic-gradient(
+            from 0deg,
+            rgba(0, 216, 255, 0) 0deg,
+            rgba(0, 216, 255, 0) 322deg,
+            rgba(0, 216, 255, 0.25) 330deg,
+            rgba(0, 216, 255, 0.95) 344deg,
+            rgba(0, 216, 255, 0.25) 356deg,
+            rgba(0, 216, 255, 0) 360deg
+        );
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        animation: loginPanelOrbit 3.2s linear infinite;
     }
 
     #title-logo {
@@ -161,7 +172,7 @@
     }
 
     .seki-tagline {
-        margin: 0 0 4px;
+        margin: 12px 0;
         font-size: 12px;
         color: #d9ebff;
         letter-spacing: 0.8px;
@@ -213,12 +224,14 @@
         overflow-y: auto;
         margin-top: -2px;
         margin-bottom: 2px;
+        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
         border-radius: 12px;
         border: 1px solid rgba(0, 216, 255, 0.33);
         background: rgba(2, 10, 20, 0.92);
         box-shadow: inset 0 0 14px rgba(0, 216, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.36);
     }
     .room-suggestion-title {
+        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
         font-size: 11px;
         letter-spacing: 0.5px;
         color: #a5cfff;
@@ -232,6 +245,7 @@
         color: #e8f4ff;
         text-align: left;
         padding: 9px 10px;
+        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
         font-size: 13px;
         cursor: pointer;
         transition: background 0.18s ease;
@@ -241,6 +255,7 @@
     }
     .room-suggestion-empty {
         padding: 10px;
+        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
         font-size: 12px;
         text-align: left;
         color: #9cb3c9;
@@ -279,9 +294,9 @@
         transform: none;
     }
 
-    @keyframes loginPanelScan {
-        0% { left: -75%; }
-        100% { left: 125%; }
+    @keyframes loginPanelOrbit {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
     @keyframes loginPanelPulse {
         0% { box-shadow: 0 24px 54px rgba(0, 0, 0, 0.62), 0 0 34px rgba(0, 216, 255, 0.14), inset 0 0 20px rgba(0, 216, 255, 0.08); }
@@ -309,7 +324,7 @@
             border-radius: 16px;
         }
         #title-logo { max-width: 340px; }
-        .seki-tagline { font-size: 11px; }
+        .seki-tagline { margin: 10px 0; font-size: 11px; }
         #login-screen input { padding: 11px 12px; font-size: 14px; }
         #login-screen #btn-join { font-size: 14px; padding: 12px 14px; }
     }
@@ -1445,7 +1460,7 @@
             <img src="./images/new_logo.png" alt="SEKI Online" id="title-logo">
             <p class="version-text">Ver 30.00 NEW GAME</p>
             <p class="seki-tagline">STRATEGY / EFFICIENCY / KILLER を Interface－統合－する S.E.K.I.</p>
-            <input type="text" id="roomName" placeholder="Room Passphrase (e.g. seki123)">
+            <input type="text" id="roomName" placeholder="Room ID (e.g. seki123)">
             <div id="room-suggestion-panel" class="hidden"></div>
             <input type="text" id="playerName" placeholder="Your Name">
             <button id="btn-join" onclick="joinGame()">JOIN / CREATE ROOM</button>
