@@ -6,10 +6,10 @@
     <title>SEKI Online</title>
     <style>
     /* ベース設定：フォントをモダンに、背景をリッチに */
-    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Orbitron:wght@500;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=Orbitron:wght@500;700;800&display=swap');
 
     body { 
-        font-family: "M PLUS Rounded 1c", sans-serif; 
+        font-family: "IBM Plex Sans JP", sans-serif; 
         
         /* 背景を固定（スクロールしても付いてくるように） */
         background: radial-gradient(circle, #2e7d32 0%, #1b5e20 60%, #003300 100%);
@@ -152,7 +152,7 @@
 
     .version-text {
         margin: 0;
-        font-family: "Orbitron", "M PLUS Rounded 1c", sans-serif;
+        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
         font-size: 12px;
         letter-spacing: 1.5px;
         color: #cfe8ff;
@@ -176,9 +176,11 @@
         color: #eff6ff;
         padding: 13px 14px;
         font-size: 15px;
-        font-family: "Orbitron", "M PLUS Rounded 1c", sans-serif;
+        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
         letter-spacing: 1px;
         text-align: center;
+        appearance: none;
+        -webkit-appearance: none;
         transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
     }
     #login-screen input::placeholder { color: rgba(216, 235, 255, 0.56); }
@@ -195,6 +197,55 @@
         box-shadow: 0 0 0 2px rgba(52, 247, 141, 0.18), 0 0 18px rgba(52, 247, 141, 0.35);
     }
 
+    #login-screen input:-webkit-autofill,
+    #login-screen input:-webkit-autofill:hover,
+    #login-screen input:-webkit-autofill:focus {
+        -webkit-text-fill-color: #eff6ff;
+        -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3) inset;
+        box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3) inset;
+        caret-color: #eff6ff;
+        transition: background-color 9999s ease-out 0s;
+    }
+
+    #room-suggestion-panel {
+        width: 100%;
+        max-height: 170px;
+        overflow-y: auto;
+        margin-top: -2px;
+        margin-bottom: 2px;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 216, 255, 0.33);
+        background: rgba(2, 10, 20, 0.92);
+        box-shadow: inset 0 0 14px rgba(0, 216, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.36);
+    }
+    .room-suggestion-title {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        color: #a5cfff;
+        padding: 8px 10px 5px;
+        text-align: left;
+    }
+    .room-suggestion-item {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #e8f4ff;
+        text-align: left;
+        padding: 9px 10px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.18s ease;
+    }
+    .room-suggestion-item:hover {
+        background: rgba(0, 216, 255, 0.12);
+    }
+    .room-suggestion-empty {
+        padding: 10px;
+        font-size: 12px;
+        text-align: left;
+        color: #9cb3c9;
+    }
+
     #login-screen #btn-join {
         width: 100%;
         margin-top: 8px;
@@ -203,7 +254,7 @@
         border-radius: 12px;
         background: linear-gradient(135deg, #8f0f2d 0%, #d81f48 42%, #ff355e 100%);
         color: #fff5f8;
-        font-family: "Orbitron", "M PLUS Rounded 1c", sans-serif;
+        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
         font-size: 16px;
         font-weight: 800;
         letter-spacing: 1px;
@@ -1224,8 +1275,8 @@
             margin-top: 5px;     /* ステータスとの隙間 */
             white-space: nowrap; /* 折り返しなし */
             line-height: 1.2;
-            /* ★ここが重要: ゲーム全体のフォント(M PLUS Rounded 1c)を強制する */
-            font-family: "M PLUS Rounded 1c", "Rounded Mplus 1c", sans-serif !important;
+            /* ★ここが重要: ゲーム全体のフォント(IBM Plex Sans JP)を強制する */
+            font-family: "IBM Plex Sans JP", sans-serif !important;
         }
 
         /* 何も公開されていない時 (NORMAL表示と同じような色に) */
@@ -1393,8 +1444,9 @@
         <div id="login-panel">
             <img src="./images/new_logo.png" alt="SEKI Online" id="title-logo">
             <p class="version-text">Ver 30.00 NEW GAME</p>
-            <p class="seki-tagline">──────STRATEGY / EFFICIENCY / KILLER を Interfaceする S.E.K.I.──────</p>
+            <p class="seki-tagline">STRATEGY / EFFICIENCY / KILLER を Interface－統合－する S.E.K.I.</p>
             <input type="text" id="roomName" placeholder="Room Passphrase (e.g. seki123)">
+            <div id="room-suggestion-panel" class="hidden"></div>
             <input type="text" id="playerName" placeholder="Your Name">
             <button id="btn-join" onclick="joinGame()">JOIN / CREATE ROOM</button>
         </div>
@@ -2194,6 +2246,7 @@
             login: document.getElementById("login-screen"),
             game: document.getElementById("game-screen"),
             roomName: document.getElementById("roomName"),
+            roomSuggestion: document.getElementById("room-suggestion-panel"),
             playerName: document.getElementById("playerName"),
             hand: document.getElementById("my-hand"),
             indicator: document.getElementById("indicator"),
@@ -2212,6 +2265,129 @@
             btnJoin: document.getElementById("btn-join"),
             btnChat: document.getElementById("btn-chat-icon")
         };
+
+        const ROOM_CAPACITY = 5;
+        let roomSuggestionTimer = null;
+        let roomSuggestionCache = [];
+
+        function setRoomSuggestionVisible(visible) {
+            if (!els.roomSuggestion) return;
+            if (visible) els.roomSuggestion.classList.remove("hidden");
+            else els.roomSuggestion.classList.add("hidden");
+        }
+
+        function stopRoomSuggestionPolling() {
+            if (roomSuggestionTimer !== null) {
+                clearInterval(roomSuggestionTimer);
+                roomSuggestionTimer = null;
+            }
+        }
+
+        function renderRoomSuggestions(list) {
+            if (!els.roomSuggestion || !els.roomName) return;
+
+            const filterText = els.roomName.value.trim().toLowerCase();
+            const filtered = list.filter(item =>
+                !filterText || item.name.toLowerCase().includes(filterText)
+            );
+
+            els.roomSuggestion.innerHTML = "";
+
+            const title = document.createElement("div");
+            title.className = "room-suggestion-title";
+            title.innerText = "Current Rooms";
+            els.roomSuggestion.appendChild(title);
+
+            if (filtered.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "room-suggestion-empty";
+                empty.innerText = "No matching rooms";
+                els.roomSuggestion.appendChild(empty);
+                return;
+            }
+
+            filtered.slice(0, 20).forEach((item) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "room-suggestion-item";
+                btn.innerText = `${item.name} (${item.count}/${ROOM_CAPACITY})`;
+                btn.addEventListener("mousedown", (ev) => {
+                    ev.preventDefault();
+                    els.roomName.value = item.name;
+                    setRoomSuggestionVisible(false);
+                    stopRoomSuggestionPolling();
+                    if (els.playerName) els.playerName.focus();
+                });
+                els.roomSuggestion.appendChild(btn);
+            });
+        }
+
+        async function refreshRoomSuggestions() {
+            if (!db || !els.roomSuggestion || !els.roomName || currentRoom) return;
+            try {
+                const snapshot = await db.ref("rooms").get();
+                const rooms = snapshot.val() || {};
+
+                roomSuggestionCache = Object.entries(rooms)
+                    .map(([name, data]) => {
+                        const players = (data && data.players) ? data.players : {};
+                        return { name, count: Object.keys(players).length };
+                    })
+                    .filter(item => !!item.name)
+                    .sort((a, b) => (b.count - a.count) || a.name.localeCompare(b.name, "ja"));
+
+                renderRoomSuggestions(roomSuggestionCache);
+            } catch (e) {
+                els.roomSuggestion.innerHTML = `
+                    <div class="room-suggestion-title">Current Rooms</div>
+                    <div class="room-suggestion-empty">Failed to load room list</div>
+                `;
+            }
+        }
+
+        function startRoomSuggestionPolling() {
+            if (roomSuggestionTimer !== null || currentRoom) return;
+            refreshRoomSuggestions();
+            roomSuggestionTimer = setInterval(refreshRoomSuggestions, 5000);
+        }
+
+        function setupRoomSuggestionEvents() {
+            if (!els.roomName || !els.roomSuggestion) return;
+
+            els.roomName.addEventListener("focus", () => {
+                setRoomSuggestionVisible(true);
+                if (roomSuggestionCache.length > 0) renderRoomSuggestions(roomSuggestionCache);
+                startRoomSuggestionPolling();
+            });
+
+            els.roomName.addEventListener("click", () => {
+                setRoomSuggestionVisible(true);
+                if (roomSuggestionCache.length > 0) renderRoomSuggestions(roomSuggestionCache);
+                startRoomSuggestionPolling();
+            });
+
+            els.roomName.addEventListener("input", () => {
+                setRoomSuggestionVisible(true);
+                if (roomSuggestionCache.length > 0) renderRoomSuggestions(roomSuggestionCache);
+                else refreshRoomSuggestions();
+            });
+
+            els.roomName.addEventListener("keydown", (ev) => {
+                if (ev.key === "Escape") {
+                    setRoomSuggestionVisible(false);
+                    stopRoomSuggestionPolling();
+                }
+            });
+
+            document.addEventListener("mousedown", (ev) => {
+                if (!els.roomSuggestion || els.roomSuggestion.classList.contains("hidden")) return;
+                if (ev.target === els.roomName || els.roomSuggestion.contains(ev.target)) return;
+                setRoomSuggestionVisible(false);
+                stopRoomSuggestionPolling();
+            });
+        }
+
+        setupRoomSuggestionEvents();
 
         // --- モーダル関数 ---
         function openModal(title, html) {
@@ -2548,8 +2724,10 @@
                     }
                 });
 
+                
 
-
+                setRoomSuggestionVisible(false);
+                stopRoomSuggestionPolling();
                 els.login.classList.add("hidden");
                 els.game.classList.remove("hidden");
                 document.getElementById("room-display").innerText = `部屋: ${room}`;
@@ -7442,7 +7620,7 @@ function setupEffectListener() {
 <style>
     /* --- カウンティングHUDのスタイル --- */
     #counter-hud-wrapper {
-        font-family: "M PLUS Rounded 1c", sans-serif;
+        font-family: "IBM Plex Sans JP", sans-serif;
         user-select: none;
         z-index: 9999; /* 最前面に */
     }
