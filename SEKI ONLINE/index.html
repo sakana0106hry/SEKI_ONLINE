@@ -4088,8 +4088,8 @@
             els.mTitle.innerText = title;
             els.mContent.innerHTML = `<p>${msg}</p>`;
             els.mFooter.innerHTML = `
-                ${renderModalButton("はい", `${yesCallbackStr}; closeModal()`, "primary")}
-                ${renderModalButton("いいえ", "closeModal()", "ghost")}
+                ${renderModalButton("YES", `${yesCallbackStr}; closeModal()`, "primary")}
+                ${renderModalButton("NO", "closeModal()", "ghost")}
             `;
             applyModalPresentation(modalOptions);
             els.modal.classList.remove("hidden");
@@ -4486,8 +4486,8 @@
             els.mTitle.innerText = "開始確認";
             els.mContent.innerHTML = "<p>ゲームを開始（リセット）しますか？</p>";
             els.mFooter.innerHTML = `
-                <button onclick="closeModal(); execInitGame()" class="modal-btn primary">はい</button>
-                <button onclick="closeModal()" class="modal-btn">いいえ</button>
+                <button onclick="closeModal(); execInitGame()" class="modal-btn primary">YES</button>
+                <button onclick="closeModal()" class="modal-btn">NO</button>
             `;
             els.modal.classList.remove("hidden");
         }
@@ -8907,10 +8907,10 @@ function setupEffectListener() {
                     
                     <div class="seki-host-actions">
                         <button onclick="confirmInitGameWithSettings()" class="modal-btn primary">
-                            開始 / リセット
+                            START / RESET
                         </button>
                         <button onclick="confirmCloseRoom()" class="modal-btn danger">
-                            解散
+                            END
                         </button>
                     </div>
                 </div>
@@ -8927,8 +8927,8 @@ function setupEffectListener() {
             els.mTitle.innerText = "開始確認";
             els.mContent.innerHTML = `<p><strong>${lastHostHandMode}枚モード</strong> で<br>ゲームを開始（リセット）しますか？</p>`;
             els.mFooter.innerHTML = `
-                ${renderModalButton("はい", `closeModal(); execInitGame(${lastHostHandMode})`, "primary")}
-                ${renderModalButton("戻る", "openHostSettings()", "ghost")}
+                ${renderModalButton("YES", `closeModal(); execInitGame(${lastHostHandMode})`, "primary")}
+                ${renderModalButton("NO", "openHostSettings()", "ghost")}
             `;
         }
 
