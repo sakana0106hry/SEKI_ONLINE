@@ -1373,29 +1373,26 @@
         --role-draft-stage-gap: 6px;
         --role-draft-headline-padding-y: 4px;
         --role-draft-headline-padding-x: 7px;
-        --role-draft-headline-font-size: 11px;
+        --role-draft-headline-font-size: 16px;
         --role-draft-choice-gap: 4px;
-        --role-draft-card-min-height: 56px;
-        --role-draft-card-padding-y: 6px;
-        --role-draft-card-padding-x: 6px;
+        --role-draft-card-min-height: 64px;
+        --role-draft-card-padding-y: 7px;
+        --role-draft-card-padding-x: 7px;
         --role-draft-card-gap: 3px;
-        --role-draft-group-font-size: 10px;
-        --role-draft-role-font-size: clamp(10px, 2.2vw, 15px);
-        --role-draft-role-line-height: 1.12;
-        --role-draft-role-jp-font-size: 11px;
+        --role-draft-group-font-size: 12px;
+        --role-draft-role-font-size: clamp(14px, 3vw, 22px);
+        --role-draft-role-line-height: 1.22;
+        --role-draft-role-jp-font-size: 20px;
         --role-draft-placeholder-font-size: 11px;
-        --role-draft-detail-font-size: 9.5px;
-        --role-draft-detail-min-height: 24px;
-        --role-draft-detail-padding-y: 3px;
-        --role-draft-detail-padding-x: 7px;
         --role-draft-footer-gap: 6px;
         --role-draft-footer-padding-y: 5px;
         --role-draft-footer-padding-x: 7px;
-        --role-draft-selected-font-size: 10.5px;
-        --role-draft-confirm-font-size: 14px;
-        --role-draft-confirm-padding-y: 7px;
-        --role-draft-confirm-padding-x: 12px;
-        --role-draft-confirm-min-width: 102px;
+        --role-draft-selected-font-size: 16px;
+        --role-draft-confirm-font-size: 11px;
+        --role-draft-confirm-padding-y: 3px;
+        --role-draft-confirm-padding-x: 8px;
+        --role-draft-confirm-min-width: 72px;
+        --role-draft-confirm-min-height: 30px;
         position: absolute;
         inset: 0;
         z-index: 45;
@@ -1454,7 +1451,8 @@
         border-radius: 10px;
         border: 1px solid rgba(0, 216, 255, 0.32);
         background: rgba(2, 10, 20, 0.8);
-        font-size: var(--role-draft-headline-font-size);
+        font-size: var(--role-draft-headline-font-size) !important;
+        line-height: 1.25;
         letter-spacing: 0.05em;
         text-shadow: 0 0 8px rgba(0, 216, 255, 0.28);
     }
@@ -1486,6 +1484,9 @@
         flex: 1 1 0;
         min-width: 0;
         min-height: var(--role-draft-card-min-height);
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         border-radius: 10px;
         border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.54);
         background: linear-gradient(
@@ -1494,14 +1495,49 @@
             rgba(3, 10, 21, 0.9) 65%
         );
         color: #eff6ff;
-        padding: var(--role-draft-card-padding-y) var(--role-draft-card-padding-x);
+        padding: 0;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
+        justify-content: center;
         gap: var(--role-draft-card-gap);
-        transition: transform 0.18s ease, border-color 0.18s ease, opacity 0.25s ease;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.25s ease;
         touch-action: manipulation;
+    }
+    .role-draft-card-media {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+    }
+    .role-draft-card-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 12%;
+        opacity: 0.34;
+        filter: saturate(0.82) contrast(1.08);
+    }
+    .role-draft-card-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(160deg, rgba(2, 10, 20, 0.32), rgba(2, 10, 20, 0.86) 72%),
+            radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 50%);
+    }
+    .role-draft-card-inner {
+        position: relative;
+        z-index: 1;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: var(--role-draft-card-gap);
+        padding: var(--role-draft-card-padding-y) var(--role-draft-card-padding-x);
+        box-sizing: border-box;
     }
     .role-draft-card.selectable {
         cursor: pointer;
@@ -1511,8 +1547,14 @@
     }
     .role-draft-card.selected {
         border-color: rgba(255, 235, 59, 0.92);
-        transform: scale(1.03);
-        box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.86), 0 0 14px rgba(255, 235, 59, 0.3);
+        transform: none !important;
+        box-shadow: inset 0 0 0 2px rgba(255, 235, 59, 0.86), 0 0 12px rgba(255, 235, 59, 0.28);
+    }
+    .role-draft-card.selectable:active {
+        transform: none !important;
+    }
+    .role-draft-card.selected .role-draft-card-media img {
+        opacity: 0.44;
     }
     .role-draft-card.fade-out {
         opacity: 0.15;
@@ -1527,21 +1569,24 @@
         color: var(--role-accent, #9ce8ff);
         letter-spacing: 0.08em;
         line-height: 1.15;
+        text-transform: uppercase;
         text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.35);
     }
     .role-draft-role {
         font-size: var(--role-draft-role-font-size);
         font-family: var(--font-display-strong);
+        display: block;
         letter-spacing: 0.04em;
         line-height: var(--role-draft-role-line-height);
+        padding-bottom: 1px;
         white-space: nowrap;
         overflow: hidden;
         word-break: normal;
-        text-overflow: clip;
+        text-overflow: ellipsis;
     }
     .role-draft-role-jp {
-        font-size: var(--role-draft-role-jp-font-size);
-        line-height: 1.2;
+        font-size: var(--role-draft-role-jp-font-size) !important;
+        line-height: 1.35;
         color: #d9ebff;
     }
     .role-draft-summary {
@@ -1550,35 +1595,11 @@
         color: #b8ccdf;
     }
     .role-draft-placeholder {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: block;
         font-size: var(--role-draft-placeholder-font-size);
         color: rgba(239, 246, 255, 0.86);
         text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
         letter-spacing: 0.08em;
-    }
-    .role-draft-card-actions {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: auto;
-        padding-top: 1px;
-    }
-    .role-draft-detail-btn {
-        border: 1px solid rgba(182, 207, 229, 0.72);
-        border-radius: 10px;
-        background: rgba(10, 28, 48, 0.92);
-        color: #e8f4ff;
-        font-size: var(--role-draft-detail-font-size);
-        letter-spacing: 0.04em;
-        padding: var(--role-draft-detail-padding-y) var(--role-draft-detail-padding-x);
-        min-height: var(--role-draft-detail-min-height);
-        cursor: pointer;
-        touch-action: manipulation;
-    }
-    .role-draft-detail-btn:hover {
-        border-color: rgba(255, 235, 59, 0.78);
     }
     .role-draft-footer {
         display: flex;
@@ -1594,7 +1615,8 @@
     .role-draft-selected-label {
         flex: 1;
         min-width: 0;
-        font-size: var(--role-draft-selected-font-size);
+        font-size: var(--role-draft-selected-font-size) !important;
+        line-height: 1.3;
         color: #d9ebff;
         white-space: nowrap;
         overflow: hidden;
@@ -1605,10 +1627,10 @@
         border-radius: 14px;
         background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
         color: #f4fbff;
-        padding: var(--role-draft-confirm-padding-y) var(--role-draft-confirm-padding-x);
-        min-height: 44px;
-        min-width: var(--role-draft-confirm-min-width);
-        font-size: var(--role-draft-confirm-font-size);
+        padding: var(--role-draft-confirm-padding-y) var(--role-draft-confirm-padding-x) !important;
+        min-height: var(--role-draft-confirm-min-height) !important;
+        min-width: var(--role-draft-confirm-min-width) !important;
+        font-size: var(--role-draft-confirm-font-size) !important;
         font-weight: 700;
         letter-spacing: 0.05em;
         font-family: var(--font-ui);
@@ -1627,28 +1649,25 @@
         --role-draft-stage-gap: 4px;
         --role-draft-headline-padding-y: 3px;
         --role-draft-headline-padding-x: 6px;
-        --role-draft-headline-font-size: 10px;
+        --role-draft-headline-font-size: 15px;
         --role-draft-choice-gap: 3px;
-        --role-draft-card-min-height: 48px;
+        --role-draft-card-min-height: 56px;
         --role-draft-card-padding-y: 5px;
         --role-draft-card-padding-x: 5px;
         --role-draft-card-gap: 2px;
-        --role-draft-group-font-size: 9px;
-        --role-draft-role-font-size: clamp(9px, 2vw, 13px);
-        --role-draft-role-jp-font-size: 10px;
+        --role-draft-group-font-size: 11px;
+        --role-draft-role-font-size: clamp(13px, 2.8vw, 20px);
+        --role-draft-role-jp-font-size: 18px;
         --role-draft-placeholder-font-size: 10px;
-        --role-draft-detail-font-size: 9px;
-        --role-draft-detail-min-height: 22px;
-        --role-draft-detail-padding-y: 2px;
-        --role-draft-detail-padding-x: 6px;
         --role-draft-footer-gap: 4px;
         --role-draft-footer-padding-y: 4px;
         --role-draft-footer-padding-x: 6px;
-        --role-draft-selected-font-size: 9.5px;
-        --role-draft-confirm-min-width: 94px;
-        --role-draft-confirm-font-size: 13px;
-        --role-draft-confirm-padding-y: 6px;
-        --role-draft-confirm-padding-x: 10px;
+        --role-draft-selected-font-size: 15px;
+        --role-draft-confirm-min-width: 68px;
+        --role-draft-confirm-font-size: 10.5px;
+        --role-draft-confirm-padding-y: 2px;
+        --role-draft-confirm-padding-x: 7px;
+        --role-draft-confirm-min-height: 28px;
     }
     #role-draft-monitor.role-draft-density-xcompact {
         --role-draft-monitor-padding: 5px;
@@ -1656,28 +1675,25 @@
         --role-draft-stage-gap: 3px;
         --role-draft-headline-padding-y: 2px;
         --role-draft-headline-padding-x: 5px;
-        --role-draft-headline-font-size: 9.5px;
+        --role-draft-headline-font-size: 14px;
         --role-draft-choice-gap: 2px;
-        --role-draft-card-min-height: 42px;
+        --role-draft-card-min-height: 50px;
         --role-draft-card-padding-y: 4px;
         --role-draft-card-padding-x: 4px;
         --role-draft-card-gap: 2px;
-        --role-draft-group-font-size: 8.5px;
-        --role-draft-role-font-size: clamp(8.5px, 2vw, 12px);
-        --role-draft-role-jp-font-size: 9px;
+        --role-draft-group-font-size: 10px;
+        --role-draft-role-font-size: clamp(12px, 2.6vw, 18px);
+        --role-draft-role-jp-font-size: 16px;
         --role-draft-placeholder-font-size: 9.5px;
-        --role-draft-detail-font-size: 8.5px;
-        --role-draft-detail-min-height: 20px;
-        --role-draft-detail-padding-y: 1px;
-        --role-draft-detail-padding-x: 5px;
         --role-draft-footer-gap: 3px;
         --role-draft-footer-padding-y: 3px;
         --role-draft-footer-padding-x: 5px;
-        --role-draft-selected-font-size: 9px;
-        --role-draft-confirm-min-width: 88px;
-        --role-draft-confirm-font-size: 12px;
-        --role-draft-confirm-padding-y: 5px;
-        --role-draft-confirm-padding-x: 8px;
+        --role-draft-selected-font-size: 14px;
+        --role-draft-confirm-min-width: 64px;
+        --role-draft-confirm-font-size: 9.5px;
+        --role-draft-confirm-padding-y: 2px;
+        --role-draft-confirm-padding-x: 6px;
+        --role-draft-confirm-min-height: 26px;
     }
     .role-draft-text-block {
         flex: 1;
@@ -1730,17 +1746,18 @@
             --role-draft-stage-gap: 5px;
             --role-draft-headline-padding-y: 3px;
             --role-draft-headline-padding-x: 6px;
-            --role-draft-headline-font-size: 10px;
+            --role-draft-headline-font-size: 15px;
             --role-draft-card-min-height: 52px;
             --role-draft-card-padding-y: 5px;
             --role-draft-card-padding-x: 5px;
             --role-draft-footer-padding-y: 4px;
             --role-draft-footer-padding-x: 6px;
-            --role-draft-selected-font-size: 10px;
-            --role-draft-confirm-min-width: 96px;
-            --role-draft-confirm-font-size: 13px;
-            --role-draft-confirm-padding-y: 6px;
-            --role-draft-confirm-padding-x: 10px;
+            --role-draft-selected-font-size: 15px;
+            --role-draft-confirm-min-width: 70px;
+            --role-draft-confirm-font-size: 10.5px;
+            --role-draft-confirm-padding-y: 3px;
+            --role-draft-confirm-padding-x: 7px;
+            --role-draft-confirm-min-height: 28px;
         }
     }
     @media (max-height: 760px) {
@@ -1750,19 +1767,16 @@
             --role-draft-stage-gap: 4px;
             --role-draft-headline-padding-y: 3px;
             --role-draft-headline-padding-x: 6px;
-            --role-draft-headline-font-size: 10px;
+            --role-draft-headline-font-size: 15px;
             --role-draft-card-min-height: 50px;
             --role-draft-card-padding-y: 5px;
             --role-draft-card-padding-x: 5px;
             --role-draft-card-gap: 2px;
             --role-draft-group-font-size: 9px;
-            --role-draft-role-jp-font-size: 10px;
-            --role-draft-detail-min-height: 22px;
-            --role-draft-detail-padding-y: 2px;
-            --role-draft-detail-padding-x: 6px;
+            --role-draft-role-jp-font-size: 17px;
             --role-draft-footer-padding-y: 4px;
             --role-draft-footer-padding-x: 6px;
-            --role-draft-selected-font-size: 9.5px;
+            --role-draft-selected-font-size: 14px;
         }
     }
     .role-badge-group-mask {
@@ -2046,9 +2060,10 @@
         padding: 25px;
         border-radius: 14px;
         max-width: 90%;
-        max-height: 80%;
+        max-height: 92%;
+        max-height: 88dvh;
         width: 400px;
-        overflow-y: auto; text-align: center; display:flex; flex-direction:column;
+        overflow: hidden; text-align: center; display:flex; flex-direction:column;
         font-family: var(--font-readable);
         box-shadow: var(--seki-shadow-panel), var(--seki-shadow-glow);
         border: 1px solid var(--seki-panel-border);
@@ -2070,7 +2085,14 @@
         box-shadow: 0 4px 14px rgba(0,0,0,0.25);
         opacity: 0.4;
     }
-    #modal-content { margin-bottom: 20px; flex: 1; overflow-y: auto; }
+    #modal-content {
+        margin-bottom: 20px;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
     .modal-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
     .modal-btn {
         margin: 5px;
@@ -2272,8 +2294,6 @@
     }
     .seki-guide-root {
         text-align: left;
-        max-height: 500px;
-        overflow-y: auto;
     }
     .seki-guide-role-group {
         margin-bottom: 14px;
@@ -2358,8 +2378,6 @@
     }
     .seki-rule-root {
         text-align: left;
-        max-height: 400px;
-        overflow-y: auto;
         font-size: 13px;
         color: #d9ebff;
     }
@@ -4621,7 +4639,7 @@
                 });
 
                 let sharedSize = Math.min(...visibleTargets.map((el) => parseFloat(window.getComputedStyle(el).fontSize) || 14));
-                const minSize = 8;
+                const minSize = 12;
                 const needsShrink = () => visibleTargets.some((el) => (el.scrollWidth - el.clientWidth) > 0.5);
                 let guard = 0;
 
@@ -4864,13 +4882,17 @@
                         if (selectedRoleForUi === roleKey) cardClass += " selected";
                         cardClass += " selectable";
                         const safeRoleKey = String(roleKey).replace(/'/g, "\\'");
+                        const roleImage = (typeof ROLE_IMAGES !== "undefined" && ROLE_IMAGES[roleKey]) ? ROLE_IMAGES[roleKey] : "";
+                        const roleImageHtml = roleImage
+                            ? `<div class="role-draft-card-media"><img src="${roleImage}" alt="${safeRoleKey}"></div>`
+                            : "";
                         cardsHtml += `
                             <div class="${cardClass}" onclick="selectRoleDraftCandidate('${safeRoleKey}')">
-                                <div class="role-draft-group">${groupMeta.label || groupKey}</div>
-                                <div class="role-draft-role fit-role-text">${roleKey}</div>
-                                <div class="role-draft-role-jp">${info ? info.jp : "-"}</div>
-                                <div class="role-draft-card-actions">
-                                    <button type="button" class="role-draft-detail-btn" onclick="openRoleDraftDetail(event, '${safeRoleKey}')">DETAIL</button>
+                                ${roleImageHtml}
+                                <div class="role-draft-card-inner">
+                                    <div class="role-draft-group">${groupMeta.label || groupKey}</div>
+                                    <div class="role-draft-role fit-role-text">${roleKey}</div>
+                                    <div class="role-draft-role-jp">${info ? info.jp : "-"}</div>
                                 </div>
                             </div>
                         `;
@@ -4878,8 +4900,10 @@
                         cardClass += " disabled";
                         cardsHtml += `
                             <div class="${cardClass}">
-                                <div class="role-draft-group">${groupMeta.label || groupKey}</div>
-                                <div class="role-draft-placeholder">CLASSIFIED</div>
+                                <div class="role-draft-card-inner">
+                                    <div class="role-draft-group">${groupMeta.label || groupKey}</div>
+                                    <div class="role-draft-placeholder">CLASSIFIED</div>
+                                </div>
                             </div>
                         `;
                     }
@@ -10093,7 +10117,7 @@ function setupEffectListener() {
                     }
                     const isPublicUnused = publicUnusedRoles.has(key);
                     const itemClass = isPublicUnused ? "is-public-unused" : "";
-                    const publicTag = isPublicUnused ? `<span class="seki-guide-public-tag">公開済み(未選択)</span>` : "";
+                    const publicTag = isPublicUnused ? `<span class="seki-guide-public-tag">不在</span>` : "";
 
                     html += `
                         <details class="seki-guide-role-item ${groupClass} ${itemClass}">
@@ -10448,13 +10472,13 @@ function setupEffectListener() {
             <div class="hud-loading">Loading...</div>
         </div>
 
-        <div class="hud-section-title">PUBLIC ROLES</div>
+        <div class="hud-section-title">ROLE CANDIDATES</div>
         <div class="hud-grid-role" id="hud-grid-role">
             <div class="hud-loading">No Data</div>
         </div>
         
         <div class="hud-footnote">
-            ※山札 + 相手の手札にある数
+            ※山札 + 相手の手札にある数 ＆ 可能性がある役職を表示
         </div>
     </div>
 </div>
@@ -10548,6 +10572,7 @@ function setupEffectListener() {
         display: grid;
         grid-template-columns: repeat(2, 1fr); /* 記号は2列 */
         gap: 4px;
+        margin-bottom: 12px;
     }
     .hud-grid-role {
         display: grid;
@@ -10755,13 +10780,70 @@ function setupEffectListener() {
 
         const gridRole = document.getElementById("hud-grid-role");
         if (gridRole) {
-            const publicUnused = (gameState.publicRoleInfo && Array.isArray(gameState.publicRoleInfo.unselectedRoles))
-                ? sortRoleKeysForDisplay(gameState.publicRoleInfo.unselectedRoles)
+            const publicRoleInfo = gameState.publicRoleInfo || {};
+            const publicUnused = Array.isArray(publicRoleInfo.unselectedRoles)
+                ? publicRoleInfo.unselectedRoles
                 : [];
-            if (publicUnused.length === 0) {
-                gridRole.innerHTML = `<div class="hud-loading">No Public Roles</div>`;
+            const publicUnusedSet = new Set(publicUnused);
+
+            const roleDraft = gameState.roleDraft || null;
+            const savedRoles = gameState.roles || {};
+            const draftSelectedRoles = (roleDraft && roleDraft.selectedRoles) ? roleDraft.selectedRoles : {};
+            const resolvedRoles = (gameState.status === "role_selecting")
+                ? { ...savedRoles, ...draftSelectedRoles }
+                : savedRoles;
+            const selectedGroupMap = {
+                ...((roleDraft && roleDraft.selectedGroups) ? roleDraft.selectedGroups : {}),
+                ...((publicRoleInfo && publicRoleInfo.selectedGroups) ? publicRoleInfo.selectedGroups : {})
+            };
+
+            const myRoleKey = resolvedRoles[myId] || null;
+            const activatedList = gameState.activatedList || {};
+            const revealedRoles = gameState.revealedRoles || {};
+            const rankings = gameState.rankings || {};
+            const orderedPlayerIds = Array.isArray(gameState.playerOrder) ? gameState.playerOrder : [];
+            const playerIds = new Set([
+                ...orderedPlayerIds,
+                ...Object.keys(gameState.players || {}),
+                ...Object.keys(resolvedRoles)
+            ]);
+            const publicRevealedRoleSet = new Set();
+            const hiddenOpponentGroupSet = new Set();
+            let hiddenOpponentCount = 0;
+            let hasUnknownHiddenGroup = false;
+            playerIds.forEach(pid => {
+                if (!pid || pid === myId) return;
+                const isPublicRevealed = !!activatedList[pid] || !!rankings[pid] || !!revealedRoles[pid];
+                const roleKey = resolvedRoles[pid];
+
+                if (isPublicRevealed) {
+                    if (roleKey) publicRevealedRoleSet.add(roleKey);
+                    return;
+                }
+
+                hiddenOpponentCount++;
+                const groupKey = selectedGroupMap[pid];
+                if (groupKey) hiddenOpponentGroupSet.add(groupKey);
+                else hasUnknownHiddenGroup = true;
+            });
+
+            const shouldFilterByHiddenGroups = hiddenOpponentCount > 0 && !hasUnknownHiddenGroup;
+
+            const roleCandidates = sortRoleKeysForDisplay(
+                ROLES.filter(roleKey => {
+                    if (hiddenOpponentCount === 0) return false;
+                    if (publicUnusedSet.has(roleKey)) return false;
+                    if (myRoleKey && roleKey === myRoleKey) return false;
+                    if (publicRevealedRoleSet.has(roleKey)) return false;
+                    if (shouldFilterByHiddenGroups && !hiddenOpponentGroupSet.has(getRoleGroup(roleKey))) return false;
+                    return true;
+                })
+            );
+
+            if (roleCandidates.length === 0) {
+                gridRole.innerHTML = `<div class="hud-loading">No Candidate Roles</div>`;
             } else {
-                const roleHtml = publicUnused.map(roleKey => {
+                const roleHtml = roleCandidates.map(roleKey => {
                     const roleInfo = ROLE_INFO[roleKey];
                     const label = roleInfo ? `${roleInfo.jp} / ${roleKey}` : roleKey;
                     const attrClass = getRoleAttrClass(roleKey);
