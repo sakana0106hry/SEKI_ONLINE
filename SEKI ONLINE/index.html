@@ -2205,7 +2205,7 @@
     /* モーダル */
     #modal-overlay {
         position: fixed; top:0; left:0; width:100%; height:100%;
-        background: rgba(2, 7, 15, 0.74); z-index: 999;
+        background: linear-gradient(140deg, rgba(228, 248, 255, 0.76), rgba(196, 238, 255, 0.74)); z-index: 999;
         backdrop-filter: blur(5px);
         display: flex; justify-content: center; align-items: center;
         animation: fadeIn 0.2s ease;
@@ -2214,21 +2214,21 @@
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
     #modal-overlay.board-visible {
-        background: rgba(0,0,0,0.05);
+        background: rgba(179, 227, 252, 0.2);
         backdrop-filter: none;
     }
     #modal-overlay.modal-tone-guide {
-        background: rgba(2, 10, 20, 0.62);
+        background: linear-gradient(135deg, rgba(228, 251, 255, 0.78), rgba(186, 245, 255, 0.74));
     }
     #modal-overlay.modal-tone-alert {
-        background: rgba(36, 2, 12, 0.7);
+        background: linear-gradient(135deg, rgba(255, 240, 246, 0.8), rgba(255, 223, 235, 0.76));
     }
 
     #modal-box {
         background:
-            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
-            radial-gradient(circle at 12% 18%, rgba(0, 216, 255, 0.1), transparent 34%);
-        color: var(--seki-text-main);
+            linear-gradient(155deg, rgba(245, 253, 255, 0.97), rgba(227, 246, 255, 0.95)),
+            radial-gradient(circle at 12% 18%, rgba(0, 216, 255, 0.2), transparent 38%);
+        color: #1a5f86;
         padding: 25px;
         border-radius: 14px;
         max-width: 90%;
@@ -2237,25 +2237,36 @@
         width: 400px;
         overflow: hidden; text-align: center; display:flex; flex-direction:column;
         font-family: var(--font-readable);
-        box-shadow: var(--seki-shadow-panel), var(--seki-shadow-glow);
-        border: 1px solid var(--seki-panel-border);
+        box-shadow: 0 16px 34px rgba(79, 172, 255, 0.26), 0 0 24px rgba(0, 216, 255, 0.24);
+        border: 1px solid rgba(0, 184, 230, 0.55);
         transition: background 0.2s, opacity 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
     #modal-box.modal-size-default { width: 400px; max-width: 90%; }
     #modal-box.modal-size-wide { width: 600px; max-width: 95%; }
     #modal-box.modal-size-narrow { width: 340px; max-width: 86%; }
     #modal-box.modal-tone-guide {
-        border-color: rgba(0, 216, 255, 0.44);
+        border-color: rgba(0, 205, 255, 0.72);
     }
     #modal-box.modal-tone-alert {
-        border-color: rgba(255, 53, 94, 0.6);
-        box-shadow: var(--seki-shadow-panel), 0 0 22px rgba(255, 53, 94, 0.25);
+        border-color: rgba(255, 118, 152, 0.75);
+        box-shadow: 0 16px 34px rgba(255, 135, 170, 0.24), 0 0 20px rgba(255, 135, 170, 0.3);
     }
     #modal-overlay.board-visible #modal-box {
-        background: rgba(13, 22, 40, 0.34);
-        border-color: rgba(209, 231, 255, 0.75);
-        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-        opacity: 0.4;
+        background: linear-gradient(155deg, rgba(241, 251, 255, 0.8), rgba(221, 243, 255, 0.76));
+        border-color: rgba(0, 184, 230, 0.75);
+        box-shadow: 0 8px 20px rgba(98, 184, 255, 0.28);
+        opacity: 0.56;
+    }
+    #modal-title {
+        margin: 0 0 12px 0;
+        padding-bottom: 6px;
+        border-bottom: 2px solid rgba(0, 200, 255, 0.6);
+        font-family: var(--font-ui);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #0f5f89;
+        text-shadow: 0 0 12px rgba(125, 219, 255, 0.6);
     }
     #modal-content {
         margin-bottom: 20px;
@@ -2264,51 +2275,53 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
+        font-size: 14px;
+        color: #1f6388;
     }
     .modal-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
     .modal-btn {
         margin: 5px;
         padding: 10px 20px;
-        border: 1px solid rgba(142, 182, 227, 0.45);
+        border: 1px solid rgba(97, 178, 230, 0.6);
         border-radius: var(--seki-radius-sm);
         cursor: pointer;
         font-size: 14px;
         font-family: var(--font-ui);
         letter-spacing: var(--font-ui-emphasis-tracking);
-        text-shadow: var(--font-ui-emphasis-shadow);
-        color: var(--seki-text-main);
-        background: linear-gradient(135deg, rgba(9, 27, 52, 0.9), rgba(6, 18, 35, 0.88));
+        text-shadow: none;
+        color: #0f5d86;
+        background: linear-gradient(135deg, #f4fcff, #dff5ff);
         transition: transform var(--seki-transition-fast), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast), filter var(--seki-transition-fast);
     }
     .modal-btn:hover:not(:disabled) {
         transform: translateY(-1px);
-        border-color: rgba(0, 216, 255, 0.7);
-        box-shadow: 0 5px 14px rgba(0,0,0,0.35), 0 0 10px rgba(0, 216, 255, 0.24);
+        border-color: rgba(0, 193, 240, 0.86);
+        box-shadow: 0 5px 14px rgba(79, 171, 255, 0.28), 0 0 10px rgba(0, 216, 255, 0.35);
         filter: saturate(1.1);
     }
     .modal-btn:disabled,
     .modal-btn.is-disabled {
-        background: rgba(89, 102, 119, 0.9);
-        color: rgba(239, 246, 255, 0.76);
-        border-color: rgba(151, 166, 187, 0.7);
+        background: #deedf7;
+        color: #7397b2;
+        border-color: #b8d5e8;
         cursor: not-allowed;
         box-shadow: none;
         transform: none;
     }
     .modal-btn.primary {
-        background: linear-gradient(135deg, #0f314d, #166d98 44%, #00d8ff);
-        border-color: rgba(0, 216, 255, 0.7);
-        color: #effbff;
+        background: linear-gradient(135deg, #b8f2ff, #7fd3ff 52%, #50beff);
+        border-color: rgba(44, 152, 224, 0.78);
+        color: #075078;
         font-weight: 700;
     }
     .modal-btn.danger {
-        background: linear-gradient(135deg, #7f1730, #cc244a 46%, #ff355e);
-        border-color: rgba(255, 143, 166, 0.78);
-        color: #fff5f8;
+        background: linear-gradient(135deg, #ffd8e4, #ffb9cd 48%, #ff95b4);
+        border-color: rgba(255, 135, 170, 0.82);
+        color: #8a2851;
         font-weight: 700;
     }
     .modal-btn.ghost {
-        background: rgba(12, 22, 35, 0.7);
+        background: linear-gradient(135deg, #f8fdff, #e9f8ff);
     }
     .modal-note {
         display: block;
@@ -2337,8 +2350,8 @@
         width: 100px;
     }
     .modal-card-label {
-        font-size: 10px;
-        color: var(--seki-text-muted);
+        font-size: 12px;
+        color: #4f7ea1;
         margin-bottom: 4px;
     }
     .modal-notif-wrap {
@@ -2363,8 +2376,8 @@
     }
     .modal-notif-card .modal-notif-card-view:hover {
         transform: none;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.38);
-        border-color: #a3b9d6;
+        box-shadow: 0 0 10px rgba(87, 170, 245, 0.35);
+        border-color: #70b8e8;
     }
     .modal-notif-value {
         font-size: 32px;
@@ -2381,16 +2394,16 @@
         margin-top: 10px;
         padding: 8px 10px;
         border-radius: var(--seki-radius-sm);
-        border: 1px solid rgba(143, 176, 214, 0.35);
-        background: rgba(6, 16, 32, 0.6);
+        border: 1px solid rgba(109, 184, 232, 0.5);
+        background: rgba(230, 247, 255, 0.88);
     }
     .seki-section.warn {
-        border-color: rgba(255, 143, 166, 0.55);
-        background: rgba(72, 12, 27, 0.35);
+        border-color: rgba(255, 147, 179, 0.75);
+        background: rgba(255, 236, 243, 0.92);
     }
     .seki-section.info {
-        border-color: rgba(0, 216, 255, 0.5);
-        background: rgba(8, 26, 48, 0.42);
+        border-color: rgba(82, 186, 240, 0.72);
+        background: rgba(232, 249, 255, 0.92);
     }
     .seki-note {
         display: block;
@@ -2412,12 +2425,12 @@
         padding: 6px 0;
     }
     .seki-log-time {
-        color: #9cb3c9;
-        font-size: 11px;
+        color: #3f7ca4;
+        font-size: 12px;
         margin-right: 8px;
     }
     .seki-log-text {
-        color: #d9ebff;
+        color: #1f6388;
     }
     .seki-disabled-note {
         font-size: 12px;
@@ -2430,10 +2443,10 @@
     }
     .seki-host-mode-box {
         margin-bottom: 15px;
-        background: rgba(6, 16, 32, 0.64);
+        background: rgba(232, 248, 255, 0.92);
         padding: 10px;
         border-radius: var(--seki-radius-sm);
-        border: 1px solid rgba(143, 176, 214, 0.32);
+        border: 1px solid rgba(87, 177, 233, 0.52);
     }
     .seki-host-mode-item {
         display: flex;
@@ -2456,8 +2469,8 @@
         color: #ffb86b;
     }
     .seki-host-mode-meta {
-        font-size: 11px;
-        color: #9cb3c9;
+        font-size: 12px;
+        color: #4f7ea1;
         margin-left: 5px;
     }
     .seki-host-actions {
@@ -2479,9 +2492,9 @@
     .seki-guide-role-group {
         margin-bottom: 14px;
         padding: 8px 8px 2px;
-        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.52);
         border-radius: 10px;
-        background: linear-gradient(160deg, rgba(6, 16, 32, 0.62), rgba(4, 11, 23, 0.5));
+        background: linear-gradient(160deg, rgba(241, 252, 255, 0.94), rgba(225, 245, 255, 0.9));
     }
     .seki-guide-group-title {
         margin: 0 0 8px 0;
@@ -2523,13 +2536,13 @@
     }
     .seki-guide-role-en {
         font-size: 13px;
-        color: #cce6ff;
+        color: #33739b;
         font-weight: 400;
         margin-left: 4px;
     }
     .seki-guide-role-summary {
         font-size: 12px;
-        color: #d9ebff;
+        color: #1f6388;
         display: flex;
         justify-content: space-between;
         align-items: baseline;
@@ -2537,30 +2550,31 @@
     .seki-guide-role-detail {
         margin-top: 10px;
         padding: 10px;
-        background: rgba(6, 16, 32, 0.52);
+        background: rgba(232, 248, 255, 0.92);
         border-radius: 5px;
         font-size: 12px;
-        color: #d9ebff;
+        color: #1f6388;
         line-height: 1.6;
+        border: 1px solid rgba(108, 184, 233, 0.4);
     }
     .seki-guide-hint {
-        font-size: 10px;
-        color: #9cb3c9;
+        font-size: 12px;
+        color: #4f7ea1;
         white-space: nowrap;
     }
     .seki-guide-public-tag {
         margin-left: 6px;
-        font-size: 10px;
-        color: #cfd7de;
-        background: rgba(93, 104, 114, 0.5);
-        border: 1px solid rgba(180, 190, 198, 0.6);
+        font-size: 12px;
+        color: #4f7ea1;
+        background: rgba(210, 235, 249, 0.9);
+        border: 1px solid rgba(148, 199, 228, 0.8);
         border-radius: 10px;
         padding: 1px 6px;
     }
     .seki-rule-root {
         text-align: left;
         font-size: 13px;
-        color: #d9ebff;
+        color: #1f6388;
     }
     .seki-rule-paragraph {
         margin: 0 0 10px 0;
@@ -2585,10 +2599,10 @@
         margin: 0;
     }
     .score-dist {
-        font-size: 11px;
-        color: #d9ebff;
+        font-size: 12px;
+        color: #1f6388;
         margin-bottom: 10px;
-        background: rgba(188, 140, 20, 0.2);
+        background: rgba(255, 240, 195, 0.75);
         padding: 5px;
         border-radius: 4px;
         text-align: center;
@@ -2601,7 +2615,7 @@
     }
     .score-head {
         border-bottom: 2px solid rgba(143, 176, 214, 0.45);
-        background: rgba(8, 26, 48, 0.55);
+        background: rgba(227, 246, 255, 0.9);
     }
     .score-table th,
     .score-table td {
@@ -2617,7 +2631,7 @@
     }
     .score-empty {
         padding: 20px;
-        color: #9cb3c9;
+        color: #4f7ea1;
         text-align: center;
     }
     .score-row {
@@ -2635,43 +2649,43 @@
         text-align: center;
     }
     .score-reset-btn {
-        font-size: 11px;
-        color: #9cb3c9;
-        background: rgba(6, 16, 32, 0.6);
-        border: 1px solid rgba(143, 176, 214, 0.4);
+        font-size: 12px;
+        color: #356f96;
+        background: rgba(235, 250, 255, 0.95);
+        border: 1px solid rgba(108, 184, 233, 0.55);
         border-radius: 4px;
         padding: 4px 8px;
         cursor: pointer;
         transition: border-color var(--seki-transition-fast), color var(--seki-transition-fast), background var(--seki-transition-fast);
     }
     .score-reset-btn:hover {
-        border-color: rgba(0, 216, 255, 0.65);
-        color: #d9ebff;
-        background: rgba(8, 26, 48, 0.7);
+        border-color: rgba(0, 193, 240, 0.75);
+        color: #0f5d86;
+        background: rgba(220, 246, 255, 0.95);
     }
 
     /* ログスタイル */
     .log-entry { text-align: left; padding: 8px; border-bottom: 1px solid rgba(143, 176, 214, 0.28); font-size: 13px; display: flex; align-items: flex-start; }
-    .log-time { color: #a1b4cc; margin-right: 10px; font-size: 11px; min-width: 45px; }
+    .log-time { color: #4f7ea1; margin-right: 10px; font-size: 12px; min-width: 45px; }
     .log-text { word-break: break-all; line-height: 1.4; }
-    .log-private .log-text { color: #ffc8d3; font-weight: bold; background: rgba(136, 20, 45, 0.34); padding: 2px 5px; border-radius: 4px;}
+    .log-private .log-text { color: #9f3f64; font-weight: bold; background: rgba(255, 215, 229, 0.7); padding: 2px 5px; border-radius: 4px;}
     .log-chat { background: rgba(0, 216, 255, 0.08); }
     
     /* チャット入力 */
     #chat-input-container { display: flex; gap: 8px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(143, 176, 214, 0.3); }
     #chat-input {
-        color: var(--seki-text-main);
+        color: #145f8f;
         flex: 1;
         padding: 10px;
         border-radius: 20px;
         border: 1px solid rgba(126, 173, 224, 0.45);
         outline:none;
-        background: rgba(6, 16, 32, 0.78);
+        background: rgba(236, 250, 255, 0.95);
         font-family: var(--font-readable);
     }
     #chat-send-btn { background: linear-gradient(135deg, #157a53, #34b583); color: white; border-radius: 20px; padding: 0 20px; border: 1px solid rgba(93, 255, 192, 0.45); }
 
-    .host-settings { margin-bottom: 15px; font-size: 14px; text-align: left; background: rgba(6, 16, 32, 0.55); padding: 10px; border-radius: 8px; border: 1px solid rgba(0, 216, 255, 0.24); }
+    .host-settings { margin-bottom: 15px; font-size: 14px; text-align: left; background: rgba(232, 248, 255, 0.92); padding: 10px; border-radius: 8px; border: 1px solid rgba(90, 182, 235, 0.5); }
     .host-settings label { margin-right: 15px; cursor: pointer; display: inline-block; padding: 5px; }
 /* --- 追加修正: 墓地カードのはみ出し防止 --- */
     
@@ -3446,7 +3460,7 @@
             <h3 id="modal-title">タイトル</h3>
             <div id="modal-content">内容</div>
             <div id="modal-footer">
-                <button onclick="closeModal()" class="modal-btn ghost">閉じる</button>
+                <button onclick="closeModal()" class="modal-btn ghost">CLOSE</button>
             </div>
         </div>
     </div>
@@ -4066,7 +4080,7 @@
                 jp: "政治家",
                 summary: "手札干渉の対象外（記号カード使用で解除）",
                 desc: `<ol>
-<li>発動すると、手札干渉効果（<span style="color: #e03e2d;"><strong>TRADE</strong></span>、<span style="color: #843fa1;"><strong>ハッカー</strong></span>、<span style="color: #843fa1;"><strong>占い師</strong></span>、<span style="color: #843fa1;"><strong>皇帝</strong></span>、<span style="color: #843fa1;"><strong>警察官</strong><span style="color: #000000;">、</span><strong>盗賊</strong><span style="color: #000000;">、</span><strong>ピエロ</strong><span style="color: #000000;">、</span><strong>工作員</strong></span>）に選択されなくなる。</li>
+<li>発動すると、手札干渉効果（<span style="color: #e03e2d;"><strong>TRADE</strong></span>、<span style="color: #843fa1;"><strong>ハッカー</strong></span>、<span style="color: #843fa1;"><strong>占い師</strong></span>、<span style="color: #843fa1;"><strong>皇帝</strong></span>、<span style="color: #843fa1;"><strong>警察官</strong><span style="color: #1f6388;">、</span><strong>盗賊</strong><span style="color: #1f6388;">、</span><strong>ピエロ</strong><span style="color: #1f6388;">、</span><strong>工作員</strong></span>）に選択されなくなる。</li>
 <li>自分のターンを行う。</li>
 </ol>
 <ul>
@@ -5312,6 +5326,21 @@
             els.mBox.classList.add(`modal-tone-${options.tone}`);
         }
 
+        const MODAL_ACTION_LABELS = Object.freeze({
+            close: "CLOSE",
+            back: "BACK",
+            confirm: "CONFIRM",
+            cancel: "CANCEL",
+            ok: "OK",
+            yes: "YES",
+            no: "NO"
+        });
+
+        function getModalActionLabel(key) {
+            if (typeof key !== "string" || !key) return "BUTTON";
+            return MODAL_ACTION_LABELS[key] || key.toUpperCase();
+        }
+
         function renderModalButton(label, onClick, variant = "ghost", extraClass = "", disabled = false) {
             const classList = ["modal-btn"];
             if (variant === "primary") classList.push("primary");
@@ -5350,7 +5379,7 @@
             const modalOptions = normalizeModalOptions(options);
             els.mTitle.innerText = title;
             els.mContent.innerHTML = html;
-            els.mFooter.innerHTML = renderModalButton("閉じる", "closeModal()", "ghost");
+            els.mFooter.innerHTML = renderModalButton(getModalActionLabel("close"), "closeModal()", "ghost");
             applyModalPresentation(modalOptions);
             els.modal.classList.remove("hidden");
         }
@@ -5358,7 +5387,7 @@
             const modalOptions = normalizeModalOptions(options);
             els.mTitle.innerText = title;
             els.mContent.innerHTML = `<p>${msg}</p>`;
-            els.mFooter.innerHTML = renderModalButton("OK", "closeModal()", "primary");
+            els.mFooter.innerHTML = renderModalButton(getModalActionLabel("ok"), "closeModal()", "primary");
             applyModalPresentation(modalOptions);
             els.modal.classList.remove("hidden");
         }
@@ -5367,8 +5396,8 @@
             els.mTitle.innerText = title;
             els.mContent.innerHTML = `<p>${msg}</p>`;
             els.mFooter.innerHTML = `
-                ${renderModalButton("YES", `${yesCallbackStr}; closeModal()`, "primary")}
-                ${renderModalButton("NO", "closeModal()", "ghost")}
+                ${renderModalButton(getModalActionLabel("yes"), `${yesCallbackStr}; closeModal()`, "primary")}
+                ${renderModalButton(getModalActionLabel("no"), "closeModal()", "ghost")}
             `;
             applyModalPresentation(modalOptions);
             els.modal.classList.remove("hidden");
@@ -5765,8 +5794,8 @@
             els.mTitle.innerText = "開始確認";
             els.mContent.innerHTML = "<p>ゲームを開始（リセット）しますか？</p>";
             els.mFooter.innerHTML = `
-                <button onclick="closeModal(); execInitGame()" class="modal-btn primary">YES</button>
-                <button onclick="closeModal()" class="modal-btn">NO</button>
+                <button onclick="closeModal(); execInitGame()" class="modal-btn primary">${getModalActionLabel("yes")}</button>
+                <button onclick="closeModal()" class="modal-btn">${getModalActionLabel("no")}</button>
             `;
             els.modal.classList.remove("hidden");
         }
@@ -6998,7 +7027,7 @@
                         onClick = `onclick="execDiscard(${idx}, ${i})"`;
                     } else {
                         // 選択不可 (グレーアウト)
-                        style = 'opacity:0.3; cursor:not-allowed; border:1px dashed #777; background:rgba(0,0,0,0.2); transform:scale(0.95);';
+                        style = 'opacity:0.5; cursor:not-allowed; border:1px dashed #8cb6d3; background:rgba(127,211,255,0.18); transform:scale(0.95);';
                         if(cImg) {
                             style += `background-image:url('${cImg}'); background-size:cover; background-position:center; color:transparent;`;
                         }
@@ -7111,19 +7140,19 @@
             shuffle(targetHand);
 
             let html = `<p>相手の手札から<strong>欲しいカード</strong>を選んでください。<br>
-                        <span style="font-size:11px;">(通常は裏向きですが、公開カードは見えます)</span></p>
+                        <span style="font-size:12px;">(通常は裏向きですが、公開カードは見えます)</span></p>
                         <div class="modal-list">`;
 
             targetHand.forEach(c => {
                 let content = "?";
-                let style = "cursor:pointer; background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
+                let style = "cursor:pointer; background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
                 let cssClass = "card"; // ★修正: 初期値はただのcard
 
                 // 公開カードなら中身を表示
                 // ★ハッキングチェック
                 if (c.isHacked) {
                     cssClass += " hacked";
-                    style = "cursor:not-allowed; border:1px solid #555; background:#333;";
+                    style = "cursor:not-allowed; border:1px solid #aacde3; background:#e7f4ff;";
                     content = "🔒"; // 裏向きでもロックされていることはわかる
                     onClick = ""; // クリック無効
                 }
@@ -7516,7 +7545,7 @@ function anglerStep2(excludeIdx) {
     // 数字墓地
     gn.forEach((c, i) => {
         let style = '';
-        html += `<div class="card num" style="${style}" onclick="execAngler(${excludeIdx}, 'num', ${i})">${c.val}<span style="font-size:8px; display:block;"></span></div>`;
+        html += `<div class="card num" style="${style}" onclick="execAngler(${excludeIdx}, 'num', ${i})">${c.val}<span style="font-size:12px; display:block;"></span></div>`;
     });
     // 記号墓地
     gs.forEach((c, i) => {
@@ -7700,7 +7729,7 @@ function activateAstronomer() {
     }
 
     html += `</div>
-        <p style="font-size:11px; color:#ff0000; margin-top:8px;">
+        <p style="font-size:12px; color:#ff0000; margin-top:8px;">
             ※ 2〜8のみ選択可能です（1と9は対象外）。
         </p>`;
 
@@ -7777,10 +7806,10 @@ function activateThief(count = 1) {
         const handLen = hand.length;
         if (handLen === 0) return;
         let revealed = hand.filter(c => c.isOpen).map(c => c.val).join(", ");
-        let revealedInfo = revealed ? `<br><span style="font-size:11px; color:#000000;">(公開: ${revealed})</span>` : "";
+        let revealedInfo = revealed ? `<br><span style="font-size:12px; color:#125c8a;">(公開: ${revealed})</span>` : "";
 
         if (isPoliticianShieldActive(pid)) {
-            html += `<button disabled style="display:block; width:100%; margin:5px 0; padding:10px; background:#9e9e9e; color:#fff; opacity:0.7; border:none; border-radius:6px; cursor:not-allowed;">
+            html += `<button disabled style="display:block; width:100%; margin:5px 0; padding:10px; background:#d6ebf7; color:#4f7ea1; opacity:0.88; border:1px solid #a7cde4; border-radius:6px; cursor:not-allowed;">
                 ${pName} (政治家で対象外)
             </button>`;
         } else {
@@ -7792,7 +7821,7 @@ function activateThief(count = 1) {
     });
 
     if (!canUseTarget) {
-        html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
+        html += `<p style="font-size:12px; color:#4f7ea1;">対象にできるプレイヤーがいません。</p>`;
     }
 
     openModal(`盗賊: ターゲット選択 (${count}回目)`, html);
@@ -7812,19 +7841,19 @@ function thiefSelectTake(targetId, count) {
     shuffle(targetHand);
 
     let html = `<p>相手の手札から<strong>奪うカード</strong>を選んでください。<br>
-                <span style="font-size:11px;">(公開カードは見えます)</span></p>
+                <span style="font-size:12px;">(公開カードは見えます)</span></p>
                 <div class="modal-list">`;
 
     targetHand.forEach(c => {
         let content = "?";
-        let style = "cursor:pointer; background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
+        let style = "cursor:pointer; background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
         let cssClass = "card"; 
         let onClick = `onclick="thiefSelectGive('${targetId}', ${c.originalIndex}, ${count})"`;
 
         // ★ハッカー対応
         if (c.isHacked) {
             cssClass += " hacked";
-            style = "cursor:not-allowed; border:1px solid #555; background:#333;";
+            style = "cursor:not-allowed; border:1px solid #aacde3; background:#e7f4ff;";
             content = "🔒"; 
             onClick = "";
         }
@@ -7970,7 +7999,7 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
             <button onclick="activateThief(2)" style="width:100%; padding:15px; background:#d32f2f; color:white; font-weight:bold; margin-bottom:10px;">
                 はい (もう一度盗む)
             </button>
-            <button onclick="endThiefTurn()" style="width:100%; padding:15px; background:#444; color:white;">
+            <button onclick="endThiefTurn()" style="width:100%; padding:15px; background:#bfe8ff; color:#0f5d86; border:1px solid #91c9ea;">
                 いいえ (ターンを終了する)
             </button>
         `;
@@ -8020,12 +8049,12 @@ function activateHunter() {
         </p>
         
         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="width:48%; background:rgba(0,0,0,0.05); border-radius:8px; padding:5px;">
+            <div style="width:48%; background:rgba(127,211,255,0.18); border-radius:8px; padding:5px;">
                 <div style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:5px; font-size:12px;">自分の手札 (除外)</div>
                 <div id="hunter-hand-list" style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;"></div>
             </div>
 
-            <div style="width:48%; background:rgba(0,0,0,0.05); border-radius:8px; padding:5px;">
+            <div style="width:48%; background:rgba(127,211,255,0.18); border-radius:8px; padding:5px;">
                 <div style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:5px; font-size:12px;">記号山札 (入手)</div>
                 <div id="hunter-deck-list" style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;"></div>
             </div>
@@ -8035,9 +8064,9 @@ function activateHunter() {
             <p id="hunter-msg" style="color:#d32f2f; font-size:12px; font-weight:bold;">枚数が一致していません</p>
             
             <button onclick="execHunterSwap()" id="btn-hunter-exec" disabled 
-                style="background:#ccc; color:#fff; padding:10px 30px; font-weight:bold; border-radius:20px;">交換して終了</button>
+                style="background:#deedf7; color:#7397b2; padding:10px 30px; font-weight:bold; border-radius:20px; border:1px solid #b8d5e8;">交換して終了</button>
             <br>
-            <button onclick="execHunterSwap(true)" style="background:#546e7a; color:#fff; margin-top:10px; padding:8px 20px; font-size:12px; border-radius:20px;">
+            <button onclick="execHunterSwap(true)" style="background:#d6f1ff; color:#0f5d86; margin-top:10px; padding:8px 20px; font-size:12px; border-radius:20px; border:1px solid #91c9ea;">
                 交換せずに終了
             </button>
         </div>
@@ -8050,7 +8079,7 @@ function activateHunter() {
     const createCardDiv = (c, i, type) => {
         let imgUrl = CARD_IMAGES[c.val];
         // 基本スタイル
-        let style = "width:40px; height:60px; font-size:10px; cursor:pointer; transition:transform 0.1s; border:1px solid #999;";
+        let style = "width:40px; height:60px; font-size:12px; cursor:pointer; transition:transform 0.1s; border:1px solid #999;";
         if (imgUrl) style += `background-image:url('${imgUrl}'); color:transparent; border:none;`;
         
         // クリックイベント: toggleHunterSelect(要素, タイプ, インデックス)
@@ -8206,15 +8235,15 @@ function activateGambler() {
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
             <button onclick="execGamblerGuess('A')" style="padding:15px; background:#4fc3f7; color:#01579b; font-weight:bold; border-radius:8px;">
                 A: 小さい (1, 2, 3, 4)<br>
-                <span style="font-size:10px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
+                <span style="font-size:12px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
             </button>
             <button onclick="execGamblerGuess('B')" style="padding:15px; background:#ffb74d; color:#e65100; font-weight:bold; border-radius:8px;">
                 B: 大きい (6, 7, 8, 9)<br>
-                <span style="font-size:10px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
+                <span style="font-size:12px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
             </button>
             <button onclick="execGamblerGuess('C')" style="padding:15px; background:#ba68c8; color:#4a148c; font-weight:bold; border-radius:8px;">
                 C: 命知らず (0, 5)<br>
-                <span style="font-size:10px;">的中: 手札2枚捨て / 外れ: カードを獲得しターン終了</span>
+                <span style="font-size:12px;">的中: 手札2枚捨て / 外れ: カードを獲得しターン終了</span>
             </button>
         </div>
     `;
@@ -8329,7 +8358,7 @@ function gamblerSelectDiscard(count) {
         <div style="margin-top:15px; text-align:center;">
              <p id="gambler-msg" style="font-size:12px;">あと ${count} 枚選んでください</p>
             <button onclick="execGamblerDiscard(${count})" id="btn-gambler-exec" disabled 
-                style="background:#ccc; color:#fff; padding:10px 30px; border-radius:20px;">決定</button>
+                style="background:#ccc; color:#fff; padding:10px 30px; border-radius:20px;">${getModalActionLabel("confirm")}</button>
         </div>
     `;
 
@@ -8340,7 +8369,7 @@ function gamblerSelectDiscard(count) {
     let handHtml = "";
     hand.forEach((c, i) => {
         let imgUrl = CARD_IMAGES[c.val];
-        let style = "width:40px; height:60px; font-size:10px; cursor:pointer; transition:transform 0.1s; border:1px solid #999;";
+        let style = "width:40px; height:60px; font-size:12px; cursor:pointer; transition:transform 0.1s; border:1px solid #999;";
         if (imgUrl) style += `background-image:url('${imgUrl}'); color:transparent; border:none;`;
 
         handHtml += `<div class="card ${c.type} gambler-item" data-idx="${i}" 
@@ -8382,7 +8411,7 @@ function toggleGamblerSelect(el, maxCount) {
         btn.disabled = true;
         btn.style.background = "#ccc";
         msg.innerText = `あと ${maxCount - selCount} 枚選んでください`;
-        msg.style.color = "#333";
+        msg.style.color = "#2a6f96";
     }
 }
 
@@ -8558,15 +8587,15 @@ function activateMagician() {
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
             <button onclick="execMagicianReverse()" style="padding:15px; background:#e91e63; color:white; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">🔄 REVERSE</span>
-                <span style="font-size:11px; margin-top:4px;">強弱をひっくり返す！</span>
+                <span style="font-size:12px; margin-top:4px;">強弱をひっくり返す！</span>
             </button>
             <button onclick="activateMagicianTrade()" style="padding:15px; background:#ffb74d; color:#e65100; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">🤝 TRADE</span>
-                <span style="font-size:11px; margin-top:4px;">こっそりカードを交換する！</span>
+                <span style="font-size:12px; margin-top:4px;">こっそりカードを交換する！</span>
             </button>
-            <button onclick="activateMagicianDigUp()" style="padding:15px; background:#8d6e63; color:white; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button onclick="activateMagicianDigUp()" style="padding:15px; background:#d7f1ff; color:#0f5d86; font-weight:bold; border-radius:8px; border:1px solid #91c9ea; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">⛏ DIG UP</span>
-                <span style="font-size:11px; margin-top:4px;">カードを拾ってすり替える！</span>
+                <span style="font-size:12px; margin-top:4px;">カードを拾ってすり替える！</span>
             </button>
         </div>
     `;
@@ -8641,19 +8670,19 @@ function magicianSelectTake(targetId) {
     shuffle(targetHand);
 
     let html = `<p>相手の手札から<strong>奪うカード</strong>を選んでください。<br>
-                <span style="font-size:11px;">(公開カードは見えます)</span></p>
+                <span style="font-size:12px;">(公開カードは見えます)</span></p>
                 <div class="modal-list">`;
 
     targetHand.forEach(c => {
         let content = "?";
-        let style = "cursor:pointer; background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
+        let style = "cursor:pointer; background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
         let cssClass = "card"; 
         let onClick = `onclick="magicianSelectGive('${targetId}', ${c.originalIndex})"`;
 
         // ★ハッカー対応
         if (c.isHacked) {
             cssClass += " hacked";
-            style = "cursor:not-allowed; border:1px solid #555; background:#333;";
+            style = "cursor:not-allowed; border:1px solid #aacde3; background:#e7f4ff;";
             content = "🔒"; 
             onClick = "";
         }
@@ -8677,7 +8706,7 @@ function magicianSelectTake(targetId) {
 function magicianSelectGive(targetId, takeIdx) {
     if (!canTargetByHandInterference(targetId)) return;
     let hand = sortCards(deepCopy(gameState.hands[myId]));
-    let html = `<p>相手に渡すカードを選んでください。<br><span style="font-size:11px;">(ピエロの効果なのでTRADEカード自体は不要です)</span></p><div class="modal-list">`;
+    let html = `<p>相手に渡すカードを選んでください。<br><span style="font-size:12px;">(ピエロの効果なのでTRADEカード自体は不要です)</span></p><div class="modal-list">`;
     
     hand.forEach((c, i) => {
         let style = '';
@@ -8806,7 +8835,7 @@ function activateMillionaire() {
     
     if (deckSym.length === 0) return showInfoModal("エラー", "記号山札が空です");
 
-    let html = `<p>コストとして除外する数字カードを選んでください。<br><span style="font-size:11px;">(記号山札から1枚引きます)</span></p><div class="modal-list">`;
+    let html = `<p>コストとして除外する数字カードを選んでください。<br><span style="font-size:12px;">(記号山札から1枚引きます)</span></p><div class="modal-list">`;
     hand.forEach((c, i) => {
         if (c.type !== 'num') return; 
         
@@ -8889,14 +8918,14 @@ function activateEmperor() {
         <p style="font-size:14px;">
             市民の手札をすべて回収しました。<br>
             <strong>あなたが望む「1枚」を選んでください。</strong><br>
-            <span style="font-size:11px; color:#888;">残りは自動的に再分配されます。</span>
+            <span style="font-size:12px; color:#4f7ea1;">残りは自動的に再分配されます。</span>
         </p>
         <div class="modal-list">
     `;
 
     if (protectedPids.length > 0) {
         const protectedNames = protectedPids.map(pid => gameState.players[pid]?.name || pid).join("、");
-        html += `<p style="font-size:11px; color:#d32f2f; width:100%;">※ ${protectedNames} は[政治家]の効果で対象外です</p>`;
+        html += `<p style="font-size:12px; color:#d32f2f; width:100%;">※ ${protectedNames} は[政治家]の効果で対象外です</p>`;
     }
 
     allCards.forEach((c, i) => {
@@ -9076,7 +9105,7 @@ async function activatePoliceOfficer() {
 function policeTradeStart() {
     let html = `
         <p><strong>【捜査協力の要請】</strong><br>続けてトレード(交換)を行いますか？<br>
-        <span style="font-size:11px; color:#666;">(任意: 行わない場合は下のボタンで終了)</span>
+        <span style="font-size:12px; color:#4f7ea1;">(任意: 行わない場合は下のボタンで終了)</span>
         </p>
 
         <p style="margin-top:10px;">相手を選んでください</p>
@@ -9092,7 +9121,7 @@ function policeTradeStart() {
         
         // 公開情報の表示
         let revealed = hand.filter(c => c.isOpen).map(c => c.val).join(", ");
-        let revealedInfo = revealed ? `<br><span style="font-size:11px; color:#000000;">(公開: ${revealed})</span>` : "";
+        let revealedInfo = revealed ? `<br><span style="font-size:12px; color:#125c8a;">(公開: ${revealed})</span>` : "";
 
         if (count > 0) {
             if (isPoliticianShieldActive(pid)) {
@@ -9111,8 +9140,8 @@ function policeTradeStart() {
     
     // ▼▼▼ キャンセルボタン（トレードしない）を追加 ▼▼▼
     html += `
-        <div style="margin-top:20px; border-top:1px solid #ccc; padding-top:10px;">
-            <button onclick="endPoliceTurn()" style="background:#78909c; color:white; padding:10px 20px; border-radius:20px;">
+        <div style="margin-top:20px; border-top:1px solid #9ec9e5; padding-top:10px;">
+            <button onclick="endPoliceTurn()" style="background:#d7f1ff; color:#0f5d86; padding:10px 20px; border-radius:20px; border:1px solid #91c9ea;">
                 捜査を終了する (トレードしない)
             </button>
         </div>
@@ -9149,7 +9178,7 @@ function policeSelectTake(targetId) {
     shuffle(targetHand);
 
     let html = `<p><strong>押収するカード</strong>を選んでください。<br>
-                <span style="font-size:11px;">(公開カードは見えます)</span></p>
+                <span style="font-size:12px;">(公開カードは見えます)</span></p>
                 <div class="modal-list">`;
 
     targetHand.forEach(c => {
@@ -9165,7 +9194,7 @@ function policeSelectTake(targetId) {
             if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         } else {
             content = "?";
-            style += "background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
+            style += "background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
         }
 
         html += `<div class="${cssClass}" style="${style}" ${onClick}>${content}</div>`;
@@ -9292,7 +9321,7 @@ function renderHackerUI() {
         <div id="hacker-ui-container" style="text-align:left; max-height:300px; overflow-y:auto;">`;
 
     if (targets.length === 0) {
-        html += `<p style="text-align:center; color:#ccc;">ハッキング可能な相手がいません。</p>`;
+        html += `<p style="text-align:center; color:#4f7ea1;">ハッキング可能な相手がいません。</p>`;
     }
     if (blockedTargets.length > 0) {
         html += `<p class="seki-disabled-note" style="text-align:center;">※政治家の保護中プレイヤーは対象外です</p>`;
@@ -9308,9 +9337,9 @@ function renderHackerUI() {
         
         let selectedIdx = hackerTargets[pid]; 
 
-        html += `<div style="margin-bottom:10px; background:rgba(0,0,0,0.05); padding:8px; border-radius:5px;">
-                    <div style="font-weight:bold; font-size:12px; margin-bottom:5px; color:#333;">
-                        ${p.name} <span style="font-size:10px; color:#666;">(手札:${hand.length})</span>
+        html += `<div style="margin-bottom:10px; background:rgba(127,211,255,0.18); padding:8px; border-radius:5px;">
+                    <div style="font-weight:bold; font-size:12px; margin-bottom:5px; color:#125c8a;">
+                        ${p.name} <span style="font-size:12px; color:#4f7ea1;">(手札:${hand.length})</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:4px;">`;
         
@@ -9327,7 +9356,7 @@ function renderHackerUI() {
                 let cImg = CARD_IMAGES[c.val];
                 if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:none;`;
             } else {
-                style += "background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
+                style += "background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
             }
 
             if (isSel) {
@@ -9348,7 +9377,7 @@ function renderHackerUI() {
     let canExec = (currentSelectCount === requiredCount && requiredCount > 0);
 
     html += `<div style="text-align:center; margin-top:10px;">
-                <p style="font-size:10px; color:${canExec ? '#2e7d32' : '#d32f2f'}; margin-bottom:5px;">
+                <p style="font-size:12px; color:${canExec ? '#2e7d32' : '#d32f2f'}; margin-bottom:5px;">
                     選択状況: ${currentSelectCount} / ${requiredCount} 人
                 </p>
                 <button onclick="execHacker()" ${canExec ? '' : 'disabled'} 
@@ -9358,7 +9387,7 @@ function renderHackerUI() {
              </div>`;
 
     openModal("ハッカー: 標的選択", html);
-    document.getElementById("modal-footer").innerHTML = `<button onclick="closeModal()">キャンセル</button>`;
+    document.getElementById("modal-footer").innerHTML = renderModalButton(getModalActionLabel("cancel"), "closeModal()", "ghost");
 }
 
 function selectHackerTarget(targetId, idx) {
@@ -9516,56 +9545,25 @@ async function activateAlchemist() {
 function renderAlchemistUI() {
     let hand = sortCards(deepCopy(gameState.hands[myId] || []));
     
-    // ▼ 場の状況（トップカードとルール）を取得
+    // 判定用に場のトップは保持（表示はしない）
     let top = getTop(gameState.graveNum);
-    let topVal = top ? top.val : "なし (何でも出せます)";
-    let isRev = gameState.isReverse;
-    let ruleText = isRev ? "▼ 逆行 (弱い方が強い)" : "▲ 順行 (強い方が強い)";
-    
-    // ▼ 修正: 場札のHTML生成 (実際のカードと同じクラス・スタイルを使用)
-    let topCardHtml = "";
-    if (top) {
-        let style = "margin-right:15px; cursor:default; transform:scale(0.9);"; // 少しだけ小さくしてレイアウトに合わせる
-        let cssClass = `card ${top.type}`;
-        
-        // 画像対応
-        let imgUrl = CARD_IMAGES[top.val];
-        if (imgUrl) {
-            style += `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;`;
-        }
-        
-        // 実際のカードと同じHTML構造
-        topCardHtml = `<div class="${cssClass}" style="${style}" ${Number(top.val)===0 ? 'data-val="0"':''}>${top.val}</div>`;
-    } else {
-        // 場が空の場合のプレースホルダー
-        topCardHtml = `<div class="card" style="border:2px dashed #999; background:rgba(0,0,0,0.2); color:#ccc; margin-right:15px; display:flex; align-items:center; justify-content:center; transform:scale(0.9);">?</div>`;
-    }
 
     // 引いたカードの表示スタイル
     let drawImg = CARD_IMAGES[alchemyDrawnCard.val];
-    let drawStyle = "border:3px solid #7b1fa2; box-shadow:0 0 10px #7b1fa2; transform:scale(1.1);";
+    let drawStyle = "border:3px solid #42b6ff; box-shadow:0 0 10px #72ccff; transform:scale(1.1);";
     if (drawImg) drawStyle += `background-image:url('${drawImg}'); color:transparent;`;
 
     // HTML組み立て
     let html = `
-        <div style="background:#37474f; color:white; padding:10px 15px; border-radius:8px; margin-bottom:15px; text-align:left; font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 10px rgba(0,0,0,0.5);">
-            ${topCardHtml}
-            <div>
-                <div style="font-size:10px; opacity:0.8;">現在の場</div>
-                <div style="font-size:18px; font-weight:bold; margin:2px 0;">${topVal}</div>
-                <div style="color:#ffb74d; font-weight:bold; border:1px solid #ffb74d; padding:2px 6px; border-radius:4px; display:inline-block; font-size:11px;">${ruleText}</div>
-            </div>
-        </div>
-
-        <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom:10px; background:#f3e5f5; padding:10px; border-radius:8px;">
+        <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom:10px; background:rgba(220,245,255,0.9); padding:10px; border-radius:8px; border:1px solid #9ed9fb;">
             <div style="text-align:center;">
-                <div style="font-size:10px; color:#4a148c; font-weight:bold; margin-bottom:5px;">素材A (ドロー)</div>
+                <div style="font-size:12px; color:#125c8a; font-weight:bold; margin-bottom:5px;">素材A (ドロー)</div>
                 <div class="card num" style="${drawStyle} margin:0 auto;">${alchemyDrawnCard.val}</div>
             </div>
             <div style="font-size:20px; color:#aaa;">+</div>
             <div style="text-align:center;">
-                <div style="font-size:10px; color:#4a148c; font-weight:bold; margin-bottom:5px;">素材B (手札)</div>
-                <div id="alchemy-hand-preview" style="width:54px; height:86px; border:2px dashed #ccc; border-radius:6px; line-height:86px; color:#ccc;">?</div>
+                <div style="font-size:12px; color:#125c8a; font-weight:bold; margin-bottom:5px;">素材B (手札)</div>
+                <div id="alchemy-hand-preview" style="width:54px; height:86px; border:2px dashed #9ec9e5; border-radius:6px; line-height:86px; color:#7ea5bf;">?</div>
             </div>
         </div>
 
@@ -9581,10 +9579,10 @@ function renderAlchemistUI() {
 
         if (isNum) {
             style += "cursor:pointer; ";
-            if (isSelected) style += "border:3px solid #7b1fa2; transform:scale(1.1); box-shadow:0 0 10px #7b1fa2;";
+            if (isSelected) style += "border:3px solid #42b6ff; transform:scale(1.1); box-shadow:0 0 10px #72ccff;";
             
             if (c.isHacked) {
-                style += "cursor:not-allowed; filter:grayscale(100%); border:1px solid #555; background:#333;";
+                style += "cursor:not-allowed; filter:grayscale(100%); border:1px solid #aacde3; background:#e7f4ff;";
                 onClick = `onclick="showInfoModal('ロック', 'ハッキングされているカードは素材にできません')"`;
             } else {
                 onClick = `onclick="selectAlchemistHand(${i})"`;
@@ -9635,8 +9633,8 @@ function renderAlchemistUI() {
         }
 
         const makeBtn = (label, val, can, isInvalidCalc) => {
-            let bg = can ? "#7b1fa2" : "#e0e0e0"; 
-            let color = can ? "white" : "#999";
+            let bg = can ? "#7fcfff" : "#deedf7"; 
+            let color = can ? "#075078" : "#6d8ea6";
             let cursor = can ? "pointer" : "not-allowed"; // カーソルを禁止マークに
             
             // 出せる時だけクリックイベントを設定
@@ -9648,23 +9646,23 @@ function renderAlchemistUI() {
             let note = "";
             if (!can) {
                 if (isInvalidCalc) {
-                    note = "<br><span style='font-size:10px; opacity:0.8;'>(不可)</span>";
+                    note = "<br><span style='font-size:12px; opacity:0.85;'>(不可)</span>";
                 } else {
-                    note = "<br><span style='font-size:10px; opacity:0.8;'>(ルール違反)</span>";
+                    note = "<br><span style='font-size:12px; opacity:0.85;'>(ルール違反)</span>";
                 }
             }
 
             // 表示値がnullの場合は "?" と表示
             let dispVal = (val !== null) ? val : "?";
 
-            return `<button ${onClick} ${disabledAttr} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+            return `<button ${onClick} ${disabledAttr} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:1px solid #8dc8e9; box-shadow:0 2px 6px rgba(79, 171, 255, 0.22);">
                         ${label} <span style="font-size:18px;">[${dispVal}]</span>${note}
                     </button>`;
         };
 
         html += `
-            <div style="margin-top:15px; padding:10px; background:#fff; border:1px solid #eee; border-radius:8px;">
-                <p style="margin:0 0 10px 0; font-weight:bold; color:#333; font-size:12px;">錬成結果 (場の強弱に従う)</p>
+            <div style="margin-top:15px; padding:10px; background:rgba(232,248,255,0.92); border:1px solid #9ed9fb; border-radius:8px;">
+                <p style="margin:0 0 10px 0; font-weight:bold; color:#125c8a; font-size:12px;">錬成結果 (場の強弱に従う)</p>
                 <div style="display:flex; justify-content:space-between; gap:5px;">
                     ${makeBtn("和 (+)", sumVal, canSum)}
                     ${makeBtn("差 (-)", diffVal, canDiff)}
@@ -9676,7 +9674,7 @@ function renderAlchemistUI() {
     }
 
     // 中止ボタン
-    let footerHtml = `<button onclick="execAlchemistKeep()" class="modal-btn" style="background:#78909c; margin-top:10px; width:100%;">
+    let footerHtml = `<button onclick="execAlchemistKeep()" class="modal-btn" style="background:#d7f1ff; color:#0f5d86; border:1px solid #91c9ea; margin-top:10px; width:100%;">
                         錬金失敗 (ドロー素材を除外する)
                       </button>`;
 
@@ -9689,8 +9687,8 @@ function renderAlchemistUI() {
         let prev = document.getElementById("alchemy-hand-preview");
         if(prev) {
             prev.innerText = c.val;
-            prev.style.border = "2px solid #7b1fa2";
-            prev.style.color = "#7b1fa2";
+            prev.style.border = "2px solid #42b6ff";
+            prev.style.color = "#125c8a";
             prev.style.fontWeight = "bold";
             prev.style.fontSize = "22px";
         }
@@ -9895,7 +9893,7 @@ function activateNecromancer() {
                 html += `
                     <div style="position:relative; display:inline-block;">
                         <div class="card num necromancer-item" data-card-val="${c.val}" style="${style}" onclick="selectNecromancerTarget('num', ${i}, this)">${c.val}</div>
-                        <span style="position:absolute; top:-8px; right:-6px; background:#ffca28; color:#3e2723; font-size:9px; font-weight:bold; padding:1px 5px; border-radius:10px; border:1px solid #fff;">TOP</span>
+                        <span style="position:absolute; top:-8px; right:-6px; background:#ffeaa0; color:#8a5c19; font-size:12px; font-weight:bold; padding:1px 5px; border-radius:10px; border:1px solid #fff;">TOP</span>
                     </div>
                 `;
             } else {
@@ -9930,12 +9928,12 @@ function activateNecromancer() {
 
     html += `
         <div style="margin-top:12px; text-align:center;">
-            <p id="necromancer-msg" style="font-size:12px; color:#666; margin:0 0 8px;">カードを1枚選択してください</p>
-            <button id="btn-necromancer-exec" onclick="execNecromancer()" disabled style="background:#ccc; color:#fff; padding:10px 30px; font-weight:bold; border-radius:20px; border:none; cursor:not-allowed;">
+            <p id="necromancer-msg" style="font-size:12px; color:#4f7ea1; margin:0 0 8px;">カードを1枚選択してください</p>
+            <button id="btn-necromancer-exec" onclick="execNecromancer()" disabled style="background:#deedf7; color:#7397b2; padding:10px 30px; font-weight:bold; border-radius:20px; border:1px solid #b8d5e8; cursor:not-allowed;">
                 除外を実行
             </button>
         </div>
-        <p style="font-size:11px; color:#666; margin-top:10px;">※選択後に「除外を実行」を押してください。</p>
+        <p style="font-size:12px; color:#4f7ea1; margin-top:10px;">※選択後に「除外を実行」を押してください。</p>
     `;
 
     openModal("ネクロマンサー: 死者蘇生", html);
@@ -9957,14 +9955,15 @@ function selectNecromancerTarget(targetType, targetIdx, el) {
         let zone = (targetType === 'num') ? '数字墓地' : '記号墓地';
         let val = (el && el.dataset && el.dataset.cardVal !== undefined) ? el.dataset.cardVal : '?';
         msg.innerText = `選択中: ${zone} [${val}]`;
-        msg.style.color = '#4a148c';
+        msg.style.color = '#125c8a';
     }
 
     let btn = document.getElementById('btn-necromancer-exec');
     if (btn) {
         btn.disabled = false;
-        btn.style.background = '#4a148c';
-        btn.style.color = '#fff';
+        btn.style.background = '#7fcfff';
+        btn.style.color = '#075078';
+        btn.style.border = '1px solid #8dc8e9';
         btn.style.cursor = 'pointer';
     }
 }
@@ -10270,8 +10269,8 @@ function setupEffectListener() {
             els.mTitle.innerText = "開始確認";
             els.mContent.innerHTML = `<p><strong>${lastHostHandMode}枚モード</strong> で<br>ゲームを開始（リセット）しますか？</p>`;
             els.mFooter.innerHTML = `
-                ${renderModalButton("YES", `closeModal(); execInitGame(${lastHostHandMode})`, "primary")}
-                ${renderModalButton("NO", "openHostSettings()", "ghost")}
+                ${renderModalButton(getModalActionLabel("yes"), `closeModal(); execInitGame(${lastHostHandMode})`, "primary")}
+                ${renderModalButton(getModalActionLabel("no"), "openHostSettings()", "ghost")}
             `;
         }
 
@@ -11098,7 +11097,7 @@ function setupEffectListener() {
     /* メインのモーダルより上に表示 */
     #sub-modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(2, 7, 15, 0.72);
+        background: linear-gradient(145deg, rgba(229, 249, 255, 0.78), rgba(191, 241, 255, 0.74));
         z-index: 9999;
         display: flex; justify-content: center; align-items: center;
         backdrop-filter: blur(5px);
@@ -11108,50 +11107,59 @@ function setupEffectListener() {
 
     #sub-modal-box {
         background:
-            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
-            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.11), transparent 36%);
-        color: var(--seki-text-main);
+            linear-gradient(155deg, rgba(246, 253, 255, 0.97), rgba(228, 247, 255, 0.95)),
+            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.22), transparent 38%);
+        color: #1a5f86;
         width: 90%; max-width: 600px;
         max-height: 80vh;
         border-radius: 14px;
         padding: 20px;
         position: relative;
         font-family: var(--font-readable);
-        box-shadow: var(--seki-shadow-panel), 0 0 24px rgba(0, 216, 255, 0.18);
-        border: 1px solid rgba(0, 216, 255, 0.36);
+        box-shadow: 0 16px 34px rgba(79, 172, 255, 0.26), 0 0 24px rgba(0, 216, 255, 0.26);
+        border: 1px solid rgba(0, 184, 230, 0.6);
         display: flex; flex-direction: column;
         animation: subPopIn 0.2s ease-out;
     }
     @keyframes subPopIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    #sub-modal-title { margin: 0 0 10px 0; border-bottom: 2px solid rgba(0, 216, 255, 0.56); padding-bottom: 5px; color: #9ce8ff; }
+    #sub-modal-title {
+        margin: 0 0 10px 0;
+        border-bottom: 2px solid rgba(0, 200, 255, 0.58);
+        padding-bottom: 5px;
+        color: #0f5f89;
+        font-family: var(--font-ui);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
     #sub-modal-body { overflow-y: auto; flex: 1; text-align: left; font-size: 14px; line-height: 1.6; }
 
     #sub-modal-box .close-btn {
         position: absolute; top: 10px; right: 15px;
-        font-size: 24px; cursor: pointer; color: #a8c7e4;
+        font-size: 24px; cursor: pointer; color: #0f5f89;
     }
 
     /* メインモーダルに追加する共通ボタン */
     #modal-board-toggle {
         position: absolute; top: 10px; right: 10px;
-        border: 1px solid rgba(122, 168, 218, 0.6);
+        border: 1px solid rgba(92, 180, 234, 0.72);
         border-radius: 16px;
-        background: rgba(7, 22, 42, 0.92);
-        color: #e6f6ff;
+        background: linear-gradient(135deg, #f8fdff, #e4f6ff);
+        color: #0f5d86;
         padding: 3px 10px; font-size: 12px; cursor: pointer;
         line-height: 1.2; z-index: 100;
         transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
     }
     #modal-board-toggle:hover {
-        border-color: rgba(0, 216, 255, 0.78);
-        box-shadow: 0 0 10px rgba(0, 216, 255, 0.28);
+        border-color: rgba(0, 193, 240, 0.82);
+        box-shadow: 0 0 10px rgba(0, 216, 255, 0.36);
         transform: translateY(-1px);
     }
     #modal-board-toggle.active {
-        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
-        border-color: rgba(0, 216, 255, 0.88);
-        color: #fff;
+        background: linear-gradient(135deg, #b8f2ff, #7fd3ff 52%, #50beff);
+        border-color: rgba(43, 153, 226, 0.82);
+        color: #075078;
     }
 
     #modal-help-btns {
@@ -11160,19 +11168,19 @@ function setupEffectListener() {
     }
     .help-icon-btn {
         background: none;
-        border: 1px solid rgba(122, 168, 218, 0.6);
+        border: 1px solid rgba(92, 180, 234, 0.72);
         border-radius: 4px;
         cursor: pointer;
         font-size: 14px;
         padding: 2px 6px;
-        color: #e6f6ff;
-        background: rgba(7, 22, 42, 0.92);
+        color: #0f5d86;
+        background: linear-gradient(135deg, #f8fdff, #e4f6ff);
         transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
     }
     .help-icon-btn:hover {
         transform: scale(1.06);
-        border-color: rgba(0, 216, 255, 0.8);
-        box-shadow: 0 2px 9px rgba(0,0,0,0.2), 0 0 10px rgba(0, 216, 255, 0.28);
+        border-color: rgba(0, 193, 240, 0.82);
+        box-shadow: 0 2px 9px rgba(85, 176, 244, 0.28), 0 0 10px rgba(0, 216, 255, 0.36);
     }
 </style>
 
