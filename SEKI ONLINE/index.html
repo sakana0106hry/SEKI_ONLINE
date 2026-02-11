@@ -921,6 +921,26 @@
         z-index: 100; 
     }
     .card.has-img { color: transparent !important; font-size: 0; border: 2px solid rgba(255, 255, 255, 0.9); }
+    @media (hover: none), (pointer: coarse) {
+        .card:not(.selected):hover {
+            transform: none;
+            border-color: #a3b9d6;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.38);
+        }
+        .pile:hover {
+            background: linear-gradient(155deg, rgba(6, 16, 32, 0.7), rgba(3, 10, 20, 0.56));
+            border-color: rgba(173, 214, 255, 0.62);
+            transform: none;
+            box-shadow: inset 0 0 12px rgba(0, 216, 255, 0.11);
+        }
+        #my-hand .card {
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+        }
+        #my-hand .selected {
+            transform: translateY(-10px) scale(1.03) !important;
+            box-shadow: 0 0 10px rgba(255, 235, 59, 0.72), 0 6px 14px rgba(0,0,0,0.44);
+        }
+    }
 
     /* 他プレイヤー表示 */
     /* --- 円卓レイアウト用CSS --- */
@@ -2336,6 +2356,15 @@
     }
     .modal-notif-card {
         width: 100px;
+    }
+    .modal-notif-card .modal-notif-card-view {
+        margin: 0 auto;
+        cursor: default;
+    }
+    .modal-notif-card .modal-notif-card-view:hover {
+        transform: none;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.38);
+        border-color: #a3b9d6;
     }
     .modal-notif-value {
         font-size: 32px;
@@ -4364,6 +4393,28 @@
             updateMyHandOverlap(els.hand);
         }
 
+        function refreshMyHandCardZIndex(container = els.hand) {
+            if (!container) return;
+            const cards = Array.from(container.querySelectorAll(".card"));
+            const cardCount = cards.length;
+            cards.forEach((card, idx) => {
+                const normalZIndex = idx + 1;
+                const selectedZIndex = cardCount + 200 + idx;
+                card.style.zIndex = String(card.classList.contains("selected") ? selectedZIndex : normalZIndex);
+            });
+        }
+
+        function updateMyHandSelectionVisual(container = els.hand) {
+            if (!container) return;
+            const handCards = Array.from(container.querySelectorAll("[data-hand-index]"));
+            handCards.forEach(card => {
+                const cardIdx = Number(card.dataset.handIndex);
+                const isSelected = Number.isFinite(cardIdx) && cardIdx === selectedIdx;
+                card.classList.toggle("selected", isSelected);
+            });
+            refreshMyHandCardZIndex(container);
+        }
+
         function refreshRoleDraftMonitorLayout() {
             const monitor = els.roleDraftMonitor || document.getElementById("role-draft-monitor");
             if (!monitor || monitor.classList.contains("hidden")) return;
@@ -5950,6 +6001,7 @@
                     let rawHand = hands[myId];
                     let myHand = rawHand ? sortCards(deepCopy(rawHand)) : [];
                     let myLockedHand = hackedHands[myId] || [];
+                    if (selectedIdx >= myHand.length) selectedIdx = -1;
                     
                     const fragment = document.createDocumentFragment();
 
@@ -5960,6 +6012,7 @@
                         if (c.isOpen) cssClass += " revealed";
 
                         div.className = cssClass;
+                        div.dataset.handIndex = String(i);
                         // if(c.val === 0) div.setAttribute("data-val", "0");
                         if(i === selectedIdx) div.classList.add("selected");
                         
@@ -5975,7 +6028,7 @@
                         if (data.status === "playing" && !data.rankings?.[myId]) {
                             div.onclick = () => {
                                 selectedIdx = (selectedIdx === i) ? -1 : i;
-                                render(data);
+                                updateMyHandSelectionVisual(handContainer);
                             };
                         }
                         fragment.appendChild(div);
@@ -6045,10 +6098,10 @@
                             actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini role-activate-btn ${myRoleAttrClass}">ACTIVATE</button>`;
                         }
                     } else if (isActivated) {
-                        let statusText = "(発動済み)";
-                        if (myRole === "POLITICIAN") statusText = isPoliticianShielded ? "保護中" : "使用済み";
-                        else if (myRole === "EMPEROR") statusText = "使用済み";
-                        else if (myRole === "ASTRONOMER") statusText = getAstronomerRoleSubText(data) || "使用済み";
+                        let statusText = "ACTIVATED";
+                        if (myRole === "POLITICIAN") statusText = isPoliticianShielded ? "PROTECTING" : "EXPIRED";
+                        else if (myRole === "EMPEROR") statusText = "ACTIVATED";
+                        else if (myRole === "ASTRONOMER") statusText = getAstronomerRoleSubText(data) || "ACTIVATED";
                         
                         // ▼▼▼ 修正: ピエロの場合、中身を表示 ▼▼▼
                         if (myRole === "CROWN" && typeof isActivated === 'string') {
@@ -6056,7 +6109,7 @@
                             let val = isActivated;
                             if (ROLE_INFO[val]) val = ROLE_INFO[val].jp;
                             
-                            statusText = `使用: ${val}`;
+                            statusText = `USED: ${val}`;
                         }
                         // ▲▲▲ 修正ここまで ▲▲▲
                         
@@ -6479,17 +6532,20 @@
             if (myPlayer.notification) {
                 playSoundEffect('WARNING');
                 const note = myPlayer.notification;
-                const getNotifDisplay = (val) => {
-                    if (CARD_IMAGES[val]) return `<img src="${CARD_IMAGES[val]}" class="modal-image-center">`;
-                    return `<div class="modal-notif-value">${val}</div>`;
+                const toNotifCard = (val) => {
+                    const asNumber = Number(val);
+                    const type = Number.isFinite(asNumber) ? "num" : "sym";
+                    return { type, val };
                 };
+                const lostCard = toNotifCard(note.lostVal);
+                const gotCard = toNotifCard(note.gotVal);
                 let html = `
                     <div class="modal-notif-wrap">
                         <p class="modal-notif-title">${note.fromName} にトレードされました！</p>
                         <div class="modal-card-row">
-                            <div class="modal-notif-card"><div class="modal-card-label">盗まれた</div>${getNotifDisplay(note.lostVal)}</div>
+                            <div class="modal-notif-card"><div class="modal-card-label">盗まれた</div>${renderCardView(lostCard, { cssClass: `card ${lostCard.type} modal-notif-card-view`, attrs: 'aria-label="盗まれたカード"' })}</div>
                             <div class="modal-notif-arrow">➡</div>
-                            <div class="modal-notif-card"><div class="modal-card-label">渡された</div>${getNotifDisplay(note.gotVal)}</div>
+                            <div class="modal-notif-card"><div class="modal-card-label">渡された</div>${renderCardView(gotCard, { cssClass: `card ${gotCard.type} modal-notif-card-view`, attrs: 'aria-label="渡されたカード"' })}</div>
                         </div>
                     </div>`;
                 openModal("⚠️ トレード警告", html, { tone: "alert" });
@@ -6526,7 +6582,7 @@
                 let resetBadge = "";
                 if (effectiveResetHolder === myId) {
                     // status-resetクラスをそのまま利用（位置調整のためstyleを追加）
-                    resetBadge = `<span class="status-reset my-reset-badge">👑 RESET</span>`;
+                    resetBadge = `<span class="status-reset my-reset-badge">RESET</span>`;
                 }
 
                 // 2. ホストなら★を表示
@@ -10326,7 +10382,7 @@ function setupEffectListener() {
                     <ul class="seki-rule-list">
                     <li>数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持つ<br />
                     <li><strong>リセット権</strong>を持っているプレイヤーがパスすると、数字墓地のカードが全て除外され、何でも出せる<br />
-                    <li><strong>リセット権</strong>は、<strong>👑RESET</strong>で表示されている</li>
+                    <li><strong>リセット権</strong>は、<strong>RESET</strong>で表示されている</li>
                     <li><strong>リセット権</strong>を持ったプレイヤーがあがった場合、<span style="text-decoration: underline;">数字墓地の一番上のカードが変わらない限り、一周後に次のプレイヤーに移動する</span></li>
                     </ul>
                     <p class="seki-rule-paragraph">&nbsp;</p>
