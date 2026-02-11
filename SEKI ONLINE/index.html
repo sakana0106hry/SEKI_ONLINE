@@ -218,6 +218,121 @@
         background: rgba(1, 6, 14, 0.88);
         backdrop-filter: blur(4px);
     }
+    #asset-loading-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 10050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(2, 8, 18, 0.9);
+        backdrop-filter: blur(5px);
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    #asset-loading-screen.hidden {
+        display: none !important;
+    }
+    #asset-loading-panel {
+        width: min(92vw, 520px);
+        border: 1px solid rgba(0, 216, 255, 0.4);
+        border-radius: 14px;
+        padding: 20px 18px;
+        box-shadow: var(--seki-shadow-panel), 0 0 20px rgba(0, 216, 255, 0.22);
+        background:
+            linear-gradient(155deg, rgba(6, 16, 32, 0.95), rgba(4, 11, 23, 0.9)),
+            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.13), transparent 42%);
+    }
+    #asset-loading-panel h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        color: #dff6ff;
+        letter-spacing: 0.08em;
+        text-shadow:
+            0 0 6px rgba(0, 216, 255, 0.45),
+            0 0 14px rgba(52, 247, 141, 0.28);
+        line-height: 1.35;
+        animation: sekiLoadingPulse 2.2s ease-in-out infinite alternate;
+    }
+    #asset-loading-panel h3 .seki-loading-sub {
+        display: block;
+        margin-top: 3px;
+        font-size: 12px;
+        color: #9ce8ff;
+        letter-spacing: 0.14em;
+    }
+    @keyframes sekiLoadingPulse {
+        from { filter: brightness(0.88); opacity: 0.9; }
+        to { filter: brightness(1.08); opacity: 1; }
+    }
+    #asset-loading-text {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: #cfe5f8;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+    }
+    #asset-loading-progress-track {
+        width: 100%;
+        height: 12px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(120, 145, 171, 0.35);
+        border: 1px solid rgba(164, 194, 225, 0.38);
+    }
+    #asset-loading-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #00d8ff, #34f78d);
+        transition: width 0.2s ease;
+    }
+    #asset-loading-current {
+        margin: 9px 0 0;
+        font-size: 12px;
+        color: #9ec3df;
+        min-height: 1.2em;
+        word-break: break-all;
+    }
+    #asset-loading-failed {
+        margin-top: 10px;
+        font-size: 12px;
+        text-align: left;
+        border: 1px solid rgba(255, 152, 0, 0.35);
+        background: rgba(45, 28, 6, 0.5);
+        border-radius: 10px;
+        padding: 8px 10px;
+        color: #ffe3c0;
+    }
+    #asset-loading-failed ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+    }
+    #asset-loading-actions {
+        margin-top: 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+    #asset-loading-retry-btn,
+    #asset-loading-continue-btn {
+        border: 1px solid var(--seki-card-border);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(4, 14, 30, 0.95), rgba(8, 22, 44, 0.92));
+        color: var(--seki-text-main);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+        font-weight: 700;
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+    #asset-loading-retry-btn:hover,
+    #asset-loading-continue-btn:hover {
+        border-color: rgba(0, 216, 255, 0.75);
+    }
+    #asset-loading-continue-btn {
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+    }
     #squeeze-guess {
         position: absolute;
         top: 10%;
@@ -2217,6 +2332,25 @@
         </div>
     </div>
 
+    <div id="asset-loading-screen" class="hidden" aria-live="polite" aria-busy="true">
+        <div id="asset-loading-panel">
+            <h3>
+                LOADING S.E.K.I. PROTOCOL...
+                <span class="seki-loading-sub">[STRATEGY-EFFICIENCY-KILLER-INTERFACE]</span>
+            </h3>
+            <p id="asset-loading-text">0 / 0 (0%)</p>
+            <div id="asset-loading-progress-track">
+                <div id="asset-loading-bar"></div>
+            </div>
+            <p id="asset-loading-current">準備中...</p>
+            <div id="asset-loading-failed" class="hidden"></div>
+            <div id="asset-loading-actions" class="hidden">
+                <button id="asset-loading-retry-btn" type="button">再試行</button>
+                <button id="asset-loading-continue-btn" type="button">続行</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     (() => {
         const loginScreen = document.getElementById("login-screen");
@@ -2516,6 +2650,32 @@
         //他もあれば追加
         };
 
+        const IMAGE_FILES = [
+            "./images/agent.png",
+            "./images/alchemist.png",
+            "./images/angler.png",
+            "./images/astronomer.png",
+            "./images/crown.png",
+            "./images/dig up.png",
+            "./images/discard.png",
+            "./images/emperor.png",
+            "./images/fortuneteller.png",
+            "./images/gambler.png",
+            "./images/hacker.png",
+            "./images/hunter.png",
+            "./images/millionaire.png",
+            "./images/necromancer.png",
+            "./images/new_logo.png",
+            "./images/policeofficer.png",
+            "./images/politician.png",
+            "./images/priest.png",
+            "./images/reverse.png",
+            "./images/reverse_blue.jpg",
+            "./images/reverse_red.jpg",
+            "./images/thief.png",
+            "./images/trade.png"
+        ];
+
         /* --- 音声ファイルの登録 --- */
         const SOUND_FILES = {
             // 賭博師用
@@ -2578,6 +2738,7 @@
         let bgmGainNode = null;
         let isBgmMuted = false;
         let currentBgmType = null;
+        const preloadedImageUrls = new Set();
 
         // 音声ファイルをロードしてデコードする関数
         async function loadSound(key) {
@@ -2599,11 +2760,113 @@
             }
         }
 
-        /* --- 修正: 定義されているすべての音をプリロードする --- */
-        // SOUND_FILES にあるキーをすべて取得して、順番に読み込みを開始する
-        Object.keys(SOUND_FILES).forEach(key => {
-            loadSound(key);
-        });
+        function preloadImage(url) {
+            if (!url) return Promise.resolve();
+            if (preloadedImageUrls.has(url)) return Promise.resolve();
+
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    preloadedImageUrls.add(url);
+                    resolve();
+                };
+                img.onerror = () => reject(new Error(`画像読み込み失敗: ${url}`));
+                img.src = url;
+            });
+        }
+
+        function buildPreloadTargets() {
+            const soundTargets = Object.keys(SOUND_FILES).map(key => ({
+                kind: "sound",
+                key,
+                url: SOUND_FILES[key],
+                label: `sound:${key}`
+            }));
+            const imageTargets = IMAGE_FILES.map(url => ({
+                kind: "image",
+                key: url,
+                url,
+                label: `image:${url}`
+            }));
+            return soundTargets.concat(imageTargets);
+        }
+
+        async function preloadAllAssets(options = {}) {
+            const onProgress = (typeof options.onProgress === "function")
+                ? options.onProgress
+                : () => {};
+
+            const sourceTargets = (Array.isArray(options.targets) && options.targets.length > 0)
+                ? options.targets
+                : buildPreloadTargets();
+
+            const targets = sourceTargets.map(t => ({
+                kind: t.kind,
+                key: t.key,
+                url: t.url,
+                label: t.label || (t.kind === "sound" ? `sound:${t.key}` : `image:${t.url}`)
+            }));
+
+            const total = targets.length;
+            const concurrency = Math.max(1, Number(options.concurrency) || 4);
+            const workerCount = Math.min(concurrency, Math.max(total, 1));
+
+            let loaded = 0;
+            let failedCount = 0;
+            let cursor = 0;
+            const failed = [];
+
+            const emitProgress = (currentLabel) => {
+                const percent = total > 0 ? Math.round((loaded / total) * 100) : 100;
+                onProgress({
+                    loaded,
+                    total,
+                    percent,
+                    currentLabel: currentLabel || "",
+                    failedCount
+                });
+            };
+
+            emitProgress(total > 0 ? "開始準備中..." : "完了");
+
+            async function runWorker() {
+                while (true) {
+                    const currentIndex = cursor;
+                    cursor += 1;
+                    if (currentIndex >= total) return;
+
+                    const target = targets[currentIndex];
+                    try {
+                        if (target.kind === "sound") {
+                            const buf = await loadSound(target.key);
+                            if (!buf) throw new Error(`音声デコード失敗: ${target.key}`);
+                        } else {
+                            await preloadImage(target.url);
+                        }
+                    } catch (err) {
+                        failedCount += 1;
+                        failed.push({
+                            kind: target.kind,
+                            key: target.key,
+                            url: target.url,
+                            label: target.label,
+                            reason: err && err.message ? err.message : String(err)
+                        });
+                    } finally {
+                        loaded += 1;
+                        emitProgress(target.label);
+                    }
+                }
+            }
+
+            const workers = [];
+            for (let i = 0; i < workerCount; i++) workers.push(runWorker());
+            await Promise.all(workers);
+
+            emitProgress("完了");
+
+            return { loaded, total, failed };
+        }
 
         /* --- 再生関数 (効果音用) --- */
         async function playSoundEffect(type) {
@@ -3014,11 +3277,29 @@
         let lastCleanupTurnIdx = -1;
         let myRankPlayed = false; // ★追加: 順位決定音が再生済みかどうかのフラグ
         let lastChatTimeProcessed = 0; // ★追加: チャット吹き出し用
+        const ASSET_LOADING_MIN_MS = 3000;
+        let assetLoadingShownAt = 0;
+        let assetLoadingUiTimer = null;
+        let assetLoadingLastProgress = {
+            loaded: 0,
+            total: 0,
+            percent: 0,
+            failedCount: 0,
+            currentLabel: "準備中..."
+        };
         
 
         const els = {
             login: document.getElementById("login-screen"),
             game: document.getElementById("game-screen"),
+            assetLoadingScreen: document.getElementById("asset-loading-screen"),
+            assetLoadingBar: document.getElementById("asset-loading-bar"),
+            assetLoadingText: document.getElementById("asset-loading-text"),
+            assetLoadingCurrent: document.getElementById("asset-loading-current"),
+            assetLoadingFailed: document.getElementById("asset-loading-failed"),
+            assetLoadingActions: document.getElementById("asset-loading-actions"),
+            assetLoadingRetryBtn: document.getElementById("asset-loading-retry-btn"),
+            assetLoadingContinueBtn: document.getElementById("asset-loading-continue-btn"),
             roomName: document.getElementById("roomName"),
             roomSuggestion: document.getElementById("room-suggestion-panel"),
             playerName: document.getElementById("playerName"),
@@ -3040,6 +3321,166 @@
             btnJoin: document.getElementById("btn-join"),
             btnChat: document.getElementById("btn-chat-icon")
         };
+
+        let loadingActionResolver = null;
+
+        function escapeHtml(text) {
+            return String(text || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function shortAssetLabel(label) {
+            if (!label) return "-";
+            const plain = String(label);
+            const slashIdx = Math.max(plain.lastIndexOf("/"), plain.lastIndexOf("\\"));
+            const base = slashIdx >= 0 ? plain.substring(slashIdx + 1) : plain;
+            if (base.length <= 64) return base;
+            return base.substring(0, 61) + "...";
+        }
+
+        function getAssetLoadingTimePercent() {
+            if (!assetLoadingShownAt) return 100;
+            const elapsed = Date.now() - assetLoadingShownAt;
+            return Math.max(0, Math.min(100, Math.round((elapsed / ASSET_LOADING_MIN_MS) * 100)));
+        }
+
+        function renderAssetLoadingUI(progress) {
+            const loaded = Number(progress && progress.loaded) || 0;
+            const total = Number(progress && progress.total) || 0;
+            const percent = Number(progress && progress.percent) || 0;
+            const failedCount = Number(progress && progress.failedCount) || 0;
+            const currentLabel = shortAssetLabel(progress && progress.currentLabel ? progress.currentLabel : "準備中...");
+            const visualPercent = Math.min(percent, getAssetLoadingTimePercent());
+
+            if (els.assetLoadingText) {
+                const failedSuffix = failedCount > 0 ? ` / 失敗 ${failedCount}` : "";
+                els.assetLoadingText.innerText = `${loaded} / ${total} (${visualPercent}%)${failedSuffix}`;
+            }
+            if (els.assetLoadingBar) {
+                els.assetLoadingBar.style.width = `${Math.max(0, Math.min(visualPercent, 100))}%`;
+            }
+            if (els.assetLoadingCurrent) {
+                els.assetLoadingCurrent.innerText = `現在: ${currentLabel}`;
+            }
+        }
+
+        function updateAssetLoadingUI(progress) {
+            assetLoadingLastProgress = {
+                loaded: Number(progress && progress.loaded) || 0,
+                total: Number(progress && progress.total) || 0,
+                percent: Number(progress && progress.percent) || 0,
+                failedCount: Number(progress && progress.failedCount) || 0,
+                currentLabel: progress && progress.currentLabel ? progress.currentLabel : "準備中..."
+            };
+            renderAssetLoadingUI(assetLoadingLastProgress);
+        }
+
+        function showAssetLoadingScreen() {
+            if (!els.assetLoadingScreen) return;
+            els.assetLoadingScreen.classList.remove("hidden");
+            assetLoadingShownAt = Date.now();
+            assetLoadingLastProgress = {
+                loaded: 0,
+                total: 0,
+                percent: 0,
+                failedCount: 0,
+                currentLabel: "準備中..."
+            };
+            updateAssetLoadingUI({ loaded: 0, total: 0, percent: 0, currentLabel: "準備中...", failedCount: 0 });
+
+            if (assetLoadingUiTimer) clearInterval(assetLoadingUiTimer);
+            assetLoadingUiTimer = setInterval(() => {
+                renderAssetLoadingUI(assetLoadingLastProgress);
+            }, 80);
+
+            if (els.assetLoadingFailed) {
+                els.assetLoadingFailed.classList.add("hidden");
+                els.assetLoadingFailed.innerHTML = "";
+            }
+            if (els.assetLoadingActions) {
+                els.assetLoadingActions.classList.add("hidden");
+            }
+            if (els.assetLoadingRetryBtn) els.assetLoadingRetryBtn.disabled = false;
+            if (els.assetLoadingContinueBtn) els.assetLoadingContinueBtn.disabled = false;
+        }
+
+        async function hideAssetLoadingScreen() {
+            if (!els.assetLoadingScreen || els.assetLoadingScreen.classList.contains("hidden")) return;
+
+            const elapsed = Date.now() - assetLoadingShownAt;
+            const waitMs = Math.max(0, ASSET_LOADING_MIN_MS - elapsed);
+            if (waitMs > 0) {
+                await new Promise(resolve => setTimeout(resolve, waitMs));
+            }
+            renderAssetLoadingUI(assetLoadingLastProgress);
+
+            els.assetLoadingScreen.classList.add("hidden");
+            if (assetLoadingUiTimer) {
+                clearInterval(assetLoadingUiTimer);
+                assetLoadingUiTimer = null;
+            }
+            if (loadingActionResolver) {
+                loadingActionResolver("continue");
+                loadingActionResolver = null;
+            }
+        }
+
+        function renderAssetLoadingFailed(failedList) {
+            if (!els.assetLoadingFailed || !els.assetLoadingActions) return;
+
+            if (!Array.isArray(failedList) || failedList.length === 0) {
+                els.assetLoadingFailed.classList.add("hidden");
+                els.assetLoadingFailed.innerHTML = "";
+                els.assetLoadingActions.classList.add("hidden");
+                return;
+            }
+
+            const firstFive = failedList.slice(0, 5);
+            const restCount = Math.max(0, failedList.length - firstFive.length);
+            const listHtml = firstFive
+                .map(item => `<li>${escapeHtml(shortAssetLabel(item && item.label ? item.label : item.url))}</li>`)
+                .join("");
+            const moreText = restCount > 0 ? `<div>...ほか ${restCount} 件</div>` : "";
+
+            els.assetLoadingFailed.innerHTML = `
+                <div>読み込み失敗: ${failedList.length} 件</div>
+                <ul>${listHtml}</ul>
+                ${moreText}
+            `;
+            els.assetLoadingFailed.classList.remove("hidden");
+            els.assetLoadingActions.classList.remove("hidden");
+        }
+
+        function waitAssetLoadingAction() {
+            if (!els.assetLoadingRetryBtn || !els.assetLoadingContinueBtn) return Promise.resolve("continue");
+
+            if (loadingActionResolver) {
+                loadingActionResolver("continue");
+                loadingActionResolver = null;
+            }
+
+            return new Promise(resolve => {
+                loadingActionResolver = resolve;
+
+                els.assetLoadingRetryBtn.onclick = () => {
+                    if (!loadingActionResolver) return;
+                    const fn = loadingActionResolver;
+                    loadingActionResolver = null;
+                    fn("retry");
+                };
+
+                els.assetLoadingContinueBtn.onclick = () => {
+                    if (!loadingActionResolver) return;
+                    const fn = loadingActionResolver;
+                    loadingActionResolver = null;
+                    fn("continue");
+                };
+            });
+        }
 
         const ROOM_CAPACITY = 5;
         let roomSuggestionTimer = null;
@@ -3535,6 +3976,50 @@
                 await db.ref().update(updates);
                 joined = true;
 
+                showAssetLoadingScreen();
+
+                let failedAssets = [];
+                let retryTargets = null;
+                while (true) {
+                    const preloadResult = await preloadAllAssets({
+                        targets: retryTargets,
+                        concurrency: 4,
+                        onProgress: updateAssetLoadingUI
+                    });
+
+                    failedAssets = preloadResult.failed || [];
+                    if (failedAssets.length === 0) {
+                        renderAssetLoadingFailed([]);
+                        break;
+                    }
+
+                    console.warn("アセットプリロード失敗一覧", failedAssets);
+                    renderAssetLoadingFailed(failedAssets);
+
+                    const action = await waitAssetLoadingAction();
+                    if (action === "retry") {
+                        retryTargets = failedAssets.map(item => ({
+                            kind: item.kind,
+                            key: item.key,
+                            url: item.url,
+                            label: item.label
+                        }));
+
+                        renderAssetLoadingFailed([]);
+                        updateAssetLoadingUI({
+                            loaded: 0,
+                            total: retryTargets.length,
+                            percent: 0,
+                            currentLabel: "再試行を開始...",
+                            failedCount: 0
+                        });
+                        continue;
+                    }
+                    break;
+                }
+
+                await hideAssetLoadingScreen();
+
                 setupEffectListener();
                 playBgm('BGM_LOBBY');
 
@@ -3563,6 +4048,7 @@
                 els.game.classList.remove("hidden");
                 document.getElementById("room-display").innerText = `部屋: ${room}`;
             } catch(e) { 
+                await hideAssetLoadingScreen();
                 showInfoModal("通信エラー", e.message); 
                 els.btnJoin.disabled = false;
             }
