@@ -1368,6 +1368,34 @@
         overflow: hidden;
     }
     #role-draft-monitor {
+        --role-draft-monitor-gap: 6px;
+        --role-draft-monitor-padding: 8px;
+        --role-draft-stage-gap: 6px;
+        --role-draft-headline-padding-y: 4px;
+        --role-draft-headline-padding-x: 7px;
+        --role-draft-headline-font-size: 11px;
+        --role-draft-choice-gap: 4px;
+        --role-draft-card-min-height: 56px;
+        --role-draft-card-padding-y: 6px;
+        --role-draft-card-padding-x: 6px;
+        --role-draft-card-gap: 3px;
+        --role-draft-group-font-size: 10px;
+        --role-draft-role-font-size: clamp(10px, 2.2vw, 15px);
+        --role-draft-role-line-height: 1.12;
+        --role-draft-role-jp-font-size: 11px;
+        --role-draft-placeholder-font-size: 11px;
+        --role-draft-detail-font-size: 9.5px;
+        --role-draft-detail-min-height: 24px;
+        --role-draft-detail-padding-y: 3px;
+        --role-draft-detail-padding-x: 7px;
+        --role-draft-footer-gap: 6px;
+        --role-draft-footer-padding-y: 5px;
+        --role-draft-footer-padding-x: 7px;
+        --role-draft-selected-font-size: 10.5px;
+        --role-draft-confirm-font-size: 14px;
+        --role-draft-confirm-padding-y: 7px;
+        --role-draft-confirm-padding-x: 12px;
+        --role-draft-confirm-min-width: 102px;
         position: absolute;
         inset: 0;
         z-index: 45;
@@ -1375,8 +1403,8 @@
         flex-direction: column;
         justify-content: flex-start;
         align-items: stretch;
-        gap: 6px;
-        padding: 8px;
+        gap: var(--role-draft-monitor-gap);
+        padding: var(--role-draft-monitor-padding);
         box-sizing: border-box;
         border-radius: 18px;
         border: 1px solid rgba(0, 216, 255, 0.25);
@@ -1416,17 +1444,17 @@
         z-index: 1;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--role-draft-stage-gap);
         flex: 1;
         min-height: 0;
     }
     .role-draft-headline {
         margin: 0;
-        padding: 4px 7px;
+        padding: var(--role-draft-headline-padding-y) var(--role-draft-headline-padding-x);
         border-radius: 10px;
         border: 1px solid rgba(0, 216, 255, 0.32);
         background: rgba(2, 10, 20, 0.8);
-        font-size: 11px;
+        font-size: var(--role-draft-headline-font-size);
         letter-spacing: 0.05em;
         text-shadow: 0 0 8px rgba(0, 216, 255, 0.28);
     }
@@ -1448,7 +1476,7 @@
     .role-draft-choice-row {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: var(--role-draft-choice-gap);
         width: 100%;
         min-height: 0;
         align-items: stretch;
@@ -1457,7 +1485,7 @@
     .role-draft-card {
         flex: 1 1 0;
         min-width: 0;
-        min-height: 56px;
+        min-height: var(--role-draft-card-min-height);
         border-radius: 10px;
         border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.54);
         background: linear-gradient(
@@ -1466,12 +1494,12 @@
             rgba(3, 10, 21, 0.9) 65%
         );
         color: #eff6ff;
-        padding: 6px;
+        padding: var(--role-draft-card-padding-y) var(--role-draft-card-padding-x);
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        gap: 3px;
+        justify-content: flex-start;
+        gap: var(--role-draft-card-gap);
         transition: transform 0.18s ease, border-color 0.18s ease, opacity 0.25s ease;
         touch-action: manipulation;
     }
@@ -1495,23 +1523,25 @@
         cursor: default;
     }
     .role-draft-group {
-        font-size: 10px;
+        font-size: var(--role-draft-group-font-size);
         color: var(--role-accent, #9ce8ff);
         letter-spacing: 0.08em;
+        line-height: 1.15;
         text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.35);
     }
     .role-draft-role {
-        font-size: clamp(10px, 2.2vw, 15px);
+        font-size: var(--role-draft-role-font-size);
         font-family: var(--font-display-strong);
         letter-spacing: 0.04em;
-        line-height: 1.12;
+        line-height: var(--role-draft-role-line-height);
         white-space: nowrap;
         overflow: hidden;
         word-break: normal;
         text-overflow: clip;
     }
     .role-draft-role-jp {
-        font-size: 11px;
+        font-size: var(--role-draft-role-jp-font-size);
+        line-height: 1.2;
         color: #d9ebff;
     }
     .role-draft-summary {
@@ -1524,7 +1554,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: var(--role-draft-placeholder-font-size);
         color: rgba(239, 246, 255, 0.86);
         text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
         letter-spacing: 0.08em;
@@ -1532,17 +1562,18 @@
     .role-draft-card-actions {
         display: flex;
         justify-content: flex-end;
-        margin-top: 1px;
+        margin-top: auto;
+        padding-top: 1px;
     }
     .role-draft-detail-btn {
         border: 1px solid rgba(182, 207, 229, 0.72);
         border-radius: 10px;
         background: rgba(10, 28, 48, 0.92);
         color: #e8f4ff;
-        font-size: 9.5px;
+        font-size: var(--role-draft-detail-font-size);
         letter-spacing: 0.04em;
-        padding: 3px 7px;
-        min-height: 24px;
+        padding: var(--role-draft-detail-padding-y) var(--role-draft-detail-padding-x);
+        min-height: var(--role-draft-detail-min-height);
         cursor: pointer;
         touch-action: manipulation;
     }
@@ -1553,9 +1584,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 6px;
+        gap: var(--role-draft-footer-gap);
         flex-wrap: nowrap;
-        padding: 5px 7px;
+        padding: var(--role-draft-footer-padding-y) var(--role-draft-footer-padding-x);
         border-radius: 10px;
         border: 1px solid rgba(0, 216, 255, 0.28);
         background: rgba(2, 10, 20, 0.82);
@@ -1563,7 +1594,7 @@
     .role-draft-selected-label {
         flex: 1;
         min-width: 0;
-        font-size: 10.5px;
+        font-size: var(--role-draft-selected-font-size);
         color: #d9ebff;
         white-space: nowrap;
         overflow: hidden;
@@ -1574,10 +1605,10 @@
         border-radius: 14px;
         background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
         color: #f4fbff;
-        padding: 7px 12px;
+        padding: var(--role-draft-confirm-padding-y) var(--role-draft-confirm-padding-x);
         min-height: 44px;
-        min-width: 102px;
-        font-size: 14px;
+        min-width: var(--role-draft-confirm-min-width);
+        font-size: var(--role-draft-confirm-font-size);
         font-weight: 700;
         letter-spacing: 0.05em;
         font-family: var(--font-ui);
@@ -1591,85 +1622,62 @@
         border-color: rgba(132, 147, 168, 0.62);
     }
     #role-draft-monitor.role-draft-density-compact {
-        padding: 6px;
-        gap: 4px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-stage {
-        gap: 4px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-headline {
-        padding: 3px 6px;
-        font-size: 10px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-choice-row {
-        gap: 3px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-card {
-        min-height: 48px;
-        padding: 5px;
-        gap: 2px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-group {
-        font-size: 9px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-role-jp {
-        font-size: 10px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-detail-btn {
-        min-height: 22px;
-        font-size: 9px;
-        padding: 2px 6px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-footer {
-        gap: 4px;
-        padding: 4px 6px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-selected-label {
-        font-size: 9.5px;
-    }
-    #role-draft-monitor.role-draft-density-compact .role-draft-confirm-btn {
-        min-width: 94px;
-        font-size: 13px;
-        padding: 6px 10px;
+        --role-draft-monitor-padding: 6px;
+        --role-draft-monitor-gap: 4px;
+        --role-draft-stage-gap: 4px;
+        --role-draft-headline-padding-y: 3px;
+        --role-draft-headline-padding-x: 6px;
+        --role-draft-headline-font-size: 10px;
+        --role-draft-choice-gap: 3px;
+        --role-draft-card-min-height: 48px;
+        --role-draft-card-padding-y: 5px;
+        --role-draft-card-padding-x: 5px;
+        --role-draft-card-gap: 2px;
+        --role-draft-group-font-size: 9px;
+        --role-draft-role-font-size: clamp(9px, 2vw, 13px);
+        --role-draft-role-jp-font-size: 10px;
+        --role-draft-placeholder-font-size: 10px;
+        --role-draft-detail-font-size: 9px;
+        --role-draft-detail-min-height: 22px;
+        --role-draft-detail-padding-y: 2px;
+        --role-draft-detail-padding-x: 6px;
+        --role-draft-footer-gap: 4px;
+        --role-draft-footer-padding-y: 4px;
+        --role-draft-footer-padding-x: 6px;
+        --role-draft-selected-font-size: 9.5px;
+        --role-draft-confirm-min-width: 94px;
+        --role-draft-confirm-font-size: 13px;
+        --role-draft-confirm-padding-y: 6px;
+        --role-draft-confirm-padding-x: 10px;
     }
     #role-draft-monitor.role-draft-density-xcompact {
-        padding: 5px;
-        gap: 3px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-headline {
-        padding: 2px 5px;
-        font-size: 9.5px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-choice-row {
-        gap: 2px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-card {
-        min-height: 42px;
-        padding: 4px;
-        gap: 2px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-role {
-        font-size: clamp(8.5px, 2vw, 12px);
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-role-jp {
-        font-size: 9px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-detail-btn {
-        min-height: 20px;
-        font-size: 8.5px;
-        padding: 1px 5px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-footer {
-        padding: 3px 5px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-selected-label {
-        font-size: 9px;
-    }
-    #role-draft-monitor.role-draft-density-xcompact .role-draft-confirm-btn {
-        min-width: 88px;
-        font-size: 12px;
-        padding: 5px 8px;
-        min-height: 44px;
+        --role-draft-monitor-padding: 5px;
+        --role-draft-monitor-gap: 3px;
+        --role-draft-stage-gap: 3px;
+        --role-draft-headline-padding-y: 2px;
+        --role-draft-headline-padding-x: 5px;
+        --role-draft-headline-font-size: 9.5px;
+        --role-draft-choice-gap: 2px;
+        --role-draft-card-min-height: 42px;
+        --role-draft-card-padding-y: 4px;
+        --role-draft-card-padding-x: 4px;
+        --role-draft-card-gap: 2px;
+        --role-draft-group-font-size: 8.5px;
+        --role-draft-role-font-size: clamp(8.5px, 2vw, 12px);
+        --role-draft-role-jp-font-size: 9px;
+        --role-draft-placeholder-font-size: 9.5px;
+        --role-draft-detail-font-size: 8.5px;
+        --role-draft-detail-min-height: 20px;
+        --role-draft-detail-padding-y: 1px;
+        --role-draft-detail-padding-x: 5px;
+        --role-draft-footer-gap: 3px;
+        --role-draft-footer-padding-y: 3px;
+        --role-draft-footer-padding-x: 5px;
+        --role-draft-selected-font-size: 9px;
+        --role-draft-confirm-min-width: 88px;
+        --role-draft-confirm-font-size: 12px;
+        --role-draft-confirm-padding-y: 5px;
+        --role-draft-confirm-padding-x: 8px;
     }
     .role-draft-text-block {
         flex: 1;
@@ -1717,59 +1725,44 @@
     }
     @media (max-width: 600px) {
         #role-draft-monitor {
-            padding: 7px;
-            gap: 5px;
-        }
-        .role-draft-headline {
-            padding: 3px 6px;
-            font-size: 10px;
-        }
-        .role-draft-card {
-            min-height: 52px;
-            padding: 5px;
-        }
-        .role-draft-footer {
-            padding: 4px 6px;
-        }
-        .role-draft-selected-label {
-            font-size: 10px;
-        }
-        .role-draft-confirm-btn {
-            min-width: 96px;
-            font-size: 13px;
-            padding: 6px 10px;
-            min-height: 44px;
+            --role-draft-monitor-padding: 7px;
+            --role-draft-monitor-gap: 5px;
+            --role-draft-stage-gap: 5px;
+            --role-draft-headline-padding-y: 3px;
+            --role-draft-headline-padding-x: 6px;
+            --role-draft-headline-font-size: 10px;
+            --role-draft-card-min-height: 52px;
+            --role-draft-card-padding-y: 5px;
+            --role-draft-card-padding-x: 5px;
+            --role-draft-footer-padding-y: 4px;
+            --role-draft-footer-padding-x: 6px;
+            --role-draft-selected-font-size: 10px;
+            --role-draft-confirm-min-width: 96px;
+            --role-draft-confirm-font-size: 13px;
+            --role-draft-confirm-padding-y: 6px;
+            --role-draft-confirm-padding-x: 10px;
         }
     }
     @media (max-height: 760px) {
         #role-draft-monitor {
-            padding: 6px;
-            gap: 4px;
-        }
-        .role-draft-headline {
-            padding: 3px 6px;
-            font-size: 10px;
-        }
-        .role-draft-card {
-            min-height: 50px;
-            padding: 5px;
-            gap: 2px;
-        }
-        .role-draft-group {
-            font-size: 9px;
-        }
-        .role-draft-role-jp {
-            font-size: 10px;
-        }
-        .role-draft-detail-btn {
-            min-height: 22px;
-            padding: 2px 6px;
-        }
-        .role-draft-footer {
-            padding: 4px 6px;
-        }
-        .role-draft-selected-label {
-            font-size: 9.5px;
+            --role-draft-monitor-padding: 6px;
+            --role-draft-monitor-gap: 4px;
+            --role-draft-stage-gap: 4px;
+            --role-draft-headline-padding-y: 3px;
+            --role-draft-headline-padding-x: 6px;
+            --role-draft-headline-font-size: 10px;
+            --role-draft-card-min-height: 50px;
+            --role-draft-card-padding-y: 5px;
+            --role-draft-card-padding-x: 5px;
+            --role-draft-card-gap: 2px;
+            --role-draft-group-font-size: 9px;
+            --role-draft-role-jp-font-size: 10px;
+            --role-draft-detail-min-height: 22px;
+            --role-draft-detail-padding-y: 2px;
+            --role-draft-detail-padding-x: 6px;
+            --role-draft-footer-padding-y: 4px;
+            --role-draft-footer-padding-x: 6px;
+            --role-draft-selected-font-size: 9.5px;
         }
     }
     .role-badge-group-mask {
@@ -4200,16 +4193,28 @@
             updateMyHandOverlap(els.hand);
         }
 
+        function refreshRoleDraftMonitorLayout() {
+            const monitor = els.roleDraftMonitor || document.getElementById("role-draft-monitor");
+            if (!monitor || monitor.classList.contains("hidden")) return;
+            if (!monitor.dataset.roleDraftPhase) return;
+            applyRoleDraftLayoutDensity(monitor);
+        }
+
         window.addEventListener("resize", () => {
             applyMyHandLayout();
+            refreshRoleDraftMonitorLayout();
         });
         window.addEventListener("orientationchange", () => {
             setTimeout(() => {
                 applyMyHandLayout();
+                refreshRoleDraftMonitorLayout();
             }, 140);
         });
         if (window.visualViewport && typeof window.visualViewport.addEventListener === "function") {
-            window.visualViewport.addEventListener("resize", applyMyHandLayout);
+            window.visualViewport.addEventListener("resize", () => {
+                applyMyHandLayout();
+                refreshRoleDraftMonitorLayout();
+            });
         }
 
         function escapeHtml(text) {
@@ -4597,17 +4602,42 @@
 
         function fitRoleDraftRoleText(rootEl) {
             const scope = rootEl || document;
-            const targets = scope.querySelectorAll(".fit-role-text");
-            targets.forEach((el) => {
-                if (!el || !el.clientWidth) return;
-                el.style.fontSize = "";
-                let currentSize = parseFloat(window.getComputedStyle(el).fontSize) || 14;
+            const allTargets = Array.from(scope.querySelectorAll(".fit-role-text"));
+            if (!allTargets.length) return;
+
+            const groupedTargets = new Map();
+            allTargets.forEach((el) => {
+                const row = el.closest(".role-draft-choice-row") || scope;
+                if (!groupedTargets.has(row)) groupedTargets.set(row, []);
+                groupedTargets.get(row).push(el);
+            });
+
+            groupedTargets.forEach((targets) => {
+                const visibleTargets = targets.filter((el) => el && el.clientWidth > 0);
+                if (!visibleTargets.length) return;
+
+                visibleTargets.forEach((el) => {
+                    el.style.fontSize = "";
+                });
+
+                let sharedSize = Math.min(...visibleTargets.map((el) => parseFloat(window.getComputedStyle(el).fontSize) || 14));
                 const minSize = 8;
+                const needsShrink = () => visibleTargets.some((el) => (el.scrollWidth - el.clientWidth) > 0.5);
                 let guard = 0;
-                while (el.scrollWidth > el.clientWidth && currentSize > minSize && guard < 24) {
-                    currentSize -= 0.5;
-                    el.style.fontSize = `${currentSize}px`;
+
+                while (needsShrink() && sharedSize > minSize && guard < 24) {
+                    sharedSize -= 0.5;
+                    const px = `${sharedSize}px`;
+                    visibleTargets.forEach((el) => {
+                        el.style.fontSize = px;
+                    });
                     guard += 1;
+                }
+
+                if (sharedSize <= minSize) {
+                    visibleTargets.forEach((el) => {
+                        el.style.fontSize = `${minSize}px`;
+                    });
                 }
             });
         }
