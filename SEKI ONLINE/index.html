@@ -4388,7 +4388,7 @@ class Core {
         "HUNTER": "./images/hunter.png",
         "GAMBLER": "./images/gambler.png",
         "CROWN": "./images/crown.png",
-        "MILLIONAIRE": "./images/millionaire.png",
+        "MILLIONAIRE": "./images/billionaire.png",
         "EMPEROR": "./images/emperor.png",
         "HACKER": "./images/hacker.png",
         "POLITICIAN": "./images/politician.png",
@@ -4413,7 +4413,7 @@ class Core {
             "./images/gambler.png",
             "./images/hacker.png",
             "./images/hunter.png",
-            "./images/millionaire.png",
+            "./images/billionaire.png",
             "./images/necromancer.png",
             "./images/new_logo.png",
             "./images/policeofficer.png",
@@ -4467,7 +4467,7 @@ class Core {
             'SKILL_HUNTER': "./sounds/skill_hunter.mp3",
             'SKILL_GAMBLER': "./sounds/skill_gambler.mp3",
             'SKILL_CROWN': "./sounds/skill_crown.mp3",
-            'SKILL_MILLIONAIRE': "./sounds/skill_millionaire.mp3",
+            'SKILL_MILLIONAIRE': "./sounds/skill_billionaire.mp3",
             'SKILL_EMPEROR': "./sounds/skill_emperor.mp3",
             'SKILL_HACKER': "./sounds/skill_hacker.mp3",
             'SKILL_POLITICIAN': "./sounds/skill_politician.mp3",
@@ -4476,7 +4476,33 @@ class Core {
             'SKILL_NECROMANCER': "./sounds/skill_priest.mp3",
             'SKILL_AGENT': "./sounds/skill_agent.mp3",
             'SKILL_ASTRONOMER': "./sounds/skill_astronomer.mp3",
+            // カットイン属性音
+            'CUTIN_STRATEGY': "./sounds/strategy.mp3",
+            'CUTIN_EFFICIENCY': "./sounds/efficiency.mp3",
+            'CUTIN_KILLER': "./sounds/killer.mp3",
         };
+        // 音量テーブル（0.0〜1.0）
+        // ここにキーを追加すると個別調整できます
+        const SOUND_VOLUMES = {
+            defaultSfx: 0.6,
+            defaultBgm: 0.08,
+            // 例:
+            SKILL_EMPEROR: 0.4,
+            SKILL_AGENT: 0.8,
+            SKILL_ASTRONOMER: 0.4,
+            SKILL_POLICE_OFFICER: 0.4,
+            SKILL_PRIEST: 0.4,
+            SYSTEM_ONLINE: 0.3,
+            // DRUM: 0.4,
+            // BGM_BATTLE: 0.06,
+        };
+
+        function getSoundVolume(type, fallback) {
+            const v = (SOUND_VOLUMES && SOUND_VOLUMES[type] !== undefined)
+                ? SOUND_VOLUMES[type]
+                : fallback;
+            return Math.max(0, Math.min(1, Number(v)));
+        }
         
         /* ===============================================
            iPhone対応版 音声システム (Web Audio API)
@@ -4642,7 +4668,7 @@ class Core {
 
             // 4. 音量調整 (iPhoneでも効きます)
             const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 0.6; // 効果音の音量 (0.0〜1.0)
+            gainNode.gain.value = getSoundVolume(type, SOUND_VOLUMES.defaultSfx); // 効果音の音量 (0.0〜1.0)
 
             // 5. 接続: Source -> Gain -> Speaker
             source.connect(gainNode);
@@ -4679,8 +4705,8 @@ class Core {
 
             // BGM用音量ノード
             bgmGainNode = audioCtx.createGain();
-            // ★ここが重要: iPhone用にBGMをかなり小さく設定 (0.05くらいが丁度いいことが多い)
-            bgmGainNode.gain.value = 0.08; 
+            // キー別設定があればそれを使用、なければデフォルト
+            bgmGainNode.gain.value = getSoundVolume(type, SOUND_VOLUMES.defaultBgm);
 
             // 接続
             bgmSource.connect(bgmGainNode);
@@ -7134,10 +7160,6 @@ class Core {
                         const pName = players[pid].name;
                         
                         if (typeof playCutInAnimation === 'function') playCutInAnimation(rKey, rNameJP, pName);
-                        
-                        const sndKey = 'SKILL_' + rKey;
-                        if (typeof SOUND_FILES !== 'undefined' && SOUND_FILES[sndKey]) playSoundEffect(sndKey);
-                        else playSoundEffect('SKILL');
                     }
                 });
                 
@@ -7148,8 +7170,6 @@ class Core {
                             const rNameJP = (typeof ROLE_INFO !== 'undefined' && ROLE_INFO[rKey]) ? ROLE_INFO[rKey].jp : rKey;
                             const pName = players[pid].name;
                             if (typeof playCutInAnimation === 'function') playCutInAnimation(rKey, rNameJP, pName);
-                            const sndKey = 'SKILL_' + rKey;
-                            playSoundEffect(typeof SOUND_FILES !== 'undefined' && SOUND_FILES[sndKey] ? sndKey : 'SKILL');
                         }
                     }
                 });
@@ -11277,12 +11297,20 @@ const CUT_IN_GROUP_TO_ATTR = {
     EFFICIENCY: "e",
     KILLER: "k"
 };
+const CUT_IN_DURATION_MS = 4000;
+const CUT_IN_ATTR_SOUND_KEYS = {
+    s: "CUTIN_STRATEGY",
+    e: "CUTIN_EFFICIENCY",
+    k: "CUTIN_KILLER"
+};
+const CUT_IN_ROLE_SOUND_GAP_MS = 0;
 const CUT_IN_RANDOM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?";
 let cutInImpactTimer = null;
 let cutInPulseOffTimer = null;
 let cutInDecodeTimerEng = null;
 let cutInDecodeTimerJp = null;
 let cutInEndTimer = null;
+let cutInRoleSoundTimer = null;
 let cutInDecodeToken = 0;
 let cutInCanvasRef = null;
 let cutInCanvasCtx = null;
@@ -11298,6 +11326,7 @@ function clearCutInTimers() {
     clearTimeout(cutInDecodeTimerEng);
     clearTimeout(cutInDecodeTimerJp);
     clearTimeout(cutInEndTimer);
+    clearTimeout(cutInRoleSoundTimer);
 }
 
 function resolveCutInAttr(roleKey) {
@@ -11308,6 +11337,45 @@ function resolveCutInAttr(roleKey) {
         groupKey = ROLE_TO_GROUP[roleKey];
     }
     return CUT_IN_GROUP_TO_ATTR[groupKey] || "s";
+}
+
+function resolveRoleSkillSoundKey(roleKey) {
+    const skillKey = `SKILL_${roleKey}`;
+    if (typeof SOUND_FILES !== "undefined" && SOUND_FILES[skillKey]) return skillKey;
+    return "SKILL";
+}
+
+async function playCutInSoundSequence(attrCode, roleKey, token) {
+    const roleSoundKey = resolveRoleSkillSoundKey(roleKey);
+    const attrSoundKey = CUT_IN_ATTR_SOUND_KEYS[attrCode];
+    if (!attrSoundKey || typeof SOUND_FILES === "undefined" || !SOUND_FILES[attrSoundKey]) {
+        playSoundEffect(roleSoundKey);
+        return;
+    }
+
+    let attrDurationMs = 0;
+    try {
+        let attrBuffer = audioBuffers[attrSoundKey];
+        if (!attrBuffer) {
+            attrBuffer = await loadSound(attrSoundKey);
+        }
+        if (!attrBuffer) {
+            playSoundEffect(roleSoundKey);
+            return;
+        }
+        attrDurationMs = Math.max(0, Math.round((attrBuffer.duration || 0) * 1000));
+        if (token !== cutInDecodeToken) return;
+        await playSoundEffect(attrSoundKey);
+    } catch (e) {
+        console.warn(`属性音再生失敗: ${attrSoundKey}`, e);
+        playSoundEffect(roleSoundKey);
+        return;
+    }
+
+    cutInRoleSoundTimer = setTimeout(() => {
+        if (token !== cutInDecodeToken) return;
+        playSoundEffect(roleSoundKey);
+    }, attrDurationMs + CUT_IN_ROLE_SOUND_GAP_MS);
 }
 
 function getCutInPalette(attrCode) {
@@ -11514,6 +11582,7 @@ function playCutInAnimation(roleKey, roleNameJp, playerName) {
     overlay.classList.add("active");
 
     startCutInCanvas(attrCode);
+    playCutInSoundSequence(attrCode, roleKey, token);
 
     let impactDelay = 500;
     if (attrCode === "e") impactDelay = 400;
@@ -11545,7 +11614,7 @@ function playCutInAnimation(roleKey, roleNameJp, playerName) {
         overlay.classList.add("hidden");
         overlay.setAttribute("aria-hidden", "true");
         stopCutInCanvas();
-    }, 2500);
+    }, CUT_IN_DURATION_MS);
 }
 
 /* --- ★追加: 演出受信リスナー --- */
