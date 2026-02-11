@@ -6,58 +6,268 @@
     <title>SEKI Online</title>
     <link rel="stylesheet" href="styles/fonts.css">
     <style>
-    /* ベース設定：フォントをモダンに、背景をリッチに */
-
-    body { 
-        font-family: var(--font-ui);
-        
-        /* 背景を固定（スクロールしても付いてくるように） */
-        background: radial-gradient(circle, #2e7d32 0%, #1b5e20 60%, #003300 100%);
-        background-attachment: fixed; /* ★重要 */
-        
-        color: white; 
-        margin: 0; 
-        text-align: center; 
-        user-select: none; 
-        -webkit-tap-highlight-color: transparent;
-        
-        min-height: 100dvh;       /* スマホ対応 */
-
-        /* ★ここでスクロールさせる（ブラウザの右端に出る） */
-        overflow-y: auto; 
-        overflow-x: hidden;
-
-        display: flex;        /* Flexbox化 */
-        flex-direction: column;
-    }
-
-    /* 共通レイアウト */
-    #game-screen { 
-        padding: 0;           /* パディングは内部で調整 */
-        margin: 0 auto;
-        width: 100%;
-        max-width: 800px;     /* 横幅制限 */
-        
-        /* 高さは中身に合わせて伸びる */
-        height: auto;
-        min-height: 100vh;
-
-        display: flex;
-        flex-direction: column;
-        overflow: visible;     /* ここもスクロール禁止 */
-    }
-    #header-info {
-        flex: 0 0 40px;       /* 高さ40px固定 */
-        padding: 10px;        /* 余白 */
-    }
-    .hidden { display: none !important; }
-    
-    /* --- S.E.K.I. タイトル画面（ログイン専用） --- */
-    #login-screen {
+    /* ベース設定：タイトル画面に寄せた全体テーマ */
+    :root {
         --seki-s: #00d8ff;
         --seki-e: #34f78d;
         --seki-k: #ff355e;
         --seki-bg: #030a15;
+        --seki-bg-deep: #02060e;
+        --seki-bg-mid: #050d19;
+        --seki-bg-bright: #0e2342;
+        --seki-text-main: #eff6ff;
+        --seki-text-sub: #d9ebff;
+        --seki-text-muted: #9cb3c9;
+        --seki-danger: #ef5350;
+        --seki-warning: #ffeb3b;
+        --seki-success: #34f78d;
+        --seki-card-border: rgba(165, 205, 255, 0.35);
+        --seki-panel-border: rgba(0, 216, 255, 0.32);
+        --seki-panel-bg: rgba(4, 11, 23, 0.76);
+        --seki-panel-bg-soft: rgba(6, 16, 32, 0.55);
+        --seki-radius-sm: 8px;
+        --seki-radius-md: 12px;
+        --seki-radius-lg: 18px;
+        --seki-shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.36);
+        --seki-shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.52);
+        --seki-shadow-glow: 0 0 26px rgba(0, 216, 255, 0.22);
+        --seki-transition-fast: 0.2s ease;
+        --seki-transition-mid: 0.3s ease;
+    }
+
+    body {
+        font-family: var(--font-ui);
+        background:
+            radial-gradient(circle at 18% 14%, rgba(0, 216, 255, 0.14), transparent 36%),
+            radial-gradient(circle at 82% 24%, rgba(255, 53, 94, 0.11), transparent 34%),
+            radial-gradient(circle at 70% 78%, rgba(52, 247, 141, 0.08), transparent 36%),
+            radial-gradient(circle at 50% 110%, #0e2342 0%, #050d19 48%, #02060e 100%);
+        background-attachment: fixed;
+        color: var(--seki-text-main);
+        margin: 0;
+        text-align: center;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 100dvh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 共通レイアウト */
+    #game-screen {
+        position: relative;
+        isolation: isolate;
+        padding: 0;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 860px;
+        height: auto;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.5), rgba(2, 8, 18, 0.35));
+        border-left: 1px solid rgba(0, 216, 255, 0.11);
+        border-right: 1px solid rgba(0, 216, 255, 0.11);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+    #game-screen::before,
+    #game-screen::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+    }
+    #game-screen::before {
+        background:
+            linear-gradient(rgba(45, 100, 190, 0.11) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(45, 100, 190, 0.11) 1px, transparent 1px);
+        background-size: 42px 42px;
+        opacity: 0.45;
+        animation: gameGridShift 22s linear infinite;
+    }
+    #game-screen::after {
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.026) 0px,
+            rgba(255, 255, 255, 0.026) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.24;
+    }
+    #header-info {
+        flex: 0 0 42px;
+        padding: 8px 10px;
+    }
+    .hidden { display: none !important; }
+    .seki-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+        font-size: 12px;
+        height: 42px;
+        border-bottom: 1px solid rgba(0, 216, 255, 0.22);
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.12));
+        backdrop-filter: blur(6px);
+    }
+    .seki-topbar-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .seki-msg {
+        margin-top: 2px;
+        color: var(--seki-warning);
+        font-weight: bold;
+        font-size: 12px;
+        height: 18px;
+        line-height: 18px;
+        white-space: nowrap;
+        text-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
+    }
+    .seki-controls {
+        margin-top: 5px;
+    }
+    .seki-controls .seki-btn {
+        min-width: 84px;
+    }
+    .seki-btn {
+        border: 1px solid var(--seki-card-border);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(4, 14, 30, 0.95), rgba(8, 22, 44, 0.92));
+        color: var(--seki-text-main);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 700;
+        padding: 5px 12px;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+        transition: transform var(--seki-transition-fast), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast), filter var(--seki-transition-fast);
+    }
+    .seki-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(0, 216, 255, 0.66);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45), 0 0 14px rgba(0, 216, 255, 0.2);
+    }
+    .seki-btn:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+    .seki-btn:disabled,
+    .seki-btn.is-disabled {
+        background: rgba(84, 99, 118, 0.85);
+        border-color: rgba(132, 147, 168, 0.7);
+        color: rgba(239, 246, 255, 0.7);
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        opacity: 0.78;
+    }
+    .seki-btn-mini {
+        font-size: 12px;
+        padding: 4px 9px;
+    }
+    .seki-btn-host {
+        padding: 5px 12px;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        border-radius: 18px;
+    }
+    .seki-btn-gold {
+        background: linear-gradient(135deg, #bd8b14, #fbc02d 52%, #ffe082);
+        color: #2f2214;
+        border-color: rgba(255, 230, 156, 0.62);
+    }
+    .seki-btn-accent {
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+        color: #effbff;
+        border-color: rgba(0, 216, 255, 0.65);
+    }
+    .seki-btn-danger {
+        background: linear-gradient(135deg, #7c132a, #c21e44 46%, #ff355e);
+        border-color: rgba(255, 143, 166, 0.75);
+        color: #fff5f8;
+    }
+    .seki-btn-soft {
+        background: linear-gradient(135deg, #2c3b54, #546e7a);
+        border-color: rgba(197, 222, 255, 0.4);
+    }
+    .seki-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        color: var(--seki-text-main);
+        background: rgba(1, 6, 14, 0.88);
+        backdrop-filter: blur(4px);
+    }
+    #squeeze-guess {
+        position: absolute;
+        top: 10%;
+        font-size: 24px;
+        color: var(--seki-warning);
+        text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+    }
+    .seki-visual-card {
+        position: relative;
+        width: 200px;
+        height: 300px;
+        border: 4px solid rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+    }
+    #squeeze-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 150px;
+        color: #333;
+        font-weight: bold;
+    }
+    #squeeze-cover {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(45deg, #1a237e, #1a237e 10px, #283593 10px, #283593 20px);
+        transition: top 5s ease-in-out;
+    }
+    .seki-visual-cover-logo {
+        color: rgba(255, 255, 255, 0.2);
+        font-size: 50px;
+        text-align: center;
+        padding-top: 100px;
+    }
+    #squeeze-result {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        font-size: 80px;
+        font-weight: bold;
+        text-shadow: 2px 2px 0 #000;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        opacity: 0;
+    }
+    
+    /* --- S.E.K.I. タイトル画面（ログイン専用） --- */
+    #login-screen {
         position: fixed;
         inset: 0;
         display: grid;
@@ -288,6 +498,10 @@
         0% { transform: translateY(0); }
         100% { transform: translateY(4px); }
     }
+    @keyframes gameGridShift {
+        0% { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(-18px, -16px, 0); }
+    }
 
     @media (max-width: 600px) {
         #login-screen { padding: 12px; }
@@ -307,52 +521,67 @@
         .login-grid,
         .login-scanlines,
         #login-panel,
-        #title-logo {
+        #title-logo,
+        #game-screen::before {
             animation: none !important;
         }
         #login-screen input,
-        #login-screen #btn-join {
+        #login-screen #btn-join,
+        .seki-btn {
             transition: none !important;
         }
     }
 
     /* エリアごとのパネル化（グラスモーフィズム） */
     #my-area {
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(5px);
-        border-radius: 16px;
-        border: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.82), rgba(4, 11, 23, 0.74));
+        backdrop-filter: blur(7px);
+        border-radius: var(--seki-radius-lg);
+        border: 1px solid var(--seki-panel-border);
         padding: 15px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        box-shadow: var(--seki-shadow-panel), inset 0 0 18px rgba(0, 216, 255, 0.08);
         margin-top: 10px;
     }
 
     /* カード・盤面デザイン */
     .pile { 
         width: 60px; height: 90px; 
-        border: 2px dashed rgba(255,255,255,0.5); 
-        border-radius: 8px;
+        border: 2px dashed rgba(173, 214, 255, 0.62); 
+        border-radius: var(--seki-radius-sm);
         margin: auto; display:flex; align-items:center; justify-content:center; 
-        background: rgba(0,0,0,0.2); 
-        cursor: pointer; transition: 0.2s; 
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.7), rgba(3, 10, 20, 0.56)); 
+        cursor: pointer;
+        box-shadow: inset 0 0 12px rgba(0, 216, 255, 0.11);
+        transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast), background var(--seki-transition-fast); 
     }
-    .pile:hover { background: rgba(255,255,255,0.1); border-color: #ffeb3b; transform: scale(1.05); }
+    .pile:hover {
+        background: linear-gradient(155deg, rgba(8, 26, 48, 0.82), rgba(4, 14, 28, 0.74));
+        border-color: var(--seki-warning);
+        transform: scale(1.05);
+        box-shadow: 0 0 12px rgba(255, 235, 59, 0.25), inset 0 0 14px rgba(0, 216, 255, 0.24);
+    }
 
     .card { 
         width: 54px; height: 86px; 
-        background-color: #fafafa; color: #333; 
+        background-color: #f5fbff;
+        color: #1f2a3a; 
         border-radius: 6px; 
-        border: 1px solid #ccc;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* カードの影 */
+        border: 1px solid #a3b9d6;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.38); /* カードの影 */
         display: inline-flex; align-items: center; justify-content: center; 
         font-weight: bold; margin: 3px; font-size: 22px; 
         cursor: pointer; position: relative; 
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* バネのような動き */
+        transition: transform var(--seki-transition-fast) cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast);
         vertical-align: bottom;
         background-size: cover; background-position: center; background-repeat: no-repeat;
     }
     /* カードの動き */
-    .card:not(.selected):hover { transform: translateY(-8px) rotate(2deg); z-index: 5; }
+    .card:not(.selected):hover {
+        transform: translateY(-8px) rotate(2deg);
+        z-index: 5;
+        border-color: rgba(0, 216, 255, 0.55);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.45), 0 0 10px rgba(0, 216, 255, 0.18);
+    }
     
     .card.num { color: #1565c0; font-family: var(--font-display-strong); }
     .card.sym { color: #c62828; font-size: 11px; text-align:center; line-height:1.1; letter-spacing: -0.5px;}
@@ -361,11 +590,11 @@
     /* 選択状態：光るエフェクト */
     .selected { 
         transform: translateY(-20px) scale(1.1) !important; 
-        border: 2px solid #ffeb3b; 
-        box-shadow: 0 0 15px #ffeb3b, 0 10px 20px rgba(0,0,0,0.5); 
+        border: 2px solid var(--seki-warning); 
+        box-shadow: 0 0 15px rgba(255, 235, 59, 0.9), 0 10px 20px rgba(0,0,0,0.5); 
         z-index: 100; 
     }
-    .card.has-img { color: transparent !important; font-size: 0; border: 2px solid #fff; }
+    .card.has-img { color: transparent !important; font-size: 0; border: 2px solid rgba(255, 255, 255, 0.9); }
 
     /* 他プレイヤー表示 */
     /* --- 円卓レイアウト用CSS --- */
@@ -434,9 +663,9 @@
     }
     /* ↓↓↓ 追加: 自分の手番のときの強調表示 ↓↓↓ */
     #my-area.current-turn {
-        border: 2px solid #ffeb3b !important;       /* 黄色い枠線 */
-        box-shadow: 0 0 30px rgba(255, 235, 59, 0.5); /* ぼんやり光る */
-        background: rgba(60, 60, 0, 0.5);           /* 背景も少し黄色く */
+        border: 2px solid var(--seki-warning) !important;
+        box-shadow: 0 0 30px rgba(255, 235, 59, 0.45), 0 0 20px rgba(0, 216, 255, 0.2);
+        background: linear-gradient(155deg, rgba(42, 38, 8, 0.88), rgba(18, 25, 38, 0.78));
         transform: translateY(-2px);                /* ほんの少し浮き上がる */
         transition: all 0.3s ease;
     }
@@ -471,11 +700,11 @@
     }
     /* ↓↓↓ 追加: 自分のネームプレート（ヘッダー風） ↓↓↓ */
     .my-name-plate {
-        background: rgba(0, 0, 0, 0.4);       /* 少し暗くして文字を目立たせる */
-        border-bottom: 1px solid rgba(255,255,255,0.15);
+        background: linear-gradient(155deg, rgba(6, 18, 35, 0.82), rgba(4, 11, 23, 0.74));
+        border-bottom: 1px solid rgba(0, 216, 255, 0.28);
         padding: 8px 15px;
         margin: -15px -15px 10px -15px;       /* 親のpadding(15px)を相殺して上端に密着 */
-        border-radius: 16px 16px 0 0;         /* 親の角丸に合わせて丸める */
+        border-radius: var(--seki-radius-lg) var(--seki-radius-lg) 0 0;
         
         font-weight: bold;
         font-size: 14px;
@@ -483,8 +712,38 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        color: #fff;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        color: var(--seki-text-main);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 8px rgba(0, 216, 255, 0.2);
+        position: relative;
+        overflow: visible;
+    }
+    .my-host-icon {
+        color: #ffd700;
+        margin-right: 4px;
+    }
+    .my-name-link {
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+    }
+    .my-role-chip {
+        margin-left: 10px;
+        color: #8fefff;
+    }
+    .my-role-chip.used {
+        color: #95a6ba;
+    }
+    .my-reset-badge {
+        margin-left: 10px;
+        font-size: 12px;
+        vertical-align: middle;
+        display: inline-block;
+    }
+    .my-rank-badge {
+        color: #ffd700;
+        margin-left: 10px;
+        text-shadow: 0 0 6px rgba(255, 196, 0, 0.5);
     }
 
     /* --- 2. プレイヤープレート本体 (サイズアップ) --- */
@@ -496,19 +755,19 @@
         flex-direction: column;  /* 縦並び */
         justify-content: space-between; /* 上・中・下をきっちり配置 */
         
-        background: rgba(30, 40, 50, 0.9);
-        border: 1px solid rgba(255,255,255,0.4);
+        background: linear-gradient(150deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84));
+        border: 1px solid rgba(0, 216, 255, 0.32);
         border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-        transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+        transition: transform var(--seki-transition-mid), border-color var(--seki-transition-mid), box-shadow var(--seki-transition-mid), background var(--seki-transition-mid);
         overflow: visible !important;        /* ★はみ出した分はカット（これで伸びない） */
     }
 
     /* 手番のときの強調 */
     .p-box-new.current {
-        border: 2px solid #ffeb3b;
-        box-shadow: 0 0 20px rgba(255, 235, 59, 0.7);
-        background: rgba(70, 70, 10, 0.9);
+        border: 2px solid var(--seki-warning);
+        box-shadow: 0 0 20px rgba(255, 235, 59, 0.65), 0 0 14px rgba(0, 216, 255, 0.2);
+        background: linear-gradient(145deg, rgba(61, 54, 14, 0.92), rgba(12, 22, 36, 0.85));
         z-index: 100;
         /* currentで拡大させるとレイアウトが崩れることがあるので、
            scaleではなく translate や shadow だけで目立たせるのが安全ですが、
@@ -523,11 +782,11 @@
         height: 26px;            /* ★高さ固定 */
         line-height: 26px;       /* 垂直中央 */
         padding: 0 4px;
-        background: rgba(255,255,255,0.15);
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: rgba(8, 26, 48, 0.64);
+        border-bottom: 1px solid rgba(0, 216, 255, 0.24);
         font-size: 13px;
         font-weight: bold;
-        color: #fff;
+        color: #f3fbff;
         white-space: nowrap;     /* 改行させない */
         overflow: hidden;
         text-overflow: ellipsis; /* 長すぎたら...にする */
@@ -545,7 +804,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 0 8px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-bottom: 1px solid rgba(0, 216, 255, 0.2);
     }
 
     /* 左側：手札枚数（フォントサイズはそのまま維持） */
@@ -560,6 +819,19 @@
         gap: 2px;
         text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
+    .p-hand-count.count-danger {
+        color: #ff1744;
+        text-shadow: 0 0 10px #ff1744;
+        animation: blink-text 0.6s infinite;
+    }
+    .p-hand-count.count-warning {
+        color: #ffeb3b;
+        text-shadow: 0 0 10px #ffeb3b;
+        animation: blink-text 1.2s infinite;
+    }
+    .p-hand-count.count-passed {
+        color: #78909c;
+    }
     .p-hand-icon { font-size: 16px; opacity: 0.8; margin-right: 2px; } 
 
     /* 右側：ステータス表示エリア */
@@ -573,7 +845,7 @@
     /* ステータス文字のスタイル定義 */
     .status-text { font-size: 10px; font-weight: bold; letter-spacing: 1px; }
     
-    .status-normal { color: #546e7a; } /* NORMAL: 目立たないグレー */
+    .status-normal { color: #8aa0b8; }
     
     .status-reset { 
         color: #ffeb3b; 
@@ -596,7 +868,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: rgba(0,0,0,0.2);
+        background: rgba(4, 12, 24, 0.5);
         padding: 0 4px;
     }
 
@@ -609,11 +881,11 @@
         width: 95%;            /* 横幅いっぱいに広げる */
         
         /* 明るく目立つグラデーションに変更 */
-        background: linear-gradient(135deg, #e040fb, #7b1fa2); 
-        border: 1px solid #fff; /* 白い枠線で囲んで強調 */
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff); 
+        border: 1px solid rgba(228, 248, 255, 0.85);
         
         /* ほんのり発光させて目立たせる */
-        box-shadow: 0 0 8px rgba(224, 64, 251, 0.6);
+        box-shadow: 0 0 8px rgba(0, 216, 255, 0.38);
         
         color: #fff;
         text-shadow: 0 1px 2px rgba(0,0,0,0.8);
@@ -624,6 +896,33 @@
         align-items: center;
         border-radius: 12px;
         letter-spacing: 1px;
+    }
+    .p-box-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .p-box-new.with-bubble {
+        position: relative;
+    }
+    .p-header.clickable {
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+    }
+    .role-activate-btn {
+        margin-top: 8px;
+    }
+    .role-status-badge {
+        font-size: 11px;
+        color: var(--seki-warning);
+        margin-top: 5px;
+        font-weight: bold;
+    }
+    .role-card.is-used {
+        filter: grayscale(1);
+        opacity: 0.6;
     }
 
     /* 正体不明のとき（ROLE: ???）も見やすく */
@@ -676,9 +975,10 @@
         align-items: center;
         justify-content: space-between; /* 上下に要素を分散 */
         
-        background: rgba(0,0,0,0.2);
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.62), rgba(3, 9, 20, 0.54));
         border-radius: 20px;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+        box-shadow: inset 0 0 22px rgba(0, 216, 255, 0.11), 0 6px 16px rgba(0,0,0,0.28);
+        border: 1px solid rgba(0, 216, 255, 0.18);
         
         padding: 5px;
         margin: 0 5px;
@@ -786,13 +1086,13 @@
 
     /* 数字ゾーン (青系) */
     .zone-num {
-        background: rgba(33, 150, 243, 0.1); 
-        border-color: rgba(33, 150, 243, 0.3);
+        background: rgba(33, 150, 243, 0.14); 
+        border-color: rgba(0, 216, 255, 0.42);
     }
     /* 記号ゾーン (赤系) */
     .zone-sym {
-        background: rgba(244, 67, 54, 0.1); 
-        border-color: rgba(244, 67, 54, 0.3);
+        background: rgba(244, 67, 54, 0.12); 
+        border-color: rgba(255, 53, 94, 0.4);
     }
 
     /* ラベル (NUMBER / SYMBOL) */
@@ -816,11 +1116,12 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        background: rgba(0,0,0,0.25);
+        background: rgba(0,0,0,0.34);
         padding: 4px 10px;
         border-radius: 15px;
         margin-bottom: 5px;
         cursor: default;
+        border: 1px solid rgba(0, 216, 255, 0.2);
     }
 
     /* 山札アイコン (CSSでカード裏面を表現) */
@@ -846,15 +1147,20 @@
         font-size: 11px;
         opacity: 0.8;
         cursor: pointer;
-        background: rgba(0,0,0,0.3);
+        background: rgba(3, 12, 24, 0.62);
         padding: 3px 12px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         gap: 5px;
-        transition: 0.2s;
+        border: 1px solid rgba(255, 53, 94, 0.3);
+        transition: background var(--seki-transition-fast), opacity var(--seki-transition-fast), border-color var(--seki-transition-fast);
     }
-    #exclusion-area:hover { opacity: 1; background: rgba(0,0,0,0.5); }
+    #exclusion-area:hover {
+        opacity: 1;
+        background: rgba(6, 18, 35, 0.8);
+        border-color: rgba(255, 53, 94, 0.55);
+    }
 
     /* 残り枚数バッジも大きく */
     .p-count-badge {
@@ -873,9 +1179,14 @@
     /* ログエリア */
     #game-log-bar { 
         position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; 
-        background: rgba(33, 33, 33, 0.95); font-size: 13px; line-height: 35px; 
+        background: linear-gradient(135deg, rgba(6, 16, 32, 0.96), rgba(4, 11, 23, 0.96));
+        font-size: 13px; line-height: 35px; 
         text-align: left; padding-left: 15px; overflow: hidden; white-space: nowrap; 
-        z-index: 50; cursor: pointer; border-top: 1px solid #555; box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+        z-index: 50;
+        color: var(--seki-text-main);
+        cursor: pointer;
+        border-top: 1px solid rgba(0, 216, 255, 0.34);
+        box-shadow: 0 -2px 14px rgba(0,0,0,0.55);
     }
     
     /* 通知アニメーション */
@@ -890,8 +1201,8 @@
     /* モーダル */
     #modal-overlay {
         position: fixed; top:0; left:0; width:100%; height:100%;
-        background: rgba(0,0,0,0.6); z-index: 999;
-        backdrop-filter: blur(3px); /* 背景をぼかす */
+        background: rgba(2, 7, 15, 0.74); z-index: 999;
+        backdrop-filter: blur(5px);
         display: flex; justify-content: center; align-items: center;
         animation: fadeIn 0.2s ease;
         transition: background 0.2s, backdrop-filter 0.2s;
@@ -902,42 +1213,419 @@
         background: rgba(0,0,0,0.05);
         backdrop-filter: none;
     }
+    #modal-overlay.modal-tone-guide {
+        background: rgba(2, 10, 20, 0.62);
+    }
+    #modal-overlay.modal-tone-alert {
+        background: rgba(36, 2, 12, 0.7);
+    }
 
     #modal-box {
-        background: #fff; color: #333; padding: 25px; border-radius: 12px;
-        max-width: 90%; max-height: 80%; width: 400px;
+        background:
+            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
+            radial-gradient(circle at 12% 18%, rgba(0, 216, 255, 0.1), transparent 34%);
+        color: var(--seki-text-main);
+        padding: 25px;
+        border-radius: 14px;
+        max-width: 90%;
+        max-height: 80%;
+        width: 400px;
         overflow-y: auto; text-align: center; display:flex; flex-direction:column;
         font-family: var(--font-readable);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        border: 2px solid transparent;
+        box-shadow: var(--seki-shadow-panel), var(--seki-shadow-glow);
+        border: 1px solid var(--seki-panel-border);
         transition: background 0.2s, opacity 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
+    #modal-box.modal-size-default { width: 400px; max-width: 90%; }
+    #modal-box.modal-size-wide { width: 600px; max-width: 95%; }
+    #modal-box.modal-size-narrow { width: 340px; max-width: 86%; }
+    #modal-box.modal-tone-guide {
+        border-color: rgba(0, 216, 255, 0.44);
+    }
+    #modal-box.modal-tone-alert {
+        border-color: rgba(255, 53, 94, 0.6);
+        box-shadow: var(--seki-shadow-panel), 0 0 22px rgba(255, 53, 94, 0.25);
+    }
     #modal-overlay.board-visible #modal-box {
-        background: rgba(255,255,255,0.2);
-        border-color: rgba(255,255,255,0.95);
+        background: rgba(13, 22, 40, 0.34);
+        border-color: rgba(209, 231, 255, 0.75);
         box-shadow: 0 4px 14px rgba(0,0,0,0.25);
         opacity: 0.4;
     }
     #modal-content { margin-bottom: 20px; flex: 1; overflow-y: auto; }
     .modal-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-    .modal-btn { margin: 5px; padding: 10px 20px; background: #e0e0e0; border:none; border-radius: 5px; cursor: pointer; font-size:14px; transition:0.2s; }
-    .modal-btn:hover { background: #d5d5d5; }
-    .modal-btn.primary { background: #fdd835; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-    .modal-btn.danger { background: #ef5350; color: white; font-weight: bold; }
+    .modal-btn {
+        margin: 5px;
+        padding: 10px 20px;
+        border: 1px solid rgba(142, 182, 227, 0.45);
+        border-radius: var(--seki-radius-sm);
+        cursor: pointer;
+        font-size: 14px;
+        font-family: var(--font-ui);
+        color: var(--seki-text-main);
+        background: linear-gradient(135deg, rgba(9, 27, 52, 0.9), rgba(6, 18, 35, 0.88));
+        transition: transform var(--seki-transition-fast), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast), filter var(--seki-transition-fast);
+    }
+    .modal-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(0, 216, 255, 0.7);
+        box-shadow: 0 5px 14px rgba(0,0,0,0.35), 0 0 10px rgba(0, 216, 255, 0.24);
+        filter: saturate(1.1);
+    }
+    .modal-btn:disabled,
+    .modal-btn.is-disabled {
+        background: rgba(89, 102, 119, 0.9);
+        color: rgba(239, 246, 255, 0.76);
+        border-color: rgba(151, 166, 187, 0.7);
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+    .modal-btn.primary {
+        background: linear-gradient(135deg, #0f314d, #166d98 44%, #00d8ff);
+        border-color: rgba(0, 216, 255, 0.7);
+        color: #effbff;
+        font-weight: 700;
+    }
+    .modal-btn.danger {
+        background: linear-gradient(135deg, #7f1730, #cc244a 46%, #ff355e);
+        border-color: rgba(255, 143, 166, 0.78);
+        color: #fff5f8;
+        font-weight: 700;
+    }
+    .modal-btn.ghost {
+        background: rgba(12, 22, 35, 0.7);
+    }
+    .modal-note {
+        display: block;
+        font-size: 12px;
+        margin-top: 8px;
+        color: var(--seki-text-muted);
+    }
+    .modal-note.warn {
+        color: #ff9f9f;
+        font-weight: 700;
+    }
+    .modal-note.warn-block {
+        margin: 0 0 8px;
+    }
+    .modal-note.info {
+        color: #9ce8ff;
+    }
+    .modal-card-row {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 10px 0;
+        gap: 8px;
+    }
+    .modal-card-col {
+        width: 100px;
+    }
+    .modal-card-label {
+        font-size: 10px;
+        color: var(--seki-text-muted);
+        margin-bottom: 4px;
+    }
+    .modal-notif-wrap {
+        text-align: center;
+    }
+    .modal-notif-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #ffadb8;
+        margin: 0;
+    }
+    .modal-notif-arrow {
+        font-size: 20px;
+        color: #9cb3c9;
+    }
+    .modal-notif-card {
+        width: 100px;
+    }
+    .modal-notif-value {
+        font-size: 32px;
+        font-weight: bold;
+        line-height: 80px;
+    }
+    .modal-image-center {
+        height: 80px;
+        width: auto;
+        display: block;
+        margin: 0 auto;
+    }
+    .seki-section {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border-radius: var(--seki-radius-sm);
+        border: 1px solid rgba(143, 176, 214, 0.35);
+        background: rgba(6, 16, 32, 0.6);
+    }
+    .seki-section.warn {
+        border-color: rgba(255, 143, 166, 0.55);
+        background: rgba(72, 12, 27, 0.35);
+    }
+    .seki-section.info {
+        border-color: rgba(0, 216, 255, 0.5);
+        background: rgba(8, 26, 48, 0.42);
+    }
+    .seki-note {
+        display: block;
+        font-size: 12px;
+        color: var(--seki-text-muted);
+    }
+    .seki-note.warn {
+        color: #ffadb8;
+        font-weight: 700;
+    }
+    .seki-scroll-panel {
+        text-align: left;
+        max-height: 420px;
+        overflow-y: auto;
+        font-size: 13px;
+    }
+    .seki-log-line {
+        border-bottom: 1px solid rgba(143, 176, 214, 0.3);
+        padding: 6px 0;
+    }
+    .seki-log-time {
+        color: #9cb3c9;
+        font-size: 11px;
+        margin-right: 8px;
+    }
+    .seki-log-text {
+        color: #d9ebff;
+    }
+    .seki-disabled-note {
+        font-size: 12px;
+        color: #ff9f9f;
+        margin-top: 8px;
+    }
+    .seki-host-settings {
+        text-align: left;
+        font-size: 14px;
+    }
+    .seki-host-mode-box {
+        margin-bottom: 15px;
+        background: rgba(6, 16, 32, 0.64);
+        padding: 10px;
+        border-radius: var(--seki-radius-sm);
+        border: 1px solid rgba(143, 176, 214, 0.32);
+    }
+    .seki-host-mode-item {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    .seki-host-mode-item + .seki-host-mode-item {
+        margin-top: 8px;
+    }
+    .seki-host-mode-item input {
+        margin: 0 8px 0 0;
+        width: auto;
+        transform: scale(1.2);
+    }
+    .seki-host-mode-title {
+        font-weight: 700;
+        color: #9ce8ff;
+    }
+    .seki-host-mode-title.hot {
+        color: #ffb86b;
+    }
+    .seki-host-mode-meta {
+        font-size: 11px;
+        color: #9cb3c9;
+        margin-left: 5px;
+    }
+    .seki-host-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .seki-host-actions .modal-btn {
+        margin: 0;
+    }
+    .seki-host-actions .modal-btn.primary {
+        flex: 1;
+    }
+    .seki-host-actions .modal-btn.danger {
+        width: 80px;
+    }
+    .seki-guide-root {
+        text-align: left;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    .seki-guide-role-item {
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(143, 176, 214, 0.26);
+        padding-bottom: 5px;
+    }
+    .seki-guide-summary {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        outline: none;
+        list-style: none;
+    }
+    .seki-guide-role-img {
+        height: 40px;
+        vertical-align: middle;
+        margin-right: 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(143, 176, 214, 0.45);
+    }
+    .seki-guide-role-main {
+        flex: 1;
+    }
+    .seki-guide-role-jp {
+        font-weight: 700;
+        color: #9ce8ff;
+        font-size: 15px;
+    }
+    .seki-guide-role-en {
+        font-size: 13px;
+        color: #cce6ff;
+        font-weight: 400;
+        margin-left: 4px;
+    }
+    .seki-guide-role-summary {
+        font-size: 12px;
+        color: #d9ebff;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    .seki-guide-role-detail {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(6, 16, 32, 0.52);
+        border-radius: 5px;
+        font-size: 12px;
+        color: #d9ebff;
+        line-height: 1.6;
+    }
+    .seki-guide-hint {
+        font-size: 10px;
+        color: #9cb3c9;
+        white-space: nowrap;
+    }
+    .seki-rule-root {
+        text-align: left;
+        max-height: 400px;
+        overflow-y: auto;
+        font-size: 13px;
+        color: #d9ebff;
+    }
+    .seki-rule-paragraph {
+        margin: 0 0 10px 0;
+    }
+    .seki-rule-heading {
+        border-left: 4px solid #0fa0d8;
+        padding-left: 8px;
+        margin: 10px 0 5px 0;
+        color: #b7ecff;
+    }
+    .seki-rule-heading.danger {
+        border-left-color: #c62828;
+    }
+    .seki-rule-heading.info {
+        border-left-color: #1565c0;
+    }
+    .seki-rule-heading.warn {
+        border-left-color: #f76205;
+    }
+    .seki-rule-list {
+        padding-left: 20px;
+        margin: 0;
+    }
+    .score-dist {
+        font-size: 11px;
+        color: #d9ebff;
+        margin-bottom: 10px;
+        background: rgba(188, 140, 20, 0.2);
+        padding: 5px;
+        border-radius: 4px;
+        text-align: center;
+        border: 1px solid rgba(251, 192, 45, 0.55);
+    }
+    .score-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .score-head {
+        border-bottom: 2px solid rgba(143, 176, 214, 0.45);
+        background: rgba(8, 26, 48, 0.55);
+    }
+    .score-table th,
+    .score-table td {
+        padding: 8px;
+    }
+    .score-table th:first-child,
+    .score-name-cell {
+        text-align: center;
+    }
+    .score-table th:last-child,
+    .score-point-cell {
+        text-align: right;
+    }
+    .score-empty {
+        padding: 20px;
+        color: #9cb3c9;
+        text-align: center;
+    }
+    .score-row {
+        border-bottom: 1px solid rgba(143, 176, 214, 0.28);
+    }
+    .score-row.me {
+        color: #ffadb8;
+        font-weight: 700;
+    }
+    .score-point-cell {
+        font-weight: 700;
+    }
+    .score-reset-wrap {
+        margin-top: 20px;
+        text-align: center;
+    }
+    .score-reset-btn {
+        font-size: 11px;
+        color: #9cb3c9;
+        background: rgba(6, 16, 32, 0.6);
+        border: 1px solid rgba(143, 176, 214, 0.4);
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        transition: border-color var(--seki-transition-fast), color var(--seki-transition-fast), background var(--seki-transition-fast);
+    }
+    .score-reset-btn:hover {
+        border-color: rgba(0, 216, 255, 0.65);
+        color: #d9ebff;
+        background: rgba(8, 26, 48, 0.7);
+    }
 
     /* ログスタイル */
-    .log-entry { text-align: left; padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; display: flex; align-items: flex-start; }
-    .log-time { color: #888; margin-right: 10px; font-size: 11px; min-width: 45px; }
+    .log-entry { text-align: left; padding: 8px; border-bottom: 1px solid rgba(143, 176, 214, 0.28); font-size: 13px; display: flex; align-items: flex-start; }
+    .log-time { color: #a1b4cc; margin-right: 10px; font-size: 11px; min-width: 45px; }
     .log-text { word-break: break-all; line-height: 1.4; }
-    .log-private .log-text { color: #d32f2f; font-weight: bold; background: #ffebee; padding: 2px 5px; border-radius: 4px;}
-    .log-chat { background: #f1f8e9; }
+    .log-private .log-text { color: #ffc8d3; font-weight: bold; background: rgba(136, 20, 45, 0.34); padding: 2px 5px; border-radius: 4px;}
+    .log-chat { background: rgba(0, 216, 255, 0.08); }
     
     /* チャット入力 */
-    #chat-input-container { display: flex; gap: 8px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ccc; }
-    #chat-input {color: black; flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; outline:none; }
-    #chat-send-btn { background: #43a047; color: white; border-radius: 20px; padding: 0 20px; }
+    #chat-input-container { display: flex; gap: 8px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(143, 176, 214, 0.3); }
+    #chat-input {
+        color: var(--seki-text-main);
+        flex: 1;
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid rgba(126, 173, 224, 0.45);
+        outline:none;
+        background: rgba(6, 16, 32, 0.78);
+        font-family: var(--font-readable);
+    }
+    #chat-send-btn { background: linear-gradient(135deg, #157a53, #34b583); color: white; border-radius: 20px; padding: 0 20px; border: 1px solid rgba(93, 255, 192, 0.45); }
 
-    .host-settings { margin-bottom: 15px; font-size: 14px; text-align: left; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px; }
+    .host-settings { margin-bottom: 15px; font-size: 14px; text-align: left; background: rgba(6, 16, 32, 0.55); padding: 10px; border-radius: 8px; border: 1px solid rgba(0, 216, 255, 0.24); }
     .host-settings label { margin-right: 15px; cursor: pointer; display: inline-block; padding: 5px; }
 /* --- 追加修正: 墓地カードのはみ出し防止 --- */
     
@@ -964,12 +1652,12 @@
     }
 
     .role-card {
-        background: linear-gradient(135deg, #6a1b9a, #4a148c); /* 紫系の高貴な色 */
-        color: white;
+        background: linear-gradient(135deg, rgba(9, 29, 55, 0.95), rgba(4, 11, 23, 0.9));
+        color: var(--seki-text-main);
         padding: 10px 20px;
-        border-radius: 8px;
-        border: 1px solid #e1bee7;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        border-radius: var(--seki-radius-sm);
+        border: 1px solid rgba(0, 216, 255, 0.35);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.45), inset 0 0 12px rgba(0, 216, 255, 0.1);
         text-align: center;
         width: 100%;
         max-width: 300px;
@@ -992,7 +1680,7 @@
         font-family: var(--font-display-strong);
         font-size: 16px;
         letter-spacing: 1px;
-        color: #dc94e9;
+        color: #8fefff;
         text-transform: uppercase;
         font-weight: bold;
     }
@@ -1006,8 +1694,8 @@
     
     .role-desc {
         font-size: 11px;
-        color: #c0a4ef;
-        border-top: 1px solid rgba(255,255,255,0.3);
+        color: #acd4ff;
+        border-top: 1px solid rgba(179, 223, 255, 0.32);
         margin-top: 5px;
         padding-top: 4px;
     }
@@ -1274,7 +1962,7 @@
 
         /* 何も公開されていない時 (NORMAL表示と同じような色に) */
         .revealed-none {
-            color: #546e7a;      /* 薄いグレー */
+            color: #9cb3c9;
             font-weight: bold;
         }
 
@@ -1437,7 +2125,7 @@
         <div id="login-panel">
             <img src="./images/new_logo.png" alt="SEKI Online" id="title-logo">
             <p class="version-text">Ver 30.00 NEW GAME</p>
-            <p class="seki-tagline">STRATEGY / EFFICIENCY / KILLER を Interface－統合－する S.E.K.I.</p>
+            <p class="seki-tagline">STRATEGY // EFFICIENCY // KILLER // INTERFACE; S.E.K.I.</p>
             <input type="text" id="roomName" placeholder="Room ID (e.g. seki123)">
             <div id="room-suggestion-panel" class="hidden"></div>
             <input type="text" id="playerName" placeholder="Your Name">
@@ -1589,18 +2277,17 @@
     </script>
 
     <div id="game-screen" class="hidden">
-        <div id="header-info" style="display:flex; justify-content:space-between; align-items:center; padding:0 10px; font-size:12px; height:40px;">
+        <div id="header-info" class="seki-topbar">
             <div id="room-display"></div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <button id="btn-host-settings" class="hidden" onclick="openHostSettings()" 
-                    style="padding:5px 12px; font-size:15px; background:#1565c0; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:20px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; align-items:center;">
+            <div class="seki-topbar-actions">
+                <button id="btn-host-settings" class="hidden seki-btn seki-btn-host seki-btn-accent" onclick="openHostSettings()">
                     ⚙️
                 </button>
-                <button onclick="showScoreboard()" style="padding:2px 8px; font-size:15px; background:#fbc02d; color:#3e2723; border-radius:15px; border:1px solid rgba(255,255,255,0.3); margin-right:2px;">🏆</button>
-                <button onclick="showRoleList()" style="padding:2px 8px; font-size:15px; background:#6a1b9a; color:white; border-radius:15px; border:1px solid rgba(255,255,255,0.3);">役職</button>
-                <button onclick="showRule()" style="padding:2px 8px; font-size:15px; ">ルール</button>
-                <button id="btn-bgm-toggle" onclick="toggleBgmMute()" style="padding:2px 8px; font-size:15px;">🔊</button>
-                <button onclick="leaveRoom()" style="padding:2px 8px; font-size:15px;">🚪</button>
+                <button onclick="showScoreboard()" class="seki-btn seki-btn-mini seki-btn-gold">🏆</button>
+                <button onclick="showRoleList()" class="seki-btn seki-btn-mini seki-btn-accent">役職</button>
+                <button onclick="showRule()" class="seki-btn seki-btn-mini">ルール</button>
+                <button id="btn-bgm-toggle" onclick="toggleBgmMute()" class="seki-btn seki-btn-mini">🔊</button>
+                <button onclick="leaveRoom()" class="seki-btn seki-btn-mini seki-btn-danger">🚪</button>
             </div>
         </div>
 
@@ -1654,7 +2341,7 @@
                         <span id="exclusion-count">0</span>
                     </div>
                     
-                    <div id="msg" style="margin-top:2px; color:#ffeb3b; font-weight:bold; font-size:12px; height:18px; line-height:18px; white-space:nowrap;">待機中...</div>
+                    <div id="msg" class="seki-msg">待機中...</div>
                 </div>
 
                 <div id="area-right" class="player-zone col"></div>
@@ -1664,9 +2351,9 @@
                 <div id="my-name-bar" class="my-name-plate"></div>
             
                 <div id="my-hand"></div>
-                <div id="controls" style="margin-top:5px;">
-                    <button id="btn-play" onclick="playCard()">決定</button>
-                    <button id="btn-pass" onclick="passTurn()" style="background:#546e7a; color:white;">パス</button>
+                <div id="controls" class="seki-controls">
+                    <button id="btn-play" onclick="playCard()" class="seki-btn seki-btn-accent">決定</button>
+                    <button id="btn-pass" onclick="passTurn()" class="seki-btn seki-btn-soft">パス</button>
                 </div>
 
                 <div id="my-role-panel"></div>
@@ -1682,7 +2369,7 @@
             <h3 id="modal-title">タイトル</h3>
             <div id="modal-content">内容</div>
             <div id="modal-footer">
-                <button onclick="closeModal()" style="background:#90a4ae">閉じる</button>
+                <button onclick="closeModal()" class="modal-btn ghost">閉じる</button>
             </div>
         </div>
     </div>
@@ -1696,40 +2383,19 @@
         </div>
     </div>
 
-    <div id="visual-overlay" style="
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); z-index: 9999;
-    display: none; flex-direction: column; justify-content: center; align-items: center;
-    color: white; pointer-events: none;
-">
-    <div id="squeeze-guess" style="
-        position: absolute; top: 10%; 
-        font-size: 24px; color: #ffeb3b; text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
-    "></div>
+    <div id="visual-overlay" class="seki-overlay">
+    <div id="squeeze-guess"></div>
 
-    <div style="position: relative; width: 200px; height: 300px; border: 4px solid #fff; border-radius: 10px; overflow: hidden; background: #fff;">
+    <div class="seki-visual-card">
         
-        <div id="squeeze-content" style="
-            width: 100%; height: 100%; 
-            display: flex; justify-content: center; align-items: center;
-            font-size: 150px; color: #333; font-weight: bold;
-        ">?</div>
+        <div id="squeeze-content">?</div>
 
-        <div id="squeeze-cover" style="
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(45deg, #1a237e, #1a237e 10px, #283593 10px, #283593 20px);
-            transition: top 5s ease-in-out; /* 5秒かけてじわじわ動く */
-        ">
-            <div style="color:rgba(255,255,255,0.2); font-size:50px; text-align:center; padding-top:100px;">SEKI</div>
+        <div id="squeeze-cover">
+            <div class="seki-visual-cover-logo">SEKI</div>
         </div>
     </div>
 
-    <div id="squeeze-result" style="
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-        font-size: 80px; font-weight: bold; text-shadow: 2px 2px 0 #000;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        opacity: 0;
-    "></div>
+    <div id="squeeze-result"></div>
 </div>
 
     <script>
@@ -2250,6 +2916,7 @@
             hostCtrl: document.getElementById("host-controls"),
             log: document.getElementById("game-log-bar"),
             modal: document.getElementById("modal-overlay"),
+            mBox: document.getElementById("modal-box"),
             mTitle: document.getElementById("modal-title"),
             mContent: document.getElementById("modal-content"),
             deckNum: document.getElementById("deckNumCount"),
@@ -2383,36 +3050,92 @@
         setupRoomSuggestionEvents();
 
         // --- モーダル関数 ---
-        function openModal(title, html) {
+        function normalizeModalOptions(options = {}) {
+            const normalized = { size: "default", tone: "default" };
+            if (!options || typeof options !== "object") return normalized;
+            if (["default", "wide", "narrow"].includes(options.size)) normalized.size = options.size;
+            if (["default", "guide", "alert"].includes(options.tone)) normalized.tone = options.tone;
+            return normalized;
+        }
+
+        function applyModalPresentation(options) {
+            if (!els.modal || !els.mBox) return;
+            els.modal.classList.remove("modal-tone-default", "modal-tone-guide", "modal-tone-alert");
+            els.mBox.classList.remove(
+                "modal-size-default", "modal-size-wide", "modal-size-narrow",
+                "modal-tone-default", "modal-tone-guide", "modal-tone-alert"
+            );
+            els.modal.classList.add(`modal-tone-${options.tone}`);
+            els.mBox.classList.add(`modal-size-${options.size}`);
+            els.mBox.classList.add(`modal-tone-${options.tone}`);
+        }
+
+        function renderModalButton(label, onClick, variant = "ghost", extraClass = "", disabled = false) {
+            const classList = ["modal-btn"];
+            if (variant === "primary") classList.push("primary");
+            else if (variant === "danger") classList.push("danger");
+            else classList.push("ghost");
+            if (extraClass) classList.push(extraClass);
+            const disabledAttr = disabled ? "disabled" : "";
+            return `<button onclick="${onClick}" class="${classList.join(" ")}" ${disabledAttr}>${label}</button>`;
+        }
+
+        function renderCardView(card, options = {}) {
+            if (!card) return `<div class="card">?</div>`;
+            let cssClass = options.cssClass || `card ${card.type}`;
+            if (card.isOpen && !cssClass.includes("revealed")) cssClass += " revealed";
+            const imgUrl = CARD_IMAGES[card.val];
+            const imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid rgba(255,255,255,0.92);` : "";
+            const extraStyle = options.style || "";
+            const onClick = options.onClick ? ` onclick="${options.onClick}"` : "";
+            const attrs = options.attrs ? ` ${options.attrs}` : "";
+            const val = (card.val === 0 || card.val) ? card.val : "?";
+            const hasImgClass = imgUrl ? " has-img" : "";
+            return `<div class="${cssClass}${hasImgClass}" style="${imgStyle}${extraStyle}"${onClick}${attrs}>${val}</div>`;
+        }
+
+        function renderNoticeBlock(html, tone = "info") {
+            const toneClass = tone === "warn" ? "warn" : "";
+            return `<span class="seki-note ${toneClass}">${html}</span>`;
+        }
+
+        function renderSectionBlock(html, tone = "default") {
+            const toneClass = (tone === "warn" || tone === "info") ? ` ${tone}` : "";
+            return `<div class="seki-section${toneClass}">${html}</div>`;
+        }
+
+        function openModal(title, html, options = {}) {
+            const modalOptions = normalizeModalOptions(options);
             els.mTitle.innerText = title;
             els.mContent.innerHTML = html;
-            els.mFooter.innerHTML = '<button onclick="closeModal()" class="modal-btn">閉じる</button>';
+            els.mFooter.innerHTML = renderModalButton("閉じる", "closeModal()", "ghost");
+            applyModalPresentation(modalOptions);
             els.modal.classList.remove("hidden");
-
-            // ★追加: 毎回デフォルト幅(400px)に戻す
-            // これがないと、一度広げた後に他のモーダルを開いても広いままになってしまいます
-            const mBox = document.getElementById("modal-box");
-            if(mBox) {
-                mBox.style.width = "400px";
-                mBox.style.maxWidth = "90%";
-            }
         }
-        function showInfoModal(title, msg) {
+        function showInfoModal(title, msg, options = {}) {
+            const modalOptions = normalizeModalOptions(options);
             els.mTitle.innerText = title;
             els.mContent.innerHTML = `<p>${msg}</p>`;
-            els.mFooter.innerHTML = '<button onclick="closeModal()" class="modal-btn primary">OK</button>';
+            els.mFooter.innerHTML = renderModalButton("OK", "closeModal()", "primary");
+            applyModalPresentation(modalOptions);
             els.modal.classList.remove("hidden");
         }
-        function showConfirmModal(title, msg, yesCallbackStr) {
+        function showConfirmModal(title, msg, yesCallbackStr, options = {}) {
+            const modalOptions = normalizeModalOptions(options);
             els.mTitle.innerText = title;
             els.mContent.innerHTML = `<p>${msg}</p>`;
             els.mFooter.innerHTML = `
-                <button onclick="${yesCallbackStr}; closeModal()" class="modal-btn primary">はい</button>
-                <button onclick="closeModal()" class="modal-btn">いいえ</button>
+                ${renderModalButton("はい", `${yesCallbackStr}; closeModal()`, "primary")}
+                ${renderModalButton("いいえ", "closeModal()", "ghost")}
             `;
+            applyModalPresentation(modalOptions);
             els.modal.classList.remove("hidden");
         }
-        function closeModal() { els.modal.classList.add("hidden"); }
+        function closeModal() {
+            if (!els.modal || !els.mBox) return;
+            els.modal.classList.add("hidden");
+            applyModalPresentation({ size: "default", tone: "default" });
+        }
 
         function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
         function sortCards(hand) {
@@ -3066,7 +3789,7 @@
                         else if (myRole === "AGENT") funcName = "activateAgent()";
 
                         if (funcName) {
-                            actBtnHtml = `<button onclick="${funcName}" style="margin-top:8px; padding:6px 12px; font-size:12px; background:#fff; color:#4a148c; border:none; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.2);">スキル発動</button>`;
+                            actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini seki-btn-accent role-activate-btn">スキル発動</button>`;
                         }
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
@@ -3084,15 +3807,17 @@
                         }
                         // ▲▲▲ 修正ここまで ▲▲▲
                         
-                        actBtnHtml = `<div style="font-size:11px; color:#ffeb3b; margin-top:5px; font-weight:bold;">${statusText}</div>`;
+                        actBtnHtml = `<div class="role-status-badge">${statusText}</div>`;
                     }
 
                     // 背景スタイル
-                    let style = isActivated ? 'filter:grayscale(1); opacity:0.6;' : '';
+                    let roleCardClass = "role-card";
+                    if (isActivated) roleCardClass += " is-used";
                     const bgUrl = (typeof ROLE_IMAGES !== 'undefined') ? ROLE_IMAGES[myRole] : null;
                     let bgStyle = "";
                     
                     if (myRole === "EMPEROR") {
+                        roleCardClass += " role-emperor";
                         if (bgUrl) {
                             bgStyle = `background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(0,0,0,0.6)), url('${bgUrl}'); background-size: cover; background-position: center 12%; border: 3px solid #fff; animation: goldPulse 2s infinite alternate;`;
                         } else {
@@ -3101,11 +3826,11 @@
                     } else if (bgUrl) {
                         bgStyle = `background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('${bgUrl}'); background-size: cover; background-position: center 12%;`;
                     } else {
-                        bgStyle = `background: linear-gradient(135deg, #6a1b9a, #4a148c);`;
+                        bgStyle = `background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);`;
                     }
 
                     roleArea.innerHTML = `
-                        <div class="role-card" style="${style} ${bgStyle}">
+                        <div class="${roleCardClass}" style="${bgStyle}">
                             <div class="role-name">${myRole}</div>
                             <div class="role-jp">${rInfo.jp}</div>
                             <div class="role-desc">${rInfo.summary}</div>
@@ -3224,18 +3949,18 @@
                     if (isRanked) boxClass += " passed";
 
                     // --- 1. 手札枚数の色スタイル ---
-                    let countStyle = ""; 
+                    let countClass = "";
                     if (!isRanked) { 
                         if (handCount === 1) {
                             boxClass += " warning-1";
-                            countStyle = "color:#ff1744; text-shadow:0 0 10px #ff1744; animation: blink-text 0.6s infinite;"; 
+                            countClass = " count-danger";
                         } else if (handCount === 2) {
                             boxClass += " warning-2";
-                            countStyle = "color:#ffeb3b; text-shadow:0 0 10px #ffeb3b; animation: blink-text 1.2s infinite;";
+                            countClass = " count-warning";
                         }
                     } else {
                         // あがった人は枚数0でグレーアウト
-                        countStyle = "color:#78909c;";
+                        countClass = " count-passed";
                     }
 
                     // --- 2. ステータス表示 (NORMAL / RESET / RANK) ---
@@ -3329,11 +4054,11 @@
 
                     // ★ HTML組み立て ★
                     let html = `
-                        <div class="${boxClass}" style="position:relative;">
+                        <div class="${boxClass} with-bubble">
                             <div id="bubble-${pid}" class="chat-bubble ${bubbleClass}"></div>
-                            <div class="p-header" onclick="showPlayerLogs('${pid}')" style="cursor:pointer; text-decoration:underline;">${hostMark}${pName}</div>
+                            <div class="p-header clickable" onclick="showPlayerLogs('${pid}')">${hostMark}${pName}</div>
                             <div class="p-body">
-                                <div class="p-hand-count" style="${countStyle}">
+                                <div class="p-hand-count${countClass}">
                                     <span class="p-hand-icon">🃏×</span>${handCount}
                                 </div>
 
@@ -3352,9 +4077,7 @@
                     `;
                     
                     let wrapper = document.createElement("div");
-                    wrapper.style.display = "flex";
-                    wrapper.style.flexDirection = "column";
-                    wrapper.style.alignItems = "center";
+                    wrapper.className = "p-box-wrap";
                     wrapper.innerHTML = html;
                     area.appendChild(wrapper);
                 });
@@ -3463,20 +4186,19 @@
                 playSoundEffect('WARNING');
                 const note = myPlayer.notification;
                 const getNotifDisplay = (val) => {
-                    if (CARD_IMAGES[val]) return `<img src="${CARD_IMAGES[val]}" style="height:80px; width:auto; display:block; margin:0 auto;">`;
-                    let style = "font-size:32px; font-weight:bold; line-height:80px;";
-                    return `<div style="${style}">${val}</div>`;
+                    if (CARD_IMAGES[val]) return `<img src="${CARD_IMAGES[val]}" class="modal-image-center">`;
+                    return `<div class="modal-notif-value">${val}</div>`;
                 };
                 let html = `
-                    <div style="text-align:center;">
-                        <p style="font-size:16px; font-weight:bold; color:#d32f2f;">${note.fromName} にトレードされました！</p>
-                        <div style="display:flex; justify-content:space-around; align-items:center; margin:10px 0;">
-                            <div style="width:100px;"><div style="font-size:10px; color:#888;">盗まれた</div>${getNotifDisplay(note.lostVal)}</div>
-                            <div style="font-size:20px; color:#ccc;">➡</div>
-                            <div style="width:100px;"><div style="font-size:10px; color:#888;">渡された</div>${getNotifDisplay(note.gotVal)}</div>
+                    <div class="modal-notif-wrap">
+                        <p class="modal-notif-title">${note.fromName} にトレードされました！</p>
+                        <div class="modal-card-row">
+                            <div class="modal-notif-card"><div class="modal-card-label">盗まれた</div>${getNotifDisplay(note.lostVal)}</div>
+                            <div class="modal-notif-arrow">➡</div>
+                            <div class="modal-notif-card"><div class="modal-card-label">渡された</div>${getNotifDisplay(note.gotVal)}</div>
                         </div>
                     </div>`;
-                openModal("⚠️ トレード警告", html);
+                openModal("⚠️ トレード警告", html, { tone: "alert" });
                 firebase.database().ref(`rooms/${currentRoom}/players/${myId}/notification`).remove();
             }
 
@@ -3490,9 +4212,6 @@
                 // nameBar自体に relative をつける手もありますが、
                 // ここでは nameBar の中に absolute で配置します。
                 // nameBar に style="position:relative" を付与しておくと安全です
-                nameBar.style.position = "relative";
-                nameBar.style.overflow = "visible"; // はみ出してもOKにする
-
                 let myPName = players[myId].name;
                 
                 // 1. 役職のHTML生成
@@ -3504,30 +4223,28 @@
                     
                     // スキル使用済みなら灰色、未使用なら紫
                     const isUsed = currentAct[myId];
-                    const textColor = isUsed ? "#616161" : "#e040fb"; 
-                    
-                    // フォントサイズや太さの指定を消して、名前のスタイルをそのまま引き継ぐようにしました
-                    myRoleHtml = `<span style="color:${textColor}; margin-left:10px;">【役職】${jpName}</span>`;
+                    const usedClass = isUsed ? " used" : "";
+                    myRoleHtml = `<span class="my-role-chip${usedClass}">【役職】${jpName}</span>`;
                 }
 
                 // ★修正: resetHolder ではなく effectiveResetHolder を使用して判定
                 let resetBadge = "";
                 if (effectiveResetHolder === myId) {
                     // status-resetクラスをそのまま利用（位置調整のためstyleを追加）
-                    resetBadge = `<span class="status-reset" style="margin-left:10px; font-size:12px; vertical-align:middle; display:inline-block;">👑 RESET</span>`;
+                    resetBadge = `<span class="status-reset my-reset-badge">👑 RESET</span>`;
                 }
 
                 // 2. ホストなら★を表示
-                let hostIcon = (effectiveHostId === myId) ? "<span style='color:#ffd700; margin-right:4px;'>★</span>" : "";
+                let hostIcon = (effectiveHostId === myId) ? "<span class='my-host-icon'>★</span>" : "";
 
                 // 3. 順位がついているなら表示
-                let rankText = (data.rankings && data.rankings[myId]) ? `<span style="color:#ffd700; margin-left:10px;">🏆${data.rankings[myId]}位</span>` : "";
+                let rankText = (data.rankings && data.rankings[myId]) ? `<span class="my-rank-badge">🏆${data.rankings[myId]}位</span>` : "";
 
                 let bubbleHtml = `<div id="bubble-${myId}" class="chat-bubble bubble-pos-bottom"></div>`;
                 
                 // ★全部まとめてセット！ (先頭に bubbleHtml を追加)
                 // ★変更: 自分の名前もクリックして履歴を見れるようにする
-                nameBar.innerHTML = `${bubbleHtml}${hostIcon}<span onclick="showPlayerLogs('${myId}')" style="cursor:pointer; text-decoration:underline;">${myPName}</span>${myRoleHtml}${resetBadge}${rankText}`;
+                nameBar.innerHTML = `${bubbleHtml}${hostIcon}<span onclick="showPlayerLogs('${myId}')" class="my-name-link">${myPName}</span>${myRoleHtml}${resetBadge}${rankText}`;
             }
 
             // 音再生
@@ -3559,22 +4276,10 @@
             
             let html = '<div class="modal-list">';
             list.slice().reverse().forEach(c => {
-                let style = '';
-                let imgUrl = CARD_IMAGES[c.val];
-                let imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;` : '';
-                html += `<div class="card ${c.type}" style="${style} ${imgStyle}">${c.val}</div>`;
+                html += renderCardView(c);
             });
             html += '</div>';
             openModal(title, html);
-        }
-
-        function renderPile(arr) {
-            if (!arr || arr.length === 0) return "";
-            let c = arr[arr.length-1];
-            let style = '';
-            let imgUrl = CARD_IMAGES[c.val];
-            let imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;` : '';
-            return `<div class="card ${c.type}" style="${style} ${imgStyle}">${c.val}</div>`;
         }
 
         // --- Action Logic ---
@@ -3591,11 +4296,18 @@
             let isInheritedReset = checkInheritedResetLogic(gameState, myId);
 
             if (isOwnerReset || isInheritedReset) {
-                openModal("パス (リセット権行使)", "山札からドローしますか？<br><br><span style='color:#ef5350; font-weight:bold;'>※リセット権を行使します（場が流れ、自分のターンが続きます）</span><br><br><button class='modal-btn primary' onclick='execPassDraw(true)'>ドローする</button><button class='modal-btn' onclick='execPassNoDraw(true)'>しない</button>");
+                const resetNotice = renderNoticeBlock("※リセット権を行使します（場が流れ、自分のターンが続きます）", "warn");
+                openModal(
+                    "パス (リセット権行使)",
+                    `山札からドローしますか？<br><br>${resetNotice}<br><br>${renderModalButton("ドローする", "execPassDraw(true)", "primary")}${renderModalButton("しない", "execPassNoDraw(true)", "ghost")}`
+                );
                 return;
             }
 
-            openModal("パス", "山札からドローしますか？<br><br><button class='modal-btn primary' onclick='execPassDraw(false)'>ドローする</button><button class='modal-btn' onclick='execPassNoDraw(false)'>しない</button>");
+            openModal(
+                "パス",
+                `山札からドローしますか？<br><br>${renderModalButton("ドローする", "execPassDraw(false)", "primary")}${renderModalButton("しない", "execPassNoDraw(false)", "ghost")}`
+            );
         }
 
         async function execPassNoDraw(isReset) {
@@ -3882,7 +4594,7 @@
                     let count = gameState.hands[pid] ? gameState.hands[pid].length : 0;
                     if (count > 0) {
                         if (isPoliticianShieldActive(pid)) {
-                            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
+                            html += `<button class="modal-btn is-disabled" disabled>${p.name} (政治家で対象外)</button>`;
                         } else {
                             canUseTarget = true;
                             html += `<button class="modal-btn" onclick="tradeStep2('${pid}', ${idx})">${p.name} (手札${count})</button>`;
@@ -3890,12 +4602,12 @@
                     }
                 });
                 if (!canUseTarget) {
-                    html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
+                    html += `<p class="modal-note">対象にできるプレイヤーがいません。</p>`;
                     if (canWhiffTrade) {
                         const otherName = (gameState.players && gameState.players[onlyOtherPid]) ? gameState.players[onlyOtherPid].name : "相手";
                         html += `
-                            <div style="margin-top:10px; padding:8px; border:1px solid #ffb74d; border-radius:8px; background:rgba(255,183,77,0.12);">
-                                <p style="font-size:12px; color:#ef6c00; margin:0 0 8px;">
+                            <div class="seki-section warn">
+                                <p class="modal-note warn warn-block">
                                     2人終盤かつ ${otherName} が[政治家]保護中のため、TRADEを空振り消費できます。
                                 </p>
                                 <button class="modal-btn primary" onclick="execTradeWhiff(${idx}, '${onlyOtherPid}')">空振りでTRADEを使用する</button>
@@ -4388,10 +5100,7 @@
         function renderPile(arr) {
             if (!arr || arr.length === 0) return "";
             let c = arr[arr.length-1];
-            let style = '';
-            let imgUrl = CARD_IMAGES[c.val];
-            let imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;` : '';
-            return `<div class="card ${c.type}" style="${style} ${imgStyle}">${c.val}</div>`;
+            return renderCardView(c);
         }
 
         function getActiveCount(data) {
@@ -5556,14 +6265,14 @@ function activateMagicianTrade() {
         // ★変更: 次は「奪うカード選択 (magicianSelectTake)」へ
         if (count > 0) {
             if (isPoliticianShieldActive(pid)) {
-                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
+                html += `<button class="modal-btn is-disabled" disabled>${p.name} (政治家で対象外)</button>`;
             } else {
                 canUseTarget = true;
                 html += `<button class="modal-btn" onclick="magicianSelectTake('${pid}')">${p.name} (手札${count})</button>`;
             }
         }
     });
-    if (!canUseTarget) html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
+    if (!canUseTarget) html += `<p class="modal-note">対象にできるプレイヤーがいません。</p>`;
     openModal("ピエロ(TRADE): 相手選択", html);
 }
 
@@ -6030,7 +6739,7 @@ function policeTradeStart() {
 
         if (count > 0) {
             if (isPoliticianShieldActive(pid)) {
-                html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>
+                html += `<button class="modal-btn is-disabled" disabled>
                             ${p.name} (政治家で対象外)
                          </button>`;
             } else {
@@ -6041,7 +6750,7 @@ function policeTradeStart() {
             }
         }
     });
-    if (!canUseTarget) html += `<p style="font-size:12px; color:#777;">対象にできるプレイヤーがいません。</p>`;
+    if (!canUseTarget) html += `<p class="modal-note">対象にできるプレイヤーがいません。</p>`;
     
     // ▼▼▼ キャンセルボタン（トレードしない）を追加 ▼▼▼
     html += `
@@ -6229,10 +6938,10 @@ function renderHackerUI() {
         html += `<p style="text-align:center; color:#ccc;">ハッキング可能な相手がいません。</p>`;
     }
     if (blockedTargets.length > 0) {
-        html += `<p style="text-align:center; color:#d32f2f;">※政治家の保護中プレイヤーは対象外です</p>`;
+        html += `<p class="seki-disabled-note" style="text-align:center;">※政治家の保護中プレイヤーは対象外です</p>`;
         blockedTargets.forEach(pid => {
             const p = gameState.players[pid];
-            html += `<button class="modal-btn" style="width:100%; margin:4px 0; background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
+            html += `<button class="modal-btn is-disabled" style="width:100%; margin:4px 0;" disabled>${p.name} (政治家で対象外)</button>`;
         });
     }
 
@@ -6836,9 +7545,10 @@ function activateNecromancer() {
                 html += `<div class="card num necromancer-item" data-card-val="${c.val}" style="${style}" onclick="selectNecromancerTarget('num', ${i}, this)">${c.val}</div>`;
             }
         }
-        html += `<div style="width:100%; font-size:11px; color:#ef5350; margin-top:2px;">※TOP が数字墓地の一番上です</div>`;
+        html += `<div class="modal-note warn" style="width:100%; margin-top:2px;">※TOP が数字墓地の一番上です</div>`;
     } else {
-        html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.75;" onclick="showInfoModal('対象外', '数字墓地は空です。記号墓地から選んでください。')">数字墓地は空です</button>`;
+        html += `<button class="modal-btn is-disabled" disabled>数字墓地は空です</button>`;
+        html += `<span class="modal-note">※記号墓地から選んでください。</span>`;
     }
     html += `</div>`;
 
@@ -6856,7 +7566,8 @@ function activateNecromancer() {
             html += `<div class="card sym necromancer-item" data-card-val="${c.val}" style="${style}" onclick="selectNecromancerTarget('sym', ${i}, this)">${c.val}</div>`;
         }
     } else {
-        html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.75;" onclick="showInfoModal('対象外', '記号墓地は空です。数字墓地から選んでください。')">記号墓地は空です</button>`;
+        html += `<button class="modal-btn is-disabled" disabled>記号墓地は空です</button>`;
+        html += `<span class="modal-note">※数字墓地から選んでください。</span>`;
     }
     html += `</div>`;
 
@@ -6983,7 +7694,7 @@ function activateAgent() {
     }
 
     let html = `<p>ランダム交換する<strong>1人目（対象A）</strong>を選んでください。<br>
-        <span style="font-size:12px; color:#666;">※このあと2人目（対象B）を選びます。</span>
+        <span class="modal-note">※このあと2人目（対象B）を選びます。</span>
     </p>`;
 
     candidates.forEach(pid => {
@@ -6993,10 +7704,10 @@ function activateAgent() {
         html += `<button class="modal-btn" onclick="agentSelectSecondTarget('${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
     });
     if (blockedCandidates.length > 0) {
-        html += `<p style="font-size:12px; color:#d32f2f; margin-top:8px;">※政治家の保護中プレイヤーは対象外です</p>`;
+        html += `<p class="seki-disabled-note">※政治家の保護中プレイヤーは対象外です</p>`;
         blockedCandidates.forEach(pid => {
             const p = gameState.players[pid];
-            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
+            html += `<button class="modal-btn is-disabled" disabled>${p.name} (政治家で対象外)</button>`;
         });
     }
 
@@ -7026,7 +7737,7 @@ function agentSelectSecondTarget(firstId) {
 
     const firstName = gameState.players[firstId] ? gameState.players[firstId].name : "不明";
     let html = `<p><strong>2人目</strong>を選んでください。<br>
-        <span style="font-size:12px; color:#666;">選択済み: ${firstName}</span>
+        <span class="modal-note">選択済み: ${firstName}</span>
     </p>`;
 
     candidates.forEach(pid => {
@@ -7036,10 +7747,10 @@ function agentSelectSecondTarget(firstId) {
         html += `<button class="modal-btn" onclick="execAgentSwap('${firstId}', '${pid}')">${p.name}${selfLabel} (手札${handCount})</button>`;
     });
     if (blockedCandidates.length > 0) {
-        html += `<p style="font-size:12px; color:#d32f2f; margin-top:8px;">※政治家の保護中プレイヤーは対象外です</p>`;
+        html += `<p class="seki-disabled-note">※政治家の保護中プレイヤーは対象外です</p>`;
         blockedCandidates.forEach(pid => {
             const p = gameState.players[pid];
-            html += `<button class="modal-btn" style="background:#9e9e9e; color:#fff; opacity:0.7; cursor:not-allowed;" disabled>${p.name} (政治家で対象外)</button>`;
+            html += `<button class="modal-btn is-disabled" disabled>${p.name} (政治家で対象外)</button>`;
         });
     }
 
@@ -7162,35 +7873,35 @@ function setupEffectListener() {
             let check4 = (lastHostHandMode === 4) ? "checked" : "";
 
             let html = `
-                <div style="text-align:left; font-size:14px;">
-                    <div style="margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #eee;">
-                        <label style="display:flex; align-items:center; cursor:pointer; margin-bottom:8px;">
-                            <input type="radio" name="handMode" value="6" ${check6} style="margin:0 8px 0 0; width:auto; transform:scale(1.2);">
+                <div class="seki-host-settings">
+                    <div class="seki-host-mode-box">
+                        <label class="seki-host-mode-item">
+                            <input type="radio" name="handMode" value="6" ${check6}>
                             <div>
-                                <span style="font-weight:bold; color:#2e7d32;">通常モード (6枚)</span>
-                                <span style="font-size:11px; color:#888; margin-left:5px;">― 数字6 + 記号2</span>
+                                <span class="seki-host-mode-title">通常モード (6枚)</span>
+                                <span class="seki-host-mode-meta">― 数字6 + 記号2</span>
                             </div>
                         </label>
-                        <label style="display:flex; align-items:center; cursor:pointer;">
-                            <input type="radio" name="handMode" value="4" ${check4} style="margin:0 8px 0 0; width:auto; transform:scale(1.2);">
+                        <label class="seki-host-mode-item">
+                            <input type="radio" name="handMode" value="4" ${check4}>
                             <div>
-                                <span style="font-weight:bold; color:#ef6c00;">短期決戦 (4枚)</span>
-                                <span style="font-size:11px; color:#888; margin-left:8px;">― 数字4 + 記号2</span>
+                                <span class="seki-host-mode-title hot">短期決戦 (4枚)</span>
+                                <span class="seki-host-mode-meta">― 数字4 + 記号2</span>
                             </div>
                         </label>
                     </div>
                     
-                    <div style="display:flex; gap:10px;">
-                        <button onclick="confirmInitGameWithSettings()" style="flex:1; background:linear-gradient(135deg, #66bb6a, #43a047); color:white; padding:10px; font-weight:bold; border-radius:20px; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                    <div class="seki-host-actions">
+                        <button onclick="confirmInitGameWithSettings()" class="modal-btn primary">
                             開始 / リセット
                         </button>
-                        <button onclick="confirmCloseRoom()" style="width:80px; background:#ef5350; color:white; padding:10px; font-size:11px; border-radius:20px;">
+                        <button onclick="confirmCloseRoom()" class="modal-btn danger">
                             解散
                         </button>
                     </div>
                 </div>
             `;
-            openModal("ホスト設定", html);
+            openModal("ホスト設定", html, { tone: "guide" });
         }
 
         // ★新設: 設定値を読み取って開始確認へ
@@ -7202,8 +7913,8 @@ function setupEffectListener() {
             els.mTitle.innerText = "開始確認";
             els.mContent.innerHTML = `<p><strong>${lastHostHandMode}枚モード</strong> で<br>ゲームを開始（リセット）しますか？</p>`;
             els.mFooter.innerHTML = `
-                <button onclick="closeModal(); execInitGame(${lastHostHandMode})" class="modal-btn primary">はい</button>
-                <button onclick="openHostSettings()" class="modal-btn">戻る</button>
+                ${renderModalButton("はい", `closeModal(); execInitGame(${lastHostHandMode})`, "primary")}
+                ${renderModalButton("戻る", "openHostSettings()", "ghost")}
             `;
         }
 
@@ -7238,31 +7949,31 @@ function setupEffectListener() {
         }
 
         function buildRoleGuideHtml() {
-            let html = '<div class="font-readable" style="text-align:left; max-height: 500px; overflow-y: auto;">';
+            let html = '<div class="font-readable seki-guide-root">';
 
             Object.keys(ROLE_INFO).forEach(key => {
                 const info = ROLE_INFO[key];
                 let imgHtml = "";
                 if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
-                    imgHtml = `<img src="${ROLE_IMAGES[key]}" style="height:40px; vertical-align:middle; margin-right:10px; border-radius:4px; border:1px solid #ccc;">`;
+                    imgHtml = `<img src="${ROLE_IMAGES[key]}" class="seki-guide-role-img">`;
                 }
 
                 html += `
-                    <details style="margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">
-                        <summary style="cursor:pointer; display:flex; align-items:center; outline:none; list-style:none;">
+                    <details class="seki-guide-role-item">
+                        <summary class="seki-guide-summary">
                             ${imgHtml}
-                            <div style="flex:1;">
-                                <div style="font-weight:bold; color:#e050fa; font-size:15px;">
+                            <div class="seki-guide-role-main">
+                                <div class="seki-guide-role-jp">
                                     ${info.jp}
-                                    <span style="font-size:13px; color:#e050fa; font-weight:normal; margin-left:4px;">${key}</span>
+                                    <span class="seki-guide-role-en">${key}</span>
                                 </div>
-                                <div style="font-size:12px; color:#000000; display: flex; justify-content: space-between; align-items: baseline;">
+                                <div class="seki-guide-role-summary">
                                     <div>${info.summary}</div>
-                                    <span style="font-size:10px; color:#888; white-space: nowrap;">▼詳細　</span>
+                                    <span class="seki-guide-hint">▼詳細</span>
                                 </div>
                             </div>
                         </summary>
-                        <div style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.1); border-radius:5px; font-size:12px; color:#000000; line-height:1.6;">${info.desc}</div>
+                        <div class="seki-guide-role-detail">${info.desc}</div>
                     </details>`;
             });
 
@@ -7272,36 +7983,36 @@ function setupEffectListener() {
 
         function buildRuleGuideHtml() {
             return `
-                <div class="font-readable" style="text-align: left; max-height: 400px; overflow-y: auto; font-size: 13px; color: #333;">
-                    <h4 style="border-left: 4px solid #2e7d32; padding-left: 8px; margin: 10px 0 5px 0;">基本ルール</h4>
-                    <p style="margin: 0 0 10px 0;">・順に回ってくるターンで、手札を先に0枚にした人が勝ち！<br />・自分のターンでは以下から<strong>1つ</strong>の行動ができる<br />　　1. 手札から<span style="color: #3598db;"><strong>数字カード</strong></span>を数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br />　　2. 手札から<span style="color: #e03e2d;"><strong>記号カード</strong></span>を使う<br />　　3. 一度きりの<span style="color: #843fa1;"><strong>役職能力</strong></span>を使う（詳しい説明は<strong><span style="color: #843fa1;">【役職】</span></strong>を参照）<br />　　4. <span style="color: #e67e23;"><strong>パス</strong></span>をして自分のターンを流す（パスの詳細は下部へ）</p>
-                    <p style="margin: 0 0 10px 0;">&nbsp;</p>
-                    <h4 style="border-left: 4px solid #c62828; padding-left: 8px; margin: 10px 0 5px 0;">記号カード</h4>
-                    <ul style="padding-left: 20px; margin: 0;">
+                <div class="font-readable seki-rule-root">
+                    <h4 class="seki-rule-heading">基本ルール</h4>
+                    <p class="seki-rule-paragraph">・順に回ってくるターンで、手札を先に0枚にした人が勝ち！<br />・自分のターンでは以下から<strong>1つ</strong>の行動ができる<br />　　1. 手札から<span style="color: #3598db;"><strong>数字カード</strong></span>を数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br />　　2. 手札から<span style="color: #e03e2d;"><strong>記号カード</strong></span>を使う<br />　　3. 一度きりの<span style="color: #843fa1;"><strong>役職能力</strong></span>を使う（詳しい説明は<strong><span style="color: #843fa1;">【役職】</span></strong>を参照）<br />　　4. <span style="color: #e67e23;"><strong>パス</strong></span>をして自分のターンを流す（パスの詳細は下部へ）</p>
+                    <p class="seki-rule-paragraph">&nbsp;</p>
+                    <h4 class="seki-rule-heading danger">記号カード</h4>
+                    <ul class="seki-rule-list">
                     <li><strong>REVERSE</strong>（4枚）: <strong><span style="color: #3598db;">数字カード</span></strong>の強弱を逆転させる</li>
                     <li><strong>TRADE</strong>（4枚）: 好きな手札1枚を他のプレイヤーと交換する</li>
                     <li><strong>DIG UP</strong>（4枚）: 数字墓地の1番上のカードと、手札の<strong><span style="color: #3598db;">数字カード</span></strong>を交換する</li>
                     <li><strong>DISCARD</strong>（<strong><span style="color: #e03e2d;">1</span>枚</strong>）: 好きな<strong><span style="color: #3598db;">数字カード</span></strong>を1枚捨てる</li>
                     </ul>
                     <p>&nbsp;</p>
-                    <h4 style="border-left: 4px solid #1565c0; padding-left: 8px; margin: 10px 0 5px 0;">数字カード</h4>
-                    <p style="margin: 0 0 10px 0;">・数字カードは0~9まで各4枚ずつ<br /><strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br /><strong>　🔵 順行🐘 (通常):</strong><br />　　0 &lt; 1 &lt; 2 &lt; 3 &lt; 4 &lt; 5 &lt; 6 &lt; 7 &lt; 8 &lt; 9<br /><strong>　🔴 逆行🐁 (REVERSE中):</strong><br />　　0 &lt; 9 &lt; 8 &lt; 7 &lt; 6 &lt; 5 &lt; 4 &lt; 3 &lt; 2 &lt; 1</p>
-                    <p style="margin: 0 0 10px 0;">&nbsp;</p>
-                    <h4 style="border-left: 4px solid #f76205; padding-left: 8px; margin: 10px 0 5px 0;">パスとリセット</h4>
-                    <p style="margin: 0 0 10px 0;">・<strong>パス</strong>では、数字カードを1枚引いても良い<br />　&rArr;その際、出せるなら出しても良い！</p>
-                    <p style="margin: 0 0 10px 0;"><strong>【リセットとは】</strong></p>
-                    <ul>
+                    <h4 class="seki-rule-heading info">数字カード</h4>
+                    <p class="seki-rule-paragraph">・数字カードは0~9まで各4枚ずつ<br /><strong>・「0」はいつでも出せるが、その上に何でも出せる！</strong><br /><strong>　🔵 順行🐘 (通常):</strong><br />　　0 &lt; 1 &lt; 2 &lt; 3 &lt; 4 &lt; 5 &lt; 6 &lt; 7 &lt; 8 &lt; 9<br /><strong>　🔴 逆行🐁 (REVERSE中):</strong><br />　　0 &lt; 9 &lt; 8 &lt; 7 &lt; 6 &lt; 5 &lt; 4 &lt; 3 &lt; 2 &lt; 1</p>
+                    <p class="seki-rule-paragraph">&nbsp;</p>
+                    <h4 class="seki-rule-heading warn">パスとリセット</h4>
+                    <p class="seki-rule-paragraph">・<strong>パス</strong>では、数字カードを1枚引いても良い<br />　&rArr;その際、出せるなら出しても良い！</p>
+                    <p class="seki-rule-paragraph"><strong>【リセットとは】</strong></p>
+                    <ul class="seki-rule-list">
                     <li>数字墓地の一番上のカードを出したプレイヤーは<strong>リセット権</strong>を持つ<br />
                     <li><strong>リセット権</strong>を持っているプレイヤーがパスすると、数字墓地のカードが全て除外され、何でも出せる<br />
                     <li><strong>リセット権</strong>は、<strong>👑RESET</strong>で表示されている</li>
                     <li><strong>リセット権</strong>を持ったプレイヤーがあがった場合、<span style="text-decoration: underline;">数字墓地の一番上のカードが変わらない限り、一周後に次のプレイヤーに移動する</span></li>
                     </ul>
-                    <p style="margin: 0 0 10px 0;">&nbsp;</p>
-                    <h4 style="border-left: 4px solid #c62828; padding-left: 8px; margin: 10px 0 5px 0;">🚫禁止事項🚫</h4>
-                    <ul style="padding-left: 20px; margin: 0;">
+                    <p class="seki-rule-paragraph">&nbsp;</p>
+                    <h4 class="seki-rule-heading danger">🚫禁止事項🚫</h4>
+                    <ul class="seki-rule-list">
                     <li><strong>記号あがり</strong>: 手札の最後の1枚が記号カードのとき、それを使って0枚にはできない</li>
                     </ul>
-                    <ul style="padding-left: 20px; margin: 0;">
+                    <ul class="seki-rule-list">
                     <li><strong>0あがり</strong>: 手札の最後の1枚が0のとき、0を出して0枚にすることはできない</li>
                     </ul>
                 </div>
@@ -7327,12 +8038,7 @@ function setupEffectListener() {
                 return;
             }
 
-            openModal(title, html);
-            const mBox = document.getElementById("modal-box");
-            if (mBox) {
-                mBox.style.width = "600px";
-                mBox.style.maxWidth = "95%";
-            }
+            openModal(title, html, { size: "wide", tone: "guide" });
         }
 
         function showRoleList() { openGuide("role", "main"); }
@@ -7353,28 +8059,21 @@ function setupEffectListener() {
 
             if (filtered.length === 0) return showInfoModal(targetName + "の履歴", "表示できる行動履歴がありません。");
 
-            let html = `<div style="text-align:left; max-height:400px; overflow-y:auto; font-size:13px;">`;
+            let html = `<div class="seki-scroll-panel">`;
             
             // 新しい順に表示
             [...filtered].reverse().forEach(l => {
                 let time = new Date(l.timestamp).toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
                 html += `
-                    <div style="border-bottom:1px solid #eee; padding:6px 0;">
-                        <span style="color:#888; font-size:11px; margin-right:8px;">${time}</span>
-                        <span style="color:#333;">${l.text}</span>
+                    <div class="seki-log-line">
+                        <span class="seki-log-time">${time}</span>
+                        <span class="seki-log-text">${l.text}</span>
                     </div>
                 `;
             });
             
             html += `</div>`;
-            openModal(`${targetName} の行動履歴`, html);
-            
-            // モーダルの幅調整
-            const mBox = document.getElementById("modal-box");
-            if(mBox) {
-                mBox.style.width = "400px";
-                mBox.style.maxWidth = "90%";
-            }
+            openModal(`${targetName} の行動履歴`, html, { size: "default", tone: "guide" });
         }
 
         // --- スコア更新関数 ---
@@ -7413,7 +8112,7 @@ function setupEffectListener() {
                     let pts = 2 * (totalPlayers - r) + 1;
                     distArray.push(`${r}位:${pts}pt`);
                 }
-                distributionText = `<div style="font-size:11px; color:#666; margin-bottom:10px; background:#fff9c4; padding:5px; border-radius:4px; text-align:center; border:1px solid #fbc02d;">
+                distributionText = `<div class="score-dist">
                     現在の配分 (${totalPlayers}人戦): ${distArray.join(' / ')}
                 </div>`;
             }
@@ -7424,23 +8123,23 @@ function setupEffectListener() {
             // 2. HTMLの組み立て
             let html = distributionText; // タイトルのすぐ下に配分を表示
 
-            html += `<table style="width:100%; border-collapse:collapse; font-size:14px;">
-                        <tr style="border-bottom:2px solid #ccc; background:#f5f5f5;">
-                            <th style="padding:8px; text-align:center;">名 前</th>
-                            <th style="padding:8px; text-align:right;">合計点数</th>
+            html += `<table class="score-table">
+                        <tr class="score-head">
+                            <th>名 前</th>
+                            <th>合計点数</th>
                         </tr>`;
 
             if (sortedPids.length === 0) {
-                html += `<tr><td colspan="2" style="padding:20px; color:#999;">まだ記録がありません</td></tr>`;
+                html += `<tr><td colspan="2" class="score-empty">まだ記録がありません</td></tr>`;
             }
 
             sortedPids.forEach(pid => {
                 let pName = players[pid] ? players[pid].name : "不明なユーザー";
                 let score = scores[pid];
-                let isMe = (pid === myId) ? "color:#d32f2f; font-weight:bold;" : "";
-                html += `<tr style="border-bottom:1px solid #eee; ${isMe}">
-                            <td style="padding:8px;">${pName}</td>
-                            <td style="padding:8px; text-align:right; font-weight:bold;">${score} pt</td>
+                let rowClass = (pid === myId) ? "score-row me" : "score-row";
+                html += `<tr class="${rowClass}">
+                            <td class="score-name-cell">${pName}</td>
+                            <td class="score-point-cell">${score} pt</td>
                         </tr>`;
             });
             html += `</table>`;
@@ -7449,12 +8148,12 @@ function setupEffectListener() {
             let hostId = getEffectiveHostId(gameState);
 
             if (myId === hostId) {
-                html += `<div style="margin-top:20px;">
-                            <button onclick="confirmResetScores()" style="font-size:11px; color:#888; background:none; border:1px solid #ccc; border-radius:4px; padding:4px 8px; cursor:pointer;">スコアを全てリセット</button>
+                html += `<div class="score-reset-wrap">
+                            <button onclick="confirmResetScores()" class="score-reset-btn">スコアを全てリセット</button>
                         </div>`;
             }
 
-            openModal("🏆 総合ランキング", html);
+            openModal("🏆 総合ランキング", html, { tone: "guide" });
         }
 
         // スコアリセット用（ホスト用）
@@ -7583,7 +8282,7 @@ function setupEffectListener() {
 
 
     </script>
-    <div id="counter-hud-wrapper" style="display:none;">
+    <div id="counter-hud-wrapper" class="hidden">
     <div id="counter-toggle-btn" onclick="toggleCounterHUD()">
         📊
     </div>
@@ -7596,15 +8295,15 @@ function setupEffectListener() {
         
         <div class="hud-section-title">NUMBER (残/全4)</div>
         <div class="hud-grid" id="hud-grid-num">
-            <div style="grid-column:1/-1; text-align:center; color:#555; font-size:10px;">Loading...</div>
+            <div class="hud-loading">Loading...</div>
         </div>
 
         <div class="hud-section-title">SYMBOL</div>
         <div class="hud-grid-sym" id="hud-grid-sym">
-            <div style="grid-column:1/-1; text-align:center; color:#555; font-size:10px;">Loading...</div>
+            <div class="hud-loading">Loading...</div>
         </div>
         
-        <div style="font-size:10px; color:#777; margin-top:5px; text-align:center;">
+        <div class="hud-footnote">
             ※山札 + 相手の手札にある数
         </div>
     </div>
@@ -7626,18 +8325,23 @@ function setupEffectListener() {
         z-index: 2000;   
         
         width: 44px; height: 44px;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(4, 11, 23, 0.8);
         backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 215, 0, 0.6);
+        border: 1px solid rgba(0, 216, 255, 0.62);
         border-radius: 50%;
         
         display: flex; justify-content: center; align-items: center;
+        color: #dff6ff;
         font-size: 20px;
         cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        transition: transform 0.2s, background 0.2s;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 12px rgba(0, 216, 255, 0.2);
+        transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
-    #counter-toggle-btn:active { transform: scale(0.9); background: rgba(0,0,0,0.8); }
+    #counter-toggle-btn:hover {
+        border-color: rgba(0, 216, 255, 0.82);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.55), 0 0 16px rgba(0, 216, 255, 0.3);
+    }
+    #counter-toggle-btn:active { transform: scale(0.9); background: rgba(2, 8, 16, 0.92); }
 
     /* 2. パネル本体（グラスモーフィズム） */
     #counter-panel {
@@ -7647,9 +8351,9 @@ function setupEffectListener() {
         z-index: 1999;
         
         width: 240px;    /* スマホでも見やすい幅 */
-        background: rgba(20, 20, 20, 0.85);
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.86));
         backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 215, 0, 0.3);
+        border: 1px solid rgba(0, 216, 255, 0.34);
         border-radius: 12px;
         padding: 12px;
         
@@ -7660,7 +8364,7 @@ function setupEffectListener() {
         transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         pointer-events: none;
         
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 22px rgba(0, 216, 255, 0.18);
     }
     /* 開いた状態 */
     #counter-panel.active {
@@ -7672,14 +8376,14 @@ function setupEffectListener() {
     /* 内部レイアウト */
     .hud-header {
         display: flex; justify-content: space-between; align-items: center;
-        font-size: 12px; font-weight: bold; color: #ffd700;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        font-size: 12px; font-weight: bold; color: #a8e9ff;
+        border-bottom: 1px solid rgba(0, 216, 255, 0.28);
         padding-bottom: 5px; margin-bottom: 8px;
     }
     .close-btn { cursor: pointer; padding: 0 5px; font-size: 16px; color: #fff; }
 
     .hud-section-title {
-        font-size: 10px; color: #aaa; margin-bottom: 4px; letter-spacing: 1px;
+        font-size: 10px; color: #b9cde4; margin-bottom: 4px; letter-spacing: 1px;
     }
 
     .hud-grid {
@@ -7699,15 +8403,27 @@ function setupEffectListener() {
         border-radius: 6px;
         padding: 4px 0;
         text-align: center;
-        border: 1px solid transparent;
+        border: 1px solid rgba(163, 196, 231, 0.16);
     }
     /* 残り0枚になったら暗くする */
     .hud-item.zero { opacity: 0.3; background: transparent; border: 1px dashed #444; }
     /* 残り枚数が多いときは強調 */
-    .hud-item.rich { border-color: rgba(255,215,0,0.3); background: rgba(255,215,0,0.05); }
+    .hud-item.rich { border-color: rgba(0, 216, 255, 0.36); background: rgba(0, 216, 255, 0.08); }
 
     .hud-val { font-size: 11px; font-weight: bold; color: #ccc; display: block; line-height: 1; margin-bottom: 2px; }
     .hud-count { font-size: 15px; font-weight: 800; color: #fff; display: block; line-height: 1; }
+    .hud-loading {
+        grid-column: 1/-1;
+        text-align: center;
+        color: #8ca2bd;
+        font-size: 10px;
+    }
+    .hud-footnote {
+        font-size: 10px;
+        color: #9cb3c9;
+        margin-top: 5px;
+        text-align: center;
+    }
     
     /* 記号ごとの色分け */
     .hud-item.sym-rev .hud-val { color: #e91e63; } /* REVERSE: 赤 */
@@ -7747,13 +8463,13 @@ function setupEffectListener() {
         // ★重要: ゲームに参加していない（ログイン画面）ときは隠す
         // gameStateがない、または myId がない場合は非表示にして終了
         if (typeof gameState === 'undefined' || !gameState || typeof myId === 'undefined' || !myId) {
-            if(wrapper) wrapper.style.display = "none";
+            if(wrapper) wrapper.classList.add("hidden");
             return;
         }
 
         // ゲーム中なら表示する
-        if(wrapper && wrapper.style.display === "none") {
-            wrapper.style.display = "block";
+        if(wrapper && wrapper.classList.contains("hidden")) {
+            wrapper.classList.remove("hidden");
         }
 
         // ★修正ポイント: 手札の取得方法を変更
@@ -7871,47 +8587,59 @@ function setupEffectListener() {
     /* メインのモーダルより上に表示 */
     #sub-modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(2, 7, 15, 0.72);
         z-index: 9999;
         display: flex; justify-content: center; align-items: center;
-        backdrop-filter: blur(4px);
+        backdrop-filter: blur(5px);
         transition: opacity 0.2s;
     }
     #sub-modal-overlay.hidden { display: none !important; opacity: 0; }
 
     #sub-modal-box {
-        background: #fff; color: #333;
+        background:
+            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
+            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.11), transparent 36%);
+        color: var(--seki-text-main);
         width: 90%; max-width: 600px;
         max-height: 80vh;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 20px;
         position: relative;
         font-family: var(--font-readable);
-        box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        box-shadow: var(--seki-shadow-panel), 0 0 24px rgba(0, 216, 255, 0.18);
+        border: 1px solid rgba(0, 216, 255, 0.36);
         display: flex; flex-direction: column;
         animation: subPopIn 0.2s ease-out;
     }
     @keyframes subPopIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    #sub-modal-title { margin: 0 0 10px 0; border-bottom: 2px solid #2e7d32; padding-bottom: 5px; color: #2e7d32; }
+    #sub-modal-title { margin: 0 0 10px 0; border-bottom: 2px solid rgba(0, 216, 255, 0.56); padding-bottom: 5px; color: #9ce8ff; }
     #sub-modal-body { overflow-y: auto; flex: 1; text-align: left; font-size: 14px; line-height: 1.6; }
 
     #sub-modal-box .close-btn {
         position: absolute; top: 10px; right: 15px;
-        font-size: 24px; cursor: pointer; color: #999;
+        font-size: 24px; cursor: pointer; color: #a8c7e4;
     }
 
     /* メインモーダルに追加する共通ボタン */
     #modal-board-toggle {
         position: absolute; top: 10px; right: 10px;
-        border: 1px solid #90a4ae; border-radius: 16px;
-        background: #eceff1; color: #37474f;
+        border: 1px solid rgba(122, 168, 218, 0.6);
+        border-radius: 16px;
+        background: rgba(7, 22, 42, 0.92);
+        color: #e6f6ff;
         padding: 3px 10px; font-size: 12px; cursor: pointer;
         line-height: 1.2; z-index: 100;
+        transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
+    }
+    #modal-board-toggle:hover {
+        border-color: rgba(0, 216, 255, 0.78);
+        box-shadow: 0 0 10px rgba(0, 216, 255, 0.28);
+        transform: translateY(-1px);
     }
     #modal-board-toggle.active {
-        background: #2e7d32;
-        border-color: #2e7d32;
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+        border-color: rgba(0, 216, 255, 0.88);
         color: #fff;
     }
 
@@ -7920,11 +8648,21 @@ function setupEffectListener() {
         display: flex; gap: 5px; z-index: 100;
     }
     .help-icon-btn {
-        background: none; border: 1px solid rgba(0,0,0,0.2);
-        border-radius: 4px; cursor: pointer; font-size: 14px; padding: 2px 6px;
-        background: rgba(255,255,255,0.8); transition: 0.2s;
+        background: none;
+        border: 1px solid rgba(122, 168, 218, 0.6);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 2px 6px;
+        color: #e6f6ff;
+        background: rgba(7, 22, 42, 0.92);
+        transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
     }
-    .help-icon-btn:hover { transform: scale(1.1); background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .help-icon-btn:hover {
+        transform: scale(1.06);
+        border-color: rgba(0, 216, 255, 0.8);
+        box-shadow: 0 2px 9px rgba(0,0,0,0.2), 0 0 10px rgba(0, 216, 255, 0.28);
+    }
 </style>
 
 <script>
@@ -7978,8 +8716,8 @@ function setupEffectListener() {
         }
     }
 
-    window.openModal = function(title, html) {
-        window._origOpenModal(title, html);
+    window.openModal = function(title, html, options = {}) {
+        window._origOpenModal(title, html, options);
         ensureMainModalTools();
         setMainModalBoardMode(false);
     };
