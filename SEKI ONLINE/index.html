@@ -1770,6 +1770,13 @@
         padding: 10px 8px;
         overflow-y: auto;
     }
+    .role-draft-text-block.role-draft-text-block-unused {
+        justify-content: flex-start;
+        align-items: stretch;
+        text-align: center;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
     .role-draft-maintext {
         font-family: var(--font-display-strong);
         font-size: clamp(18px, 4.5vw, 34px);
@@ -2019,6 +2026,10 @@
         .role-draft-unused-list {
             gap: 6px;
         }
+        .role-draft-text-block.role-draft-text-block-unused {
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
         .role-draft-unused-absence-note {
             font-size: clamp(9.5px, 2.7vw, 12px);
         }
@@ -2059,6 +2070,10 @@
     @media (max-width: 420px) {
         .role-draft-unused-list {
             gap: 5px;
+        }
+        .role-draft-text-block.role-draft-text-block-unused {
+            padding-top: 5px;
+            padding-bottom: 5px;
         }
         .role-draft-unused-absence-note {
             font-size: clamp(9px, 2.9vw, 11px);
@@ -4477,7 +4492,7 @@
         const ROLE_DRAFT_PHASE_MS = {
             booting: 2200,
             resolving: 1200,
-            reveal_unused: 10000,
+            reveal_unused: 9000,
             system_online: 2000,
             noise_out: 2000
         };
@@ -5550,7 +5565,7 @@
                 }).join("");
 
                 bodyHtml = `
-                    <div class="role-draft-text-block">
+                    <div class="role-draft-text-block role-draft-text-block-unused">
                         <div class="role-draft-maintext">UNSELECTED ROLES</div>
                         <div class="role-draft-subtext">プレイヤーが選ばなかった役職のみが公開されます</div>
                         <div class="role-draft-unused-absence-note">これらの役職は登場しません</div>
