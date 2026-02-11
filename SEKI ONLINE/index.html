@@ -2862,6 +2862,8 @@
             // システム通知
             'turn':    './sounds/turn.mp3',  // 自分の番
             'chat':    './sounds/chat.mp3',  // チャット受信
+            'JOIN': './sounds/join.mp3',
+            'BOOTING': './sounds/booting.mp3',
             'WARNING': './sounds/warning.mp3', // トレードの被害
             'DOS': './sounds/dos.mp3',
             'UNO': './sounds/uno.mp3',
@@ -3097,7 +3099,7 @@
             // BGM用音量ノード
             bgmGainNode = audioCtx.createGain();
             // ★ここが重要: iPhone用にBGMをかなり小さく設定 (0.05くらいが丁度いいことが多い)
-            bgmGainNode.gain.value = 0.05; 
+            bgmGainNode.gain.value = 0.08; 
 
             // 接続
             bgmSource.connect(bgmGainNode);
@@ -3661,6 +3663,7 @@
             screen.classList.remove("hidden");
             screen.classList.remove("is-wiping");
             if (title) title.classList.add("is-active");
+            playSoundEffect('BOOTING');
             void screen.offsetWidth;
 
             screen.addEventListener("animationend", onAnimEnd);
@@ -4165,6 +4168,7 @@
 
         async function joinGame() {
             unlockAudioContext();
+            playSoundEffect('JOIN');
             if(currentRoom) return; 
             els.btnJoin.disabled = true; 
             
