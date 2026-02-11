@@ -333,6 +333,162 @@
     #asset-loading-continue-btn {
         background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
     }
+    #boot-transition-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 10070;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transform-origin: left center;
+        background:
+            radial-gradient(circle at 18% 20%, rgba(0, 216, 255, 0.28), transparent 34%),
+            radial-gradient(circle at 82% 28%, rgba(255, 53, 94, 0.18), transparent 36%),
+            linear-gradient(145deg, #020814 0%, #051326 46%, #081e35 100%);
+        will-change: opacity, transform, filter, clip-path;
+    }
+    #boot-transition-screen.hidden {
+        display: none !important;
+    }
+    #boot-transition-screen::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.04) 0px,
+            rgba(255, 255, 255, 0.04) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.32;
+    }
+    #boot-transition-screen::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.06;
+        mix-blend-mode: screen;
+        background:
+            radial-gradient(circle at 17% 28%, rgba(0, 216, 255, 0.35), transparent 38%),
+            radial-gradient(circle at 76% 62%, rgba(52, 247, 141, 0.24), transparent 34%),
+            repeating-linear-gradient(
+                95deg,
+                rgba(255, 255, 255, 0.16) 0 2px,
+                rgba(0, 0, 0, 0.08) 2px 5px,
+                rgba(255, 53, 94, 0.16) 5px 7px,
+                rgba(0, 0, 0, 0.06) 7px 11px
+            );
+        background-size: 100% 100%, 100% 100%, 240px 100%;
+        background-position: center, center, 0 0;
+        will-change: opacity, transform, background-position, filter, clip-path;
+    }
+    #boot-transition-screen.is-wiping {
+        animation: sekiBootNoiseOut 900ms steps(14, end) forwards;
+    }
+    #boot-transition-screen.is-wiping::after {
+        opacity: 0.72;
+        animation: sekiBootNoiseFlicker 120ms steps(2, end) infinite;
+    }
+    #boot-transition-title {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        text-align: center;
+        font-family: var(--font-ui);
+        font-size: clamp(40px, 9vw, 98px);
+        letter-spacing: 0.12em;
+        color: #e9fbff;
+        text-shadow:
+            0 0 10px rgba(0, 216, 255, 0.55),
+            0 0 26px rgba(52, 247, 141, 0.35),
+            0 0 48px rgba(0, 216, 255, 0.18);
+        padding: 0 18px;
+    }
+    #boot-transition-title.is-active {
+        animation: sekiBootTitlePulse 0.55s ease-in-out infinite alternate;
+    }
+    #boot-transition-screen.is-wiping #boot-transition-title {
+        text-shadow:
+            0 0 9px rgba(0, 216, 255, 0.4),
+            0 0 20px rgba(52, 247, 141, 0.28),
+            0 0 36px rgba(255, 53, 94, 0.24);
+    }
+    @keyframes sekiBootNoiseOut {
+        0% {
+            opacity: 1;
+            filter: contrast(1) saturate(1);
+            clip-path: inset(0 0 0 0);
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+        20% {
+            opacity: 0.94;
+            clip-path: inset(0 0 0 0);
+            transform: translate3d(3px, -1px, 0) scale(1.002);
+        }
+        40% {
+            opacity: 0.84;
+            clip-path: inset(3% 0 6% 0);
+            transform: translate3d(-3px, 2px, 0) scale(1.003);
+            filter: contrast(1.16) saturate(1.06);
+        }
+        58% {
+            opacity: 0.6;
+            clip-path: inset(11% 0 17% 0);
+            transform: translate3d(4px, -3px, 0) scale(0.997);
+            filter: contrast(1.26) saturate(1.12);
+        }
+        76% {
+            opacity: 0.35;
+            clip-path: inset(30% 0 40% 0);
+            transform: translate3d(-4px, 3px, 0) scale(0.993);
+            filter: contrast(1.32) saturate(1.2);
+        }
+        100% {
+            opacity: 0;
+            clip-path: inset(48% 0 52% 0);
+            transform: translate3d(0, 0, 0) scale(0.985);
+            filter: contrast(0.82) saturate(0.74);
+        }
+    }
+    @keyframes sekiBootNoiseFlicker {
+        0% {
+            opacity: 0.28;
+            transform: translate3d(0, 0, 0);
+            background-position: center, center, 0 0;
+        }
+        25% {
+            opacity: 0.54;
+            transform: translate3d(-2px, 1px, 0);
+            background-position: center, center, 55px 0;
+        }
+        50% {
+            opacity: 0.4;
+            transform: translate3d(2px, -2px, 0);
+            background-position: center, center, -60px 0;
+        }
+        75% {
+            opacity: 0.66;
+            transform: translate3d(-3px, 2px, 0);
+            background-position: center, center, 95px 0;
+        }
+        100% {
+            opacity: 0.3;
+            transform: translate3d(1px, -1px, 0);
+            background-position: center, center, -40px 0;
+        }
+    }
+    @keyframes sekiBootTitlePulse {
+        from { filter: brightness(0.9); transform: scale(0.995); }
+        to { filter: brightness(1.16); transform: scale(1.01); }
+    }
+    @keyframes sekiBootFadeOut {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }
     #squeeze-guess {
         position: absolute;
         top: 10%;
@@ -649,6 +805,19 @@
         #login-screen #btn-join,
         .seki-btn {
             transition: none !important;
+        }
+        #boot-transition-title.is-active {
+            animation: none !important;
+        }
+        #boot-transition-screen.is-wiping {
+            animation: sekiBootFadeOut 300ms ease forwards !important;
+            transform: none !important;
+            clip-path: inset(0 0 0 0) !important;
+            filter: none !important;
+        }
+        #boot-transition-screen.is-wiping::after {
+            animation: none !important;
+            opacity: 0 !important;
         }
     }
 
@@ -2351,6 +2520,10 @@
         </div>
     </div>
 
+    <div id="boot-transition-screen" class="hidden" aria-hidden="true">
+        <h2 id="boot-transition-title">S.E.K.I. BOOTING</h2>
+    </div>
+
     <script>
     (() => {
         const loginScreen = document.getElementById("login-screen");
@@ -3277,7 +3450,7 @@
         let lastCleanupTurnIdx = -1;
         let myRankPlayed = false; // ★追加: 順位決定音が再生済みかどうかのフラグ
         let lastChatTimeProcessed = 0; // ★追加: チャット吹き出し用
-        const ASSET_LOADING_MIN_MS = 3000;
+        const ASSET_LOADING_MIN_MS = 2000;
         let assetLoadingShownAt = 0;
         let assetLoadingUiTimer = null;
         let assetLoadingLastProgress = {
@@ -3300,6 +3473,8 @@
             assetLoadingActions: document.getElementById("asset-loading-actions"),
             assetLoadingRetryBtn: document.getElementById("asset-loading-retry-btn"),
             assetLoadingContinueBtn: document.getElementById("asset-loading-continue-btn"),
+            bootTransitionScreen: document.getElementById("boot-transition-screen"),
+            bootTransitionTitle: document.getElementById("boot-transition-title"),
             roomName: document.getElementById("roomName"),
             roomSuggestion: document.getElementById("room-suggestion-panel"),
             playerName: document.getElementById("playerName"),
@@ -3427,6 +3602,81 @@
                 loadingActionResolver("continue");
                 loadingActionResolver = null;
             }
+        }
+
+        async function showBootTransitionScreen() {
+            if (!els.bootTransitionScreen) return;
+
+            const screen = els.bootTransitionScreen;
+            const title = els.bootTransitionTitle;
+            let startWipeTimer = null;
+            let forceFinishTimer = null;
+            let finished = false;
+            let resolved = false;
+
+            const finish = () => {
+                if (finished) return;
+                finished = true;
+
+                if (startWipeTimer) clearTimeout(startWipeTimer);
+                if (forceFinishTimer) clearTimeout(forceFinishTimer);
+
+                screen.classList.add("hidden");
+                screen.classList.remove("is-wiping");
+                if (title) title.classList.remove("is-active");
+                screen.removeEventListener("animationend", onAnimEnd);
+            };
+
+            const finalize = (resolve) => {
+                if (resolved) return;
+                resolved = true;
+                finish();
+                resolve();
+            };
+
+            const onAnimEnd = (ev) => {
+                if (ev.target !== screen) return;
+                if (ev.animationName === "sekiBootNoiseOut" || ev.animationName === "sekiBootFadeOut") {
+                    if (pendingResolve) finalize(pendingResolve);
+                }
+            };
+
+            let pendingResolve = null;
+            const waitOneFrame = () => new Promise(resolve => {
+                let done = false;
+                const finish = () => {
+                    if (done) return;
+                    done = true;
+                    resolve();
+                };
+                const fallback = setTimeout(finish, 34);
+                if (typeof requestAnimationFrame === "function") {
+                    requestAnimationFrame(() => {
+                        clearTimeout(fallback);
+                        finish();
+                    });
+                }
+            });
+
+            screen.classList.remove("hidden");
+            screen.classList.remove("is-wiping");
+            if (title) title.classList.add("is-active");
+            void screen.offsetWidth;
+
+            screen.addEventListener("animationend", onAnimEnd);
+            await waitOneFrame();
+            await waitOneFrame();
+
+            await new Promise(resolve => {
+                pendingResolve = resolve;
+                startWipeTimer = setTimeout(() => {
+                    screen.classList.add("is-wiping");
+                }, 980);
+
+                forceFinishTimer = setTimeout(() => {
+                    finalize(resolve);
+                }, 2300);
+            });
         }
 
         function renderAssetLoadingFailed(failedList) {
@@ -4020,12 +4270,18 @@
 
                 await hideAssetLoadingScreen();
 
+                setRoomSuggestionVisible(false);
+                stopRoomSuggestionPolling();
+                els.login.classList.add("hidden");
+                await showBootTransitionScreen();
+                els.game.classList.remove("hidden");
+                document.getElementById("room-display").innerText = `部屋: ${room}`;
+
                 setupEffectListener();
                 playBgm('BGM_LOBBY');
 
                 const roomRef = db.ref(`rooms/${room}`);
-                roomRef.on('value', (snapshot) => {
-                    const data = snapshot.val();
+                const applyRoomSnapshot = (data) => {
                     if (data) {
                         gameState = data;
                         render(data);
@@ -4038,15 +4294,14 @@
                             render(gameState);
                         }
                     }
+                };
+
+                const initialRoomSnapshot = await roomRef.get();
+                applyRoomSnapshot(initialRoomSnapshot.val());
+
+                roomRef.on('value', (snapshot) => {
+                    applyRoomSnapshot(snapshot.val());
                 });
-
-                
-
-                setRoomSuggestionVisible(false);
-                stopRoomSuggestionPolling();
-                els.login.classList.add("hidden");
-                els.game.classList.remove("hidden");
-                document.getElementById("room-display").innerText = `部屋: ${room}`;
             } catch(e) { 
                 await hideAssetLoadingScreen();
                 showInfoModal("通信エラー", e.message); 
