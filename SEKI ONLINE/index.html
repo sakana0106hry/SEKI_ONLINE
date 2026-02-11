@@ -1883,23 +1883,131 @@
     }
     .role-draft-unused-list {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .role-draft-unused-group {
+        border-radius: 10px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.34);
+        background: linear-gradient(
+            145deg,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.14),
+            rgba(3, 10, 21, 0.9) 66%
+        );
+        box-shadow: inset 0 0 12px rgba(var(--role-accent-rgb, 0, 216, 255), 0.08);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
         gap: 6px;
     }
-    .role-draft-unused-item {
-        border-radius: 8px;
-        border: 1px solid rgba(122, 138, 153, 0.7);
-        background: rgba(75, 85, 95, 0.48);
-        color: #eef4f9;
+    .role-draft-unused-group-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        text-align: left;
         font-size: 11px;
-        line-height: 1.35;
-        padding: 5px 4px;
+        letter-spacing: 0.08em;
+        color: var(--role-accent, #9ce8ff);
+        text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
+    }
+    .role-draft-unused-group-tag {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 20px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.76);
+        background: rgba(var(--role-accent-rgb, 0, 216, 255), 0.2);
+        color: #f2fbff;
+        font-family: var(--font-display-strong);
+        font-size: 10px;
+        line-height: 1;
+        box-sizing: border-box;
+    }
+    .role-draft-unused-group-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .role-draft-unused-item {
+        position: relative;
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.4);
+        background: linear-gradient(
+            120deg,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.1),
+            rgba(6, 16, 32, 0.9) 52%,
+            rgba(2, 8, 18, 0.94)
+        );
+        color: #eef4f9;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "main meta"
+            "sub meta";
+        column-gap: 8px;
+        row-gap: 2px;
+        align-items: center;
+        text-align: left;
+        padding: 6px 9px 6px 13px;
         cursor: pointer;
-        opacity: 0.84;
+        opacity: 0.92;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
+        box-sizing: border-box;
+    }
+    .role-draft-unused-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 7px;
+        bottom: 7px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: rgba(var(--role-accent-rgb, 0, 216, 255), 0.9);
+        box-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.42);
+    }
+    .role-draft-unused-item-main {
+        grid-area: main;
+        min-width: 0;
+        font-size: 14px;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #f5fbff;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .role-draft-unused-item-sub {
+        grid-area: sub;
+        min-width: 0;
+        font-size: 10px;
+        line-height: 1.2;
+        color: #c8e1f7;
+        letter-spacing: 0.04em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .role-draft-unused-item-meta {
+        grid-area: meta;
+        align-self: center;
+        font-size: 9px;
+        line-height: 1.2;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--role-accent, #9ce8ff);
+        text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.32);
+        white-space: nowrap;
     }
     .role-draft-unused-item:hover {
         opacity: 1;
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.88);
+        box-shadow: 0 0 12px rgba(var(--role-accent-rgb, 0, 216, 255), 0.28), inset 0 0 10px rgba(var(--role-accent-rgb, 0, 216, 255), 0.1);
+        transform: translateY(-1px);
     }
     @media (max-width: 600px) {
         #role-draft-monitor {
@@ -1920,6 +2028,74 @@
             --role-draft-confirm-padding-y: 3px;
             --role-draft-confirm-padding-x: 7px;
             --role-draft-confirm-min-height: 28px;
+        }
+        .role-draft-unused-list {
+            gap: 6px;
+        }
+        .role-draft-unused-group {
+            padding: 7px;
+            gap: 5px;
+        }
+        .role-draft-unused-group-title {
+            font-size: 10px;
+            gap: 6px;
+        }
+        .role-draft-unused-group-tag {
+            min-width: 18px;
+            height: 16px;
+            font-size: 9px;
+        }
+        .role-draft-unused-group-rows {
+            gap: 4px;
+        }
+        .role-draft-unused-item {
+            padding: 6px 8px 6px 11px;
+            column-gap: 7px;
+        }
+        .role-draft-unused-item::before {
+            top: 6px;
+            bottom: 6px;
+        }
+        .role-draft-unused-item-main {
+            font-size: 13px;
+        }
+        .role-draft-unused-item-sub {
+            font-size: 9.5px;
+        }
+        .role-draft-unused-item-meta {
+            font-size: 8.5px;
+        }
+    }
+    @media (max-width: 420px) {
+        .role-draft-unused-list {
+            gap: 5px;
+        }
+        .role-draft-unused-group {
+            padding: 6px;
+        }
+        .role-draft-unused-group-title {
+            font-size: 9px;
+            letter-spacing: 0.06em;
+        }
+        .role-draft-unused-group-tag {
+            min-width: 16px;
+            height: 15px;
+            padding: 0 4px;
+            font-size: 8px;
+        }
+        .role-draft-unused-item {
+            padding: 5px 7px 5px 10px;
+            column-gap: 6px;
+        }
+        .role-draft-unused-item-main {
+            font-size: 12px;
+        }
+        .role-draft-unused-item-sub {
+            font-size: 9px;
+        }
+        .role-draft-unused-item-meta {
+            font-size: 8px;
+            letter-spacing: 0.08em;
         }
     }
     @media (max-height: 760px) {
@@ -4303,7 +4479,7 @@
         const ROLE_DRAFT_PHASE_MS = {
             booting: 2200,
             resolving: 1200,
-            reveal_unused: 2600,
+            reveal_unused: 4500,
             system_online: 2000,
             noise_out: 2000
         };
@@ -5332,17 +5508,54 @@
             } else if (phase === "reveal_unused") {
                 headline = "UNSELECTED ROLES / PUBLIC";
                 const list = sortRoleKeysForDisplay(rd.publicUnusedRoles || []);
-                const items = list.map(roleKey => {
-                    const roleInfo = ROLE_INFO[roleKey];
-                    const label = roleInfo ? roleInfo.jp : roleKey;
-                    const safeRoleKey = String(roleKey).replace(/'/g, "\\'");
-                    return `<button type="button" class="role-draft-unused-item" onclick="showRoleDraftUnusedDetail('${safeRoleKey}')">${label}<br><small>${roleKey}</small></button>`;
+                const grouped = ROLE_DRAFT_GROUP_ORDER.reduce((acc, groupKey) => {
+                    acc[groupKey] = [];
+                    return acc;
+                }, {});
+
+                list.forEach(roleKey => {
+                    const groupKey = getRoleGroup(roleKey);
+                    if (!groupKey || !grouped[groupKey]) return;
+                    grouped[groupKey].push(roleKey);
+                });
+
+                const sections = ROLE_DRAFT_GROUP_ORDER.map(groupKey => {
+                    const roleKeys = grouped[groupKey] || [];
+                    if (roleKeys.length === 0) return "";
+
+                    const groupMeta = ROLE_GROUP_META[groupKey] || {};
+                    const groupClass = groupMeta.cssClass || "";
+                    const groupLabel = groupMeta.label || groupKey;
+                    const groupTag = String(groupLabel).charAt(0).toUpperCase();
+                    const rows = roleKeys.map(roleKey => {
+                        const roleInfo = ROLE_INFO[roleKey];
+                        const label = roleInfo ? roleInfo.jp : roleKey;
+                        const safeRoleKey = String(roleKey).replace(/'/g, "\\'");
+                        return `
+                            <button type="button" class="role-draft-unused-item ${groupClass}" onclick="showRoleDraftUnusedDetail('${safeRoleKey}')">
+                                <span class="role-draft-unused-item-main">${label}</span>
+                                <span class="role-draft-unused-item-sub">${roleKey}</span>
+                                <span class="role-draft-unused-item-meta">${groupLabel}</span>
+                            </button>
+                        `;
+                    }).join("");
+
+                    return `
+                        <section class="role-draft-unused-group ${groupClass}">
+                            <div class="role-draft-unused-group-title">
+                                <span class="role-draft-unused-group-tag">${groupTag}</span>
+                                <span>${groupLabel}</span>
+                            </div>
+                            <div class="role-draft-unused-group-rows">${rows}</div>
+                        </section>
+                    `;
                 }).join("");
+
                 bodyHtml = `
                     <div class="role-draft-text-block">
                         <div class="role-draft-maintext">UNSELECTED ROLES</div>
                         <div class="role-draft-subtext">プレイヤーが選ばなかった役職のみが公開されます</div>
-                        <div class="role-draft-unused-list">${items || '<div class="role-draft-subtext">公開対象なし</div>'}</div>
+                        <div class="role-draft-unused-list">${sections || '<div class="role-draft-subtext">公開対象なし</div>'}</div>
                     </div>
                 `;
                 footerHtml = `<div class="role-draft-footer"><span class="role-draft-selected-label">公開データを同期中...</span></div>`;
