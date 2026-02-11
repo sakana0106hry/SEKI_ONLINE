@@ -5167,6 +5167,8 @@
             const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
             const mySelectedRole = (rd.selectedRoles && rd.selectedRoles[myId]) ? rd.selectedRoles[myId] : null;
             const isMySelecting = phase === "selecting" && currentPid === myId && !mySelectedRole;
+            const isMyResolvingSelf = phase === "resolving" && !!resolveInfo && resolveInfo.playerId === myId && !!mySelectedRole;
+            const canRenderOwnRoleCards = isMySelecting || isMyResolvingSelf;
 
             if (!isMySelecting) roleDraftPendingSelection = null;
             const selectedRoleForUi = isMySelecting ? roleDraftPendingSelection : null;
@@ -5199,23 +5201,26 @@
                     let cardClass = `role-draft-card ${groupClass}`.trim();
 
                     if (phase === "resolving" && resolveInfo) {
-                        if (isMySelecting || (resolveInfo.playerId === myId && mySelectedRole)) {
+                        if (canRenderOwnRoleCards) {
                             if (roleKey && resolveInfo.selectedRole !== roleKey) cardClass += " fade-out";
                         } else if (resolveInfo.selectedGroup !== groupKey) {
                             cardClass += " fade-out";
                         }
                     }
 
-                    if (isMySelecting && roleKey) {
-                        if (selectedRoleForUi === roleKey) cardClass += " selected";
-                        cardClass += " selectable";
+                    if (canRenderOwnRoleCards && roleKey) {
+                        const selectedRoleForCard = isMySelecting ? selectedRoleForUi : mySelectedRole;
+                        if (selectedRoleForCard === roleKey) cardClass += " selected";
+                        if (isMySelecting) cardClass += " selectable";
+                        else cardClass += " disabled";
                         const safeRoleKey = String(roleKey).replace(/'/g, "\\'");
                         const roleImage = (typeof ROLE_IMAGES !== "undefined" && ROLE_IMAGES[roleKey]) ? ROLE_IMAGES[roleKey] : "";
                         const roleImageHtml = roleImage
                             ? `<div class="role-draft-card-media"><img src="${roleImage}" alt="${safeRoleKey}"></div>`
                             : "";
+                        const onclickAttr = isMySelecting ? ` onclick="selectRoleDraftCandidate('${safeRoleKey}')"` : "";
                         cardsHtml += `
-                            <div class="${cardClass}" onclick="selectRoleDraftCandidate('${safeRoleKey}')">
+                            <div class="${cardClass}"${onclickAttr}>
                                 ${roleImageHtml}
                                 <div class="role-draft-card-inner">
                                     <div class="role-draft-group">${groupMeta.label || groupKey}</div>
