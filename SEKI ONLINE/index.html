@@ -854,6 +854,20 @@
         box-shadow: var(--seki-shadow-panel), inset 0 0 18px rgba(0, 216, 255, 0.08);
         margin-top: 10px;
     }
+    #my-hand {
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: flex-end;
+        white-space: nowrap;
+        overflow: visible;
+        box-sizing: border-box;
+        min-height: 94px;
+    }
+    #my-hand .card {
+        flex: 0 0 auto;
+    }
 
     /* カード・盤面デザイン */
     .pile { 
@@ -1110,6 +1124,8 @@
         padding: 0 4px;
         background: rgba(8, 26, 48, 0.64);
         border-bottom: 1px solid rgba(0, 216, 255, 0.24);
+        border-top-left-radius: 9px;
+        border-top-right-radius: 9px;
         font-size: 13px;
         font-weight: bold;
         color: #f3fbff;
@@ -1200,6 +1216,8 @@
         align-items: center;
         background: rgba(4, 12, 24, 0.5);
         padding: 0 4px;
+        border-bottom-left-radius: 9px;
+        border-bottom-right-radius: 9px;
     }
 
     /* --- 役職バッジ（視認性アップ版） --- */
@@ -3557,6 +3575,86 @@
             window.visualViewport.addEventListener("resize", syncAppViewportHeight);
         }
 
+        function resetMyHandLayout(container = els.hand) {
+            if (!container) return;
+            const cards = container.querySelectorAll(".card");
+            cards.forEach(card => {
+                card.style.marginLeft = "";
+                card.style.zIndex = "";
+                card.style.position = "";
+            });
+        }
+
+        function updateMyHandOverlap(container) {
+            if (!container) return;
+            const cards = Array.from(container.querySelectorAll(".card"));
+            const cardCount = cards.length;
+            if (cardCount === 0) return;
+
+            const firstCard = cards[0];
+            const cardWidth = Math.max(1, firstCard.offsetWidth || 0);
+            const firstStyle = window.getComputedStyle(firstCard);
+            const marginLeft = parseFloat(firstStyle.marginLeft) || 0;
+            const marginRight = parseFloat(firstStyle.marginRight) || 0;
+            let baseGap = marginLeft + marginRight;
+
+            if (cardCount > 1) {
+                const secondCard = cards[1];
+                const measuredGap = secondCard.offsetLeft - firstCard.offsetLeft - cardWidth;
+                if (Number.isFinite(measuredGap) && measuredGap >= 0) {
+                    baseGap = measuredGap;
+                }
+            }
+
+            const containerWidth = Math.max(0, container.clientWidth);
+            let overlap = 0;
+
+            if (cardCount > 1 && containerWidth > 0) {
+                const neededOverlap = Math.ceil(((cardCount * cardWidth) + ((cardCount - 1) * baseGap) - containerWidth) / (cardCount - 1));
+                const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+                const normalMinVisibleWidth = 18;
+                const extremeMinVisibleWidth = 1;
+
+                const maxOverlapNormal = Math.max(0, cardWidth - normalMinVisibleWidth);
+                overlap = clamp(neededOverlap, 0, maxOverlapNormal);
+
+                if (neededOverlap > maxOverlapNormal) {
+                    const maxOverlapExtreme = Math.max(0, cardWidth - extremeMinVisibleWidth);
+                    overlap = clamp(neededOverlap, 0, maxOverlapExtreme);
+                }
+            }
+
+            cards.forEach((card, idx) => {
+                card.style.position = "relative";
+                if (idx > 0 && overlap > 0) {
+                    card.style.marginLeft = `${marginLeft - overlap}px`;
+                }
+
+                const normalZIndex = idx + 1;
+                const selectedZIndex = cardCount + 200 + idx;
+                card.style.zIndex = String(card.classList.contains("selected") ? selectedZIndex : normalZIndex);
+            });
+        }
+
+        function applyMyHandLayout() {
+            if (!els.hand) return;
+            resetMyHandLayout(els.hand);
+            updateMyHandOverlap(els.hand);
+        }
+
+        window.addEventListener("resize", () => {
+            applyMyHandLayout();
+        });
+        window.addEventListener("orientationchange", () => {
+            setTimeout(() => {
+                applyMyHandLayout();
+            }, 140);
+        });
+        if (window.visualViewport && typeof window.visualViewport.addEventListener === "function") {
+            window.visualViewport.addEventListener("resize", applyMyHandLayout);
+        }
+
         function escapeHtml(text) {
             return String(text || "")
                 .replace(/&/g, "&amp;")
@@ -4669,6 +4767,7 @@
                     });
 
                     handContainer.appendChild(fragment);
+                    applyMyHandLayout();
                 }
 
                 // --- 3. 役職パネルの描画 ---
