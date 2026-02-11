@@ -1789,6 +1789,15 @@
         color: #b9d5ea;
         max-width: 95%;
     }
+    .role-draft-unused-absence-note {
+        font-family: var(--font-readable);
+        font-size: clamp(10px, 2.6vw, 13px);
+        line-height: 1.25;
+        letter-spacing: 0.02em;
+        color: #dff0ff;
+        white-space: nowrap;
+        max-width: 96%;
+    }
     .role-draft-transition-meter {
         position: relative;
         width: min(92%, 520px);
@@ -2010,6 +2019,9 @@
         .role-draft-unused-list {
             gap: 6px;
         }
+        .role-draft-unused-absence-note {
+            font-size: clamp(9.5px, 2.7vw, 12px);
+        }
         .role-draft-unused-group {
             padding: 7px;
             gap: 5px;
@@ -2047,6 +2059,10 @@
     @media (max-width: 420px) {
         .role-draft-unused-list {
             gap: 5px;
+        }
+        .role-draft-unused-absence-note {
+            font-size: clamp(9px, 2.9vw, 11px);
+            letter-spacing: 0.01em;
         }
         .role-draft-unused-group {
             padding: 6px;
@@ -4461,7 +4477,7 @@
         const ROLE_DRAFT_PHASE_MS = {
             booting: 2200,
             resolving: 1200,
-            reveal_unused: 9000,
+            reveal_unused: 10000,
             system_online: 2000,
             noise_out: 2000
         };
@@ -5537,6 +5553,7 @@
                     <div class="role-draft-text-block">
                         <div class="role-draft-maintext">UNSELECTED ROLES</div>
                         <div class="role-draft-subtext">プレイヤーが選ばなかった役職のみが公開されます</div>
+                        <div class="role-draft-unused-absence-note">これらの役職は登場しません</div>
                         <div class="role-draft-unused-list">${sections || '<div class="role-draft-subtext">公開対象なし</div>'}</div>
                     </div>
                 `;
