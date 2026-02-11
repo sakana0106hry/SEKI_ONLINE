@@ -4264,6 +4264,8 @@
         const ROLE_INFO = {
             "ALCHEMIST": { 
                 jp: "錬金術師", 
+                "s-eng": "CON-BERT",
+                "s-jp": "非等価交換",
                 summary: "数字山札を引き、手札と四則演算して出す",
                 desc: `<ol>
 <li>数字山札から、1枚カードを引く。</li>
@@ -4283,6 +4285,8 @@
             },
             "ASTRONOMER": {
                 jp: "天文学者",
+                "s-eng": "RE-ORDER",
+                "s-jp": "軌道観測",
                 summary: "2〜8の1枚を観測し、最強として扱う",
                 desc: `<ol>
 <li>順行なら「9より強い数字」を、逆行なら「1より強い数字」を、<strong>2〜8</strong>から1つ選び、観測する。</li>
@@ -4300,6 +4304,8 @@
             },
             "ANGLER": { 
                 jp: "釣り師",   
+                "s-eng": "PHISH-ING",
+                "s-jp": "偽装釣果",
                 summary: "手札1枚を除外、墓地から1枚回収",
                 desc: `<ol>
 <li>自分の手札から好きな<strong>カード</strong>1枚を除外する。</li>
@@ -4309,6 +4315,8 @@
             },
             "EMPEROR": { 
                 jp: "皇帝",     
+                "s-eng": "TRICKLE-DOWN",
+                "s-jp": "絶対分配",
                 summary: "全員の手札を回収し、好きな1枚奪って残りを再配布",
                 desc: `<ul style="list-style-type: square;">
 <li>ゲーム開始時に自分が「皇帝」であることが他プレイヤー全員に通知される。</li>
@@ -4322,6 +4330,8 @@
             },
             "FORTUNE TELLER": { 
                 jp: "占い師",   
+                "s-eng": "LCD-IVINE",
+                "s-jp": "液晶水晶",
                 summary: "全員の手札と役職を見る",
                 desc: `<ol>
 <li>他プレイヤー全員の手札および役職を自分だけ確認することができる。</li>
@@ -4332,6 +4342,8 @@
             },
             "GAMBLER": { 
                 jp: "賭博師",   
+                "s-eng": "JACK-POD",
+                "s-jp": "天賦之賽",
                 summary: "山札の数字を予想し、当たりで最大2枚の手札破棄",
                 desc: `<ol>
 <li>数字山札の一番上のカードについて、A: 小さい【1, 2, 3, 4】、B: 大きい【6, 7, 8, 9】、C: 命知らず【0, 5】の3つの組から予想する。</li>
@@ -4351,6 +4363,8 @@
             },
             "HACKER": { 
                 jp: "ハッカー", 
+                "s-eng": "LOG-DOWN",
+                "s-jp": "記録凍結",
                 summary: "全員のカードを1枚だけロックする",
                 desc: `<ol>
 <li>ハッカーを除く他プレイヤー全員に対し、手札の<strong>カード</strong>1枚を完全にロックする。</li>
@@ -4368,6 +4382,8 @@
             },
             "HUNTER": { 
                 jp: "狩人",     
+                "s-eng": "LOC-ON",
+                "s-jp": "標的補足",
                 summary: "記号山札を見て、手札と交換する",
                 desc: `<ol>
 <li>記号山札を見ることができる。</li>
@@ -4384,6 +4400,8 @@
             },
             "CROWN": {
                 jp: "ピエロ",
+                "s-eng": "COPY-RIGHT",
+                "s-jp": "模倣特権",
                 summary: "DISCARD以外の記号カードの効果を即座に使用",
                 desc: `<ol>
 <li>DISCARD以外の<span style="color: #e03e2d;"><strong>記号カード</strong></span>の効果を1つだけ即座に使用する。</li>
@@ -4393,6 +4411,8 @@
             "MILLIONAIRE": {
                 jp: "億万長者",
                 en: "BILLIONAIRE",
+                "s-eng": "CASH-FLOW",
+                "s-jp": "資産運用",
                 summary: "数字カードを2枚まで除外し、その枚数だけ記号カードを引く",
                 desc: `<ol>
 <li>手札の<span style="color: #3598db;"><strong>数字カード</strong></span>を2枚まで除外する。</li>
@@ -4403,6 +4423,8 @@
             },
             "POLICE OFFICER": { 
                 jp: "警察官",   
+                "s-eng": "CONFIS-GATE",
+                "s-jp": "一斉検挙",
                 summary: "全員の手札を1枚公開し、望むならトレード",
                 desc: `<ol>
 <li>他のプレイヤー全員に対し、手札の1枚を選んで永続的に表にする。</li>
@@ -4419,6 +4441,8 @@
             },
             "THIEF": { 
                 jp: "盗賊",     
+                "s-eng": "STEAL-TH",
+                "s-jp": "連続強盗",
                 summary: "トレードを2回まで行う",
                 desc: `<ol>
 <li><strong><span style="color: #e03e2d;">記号カード</span></strong>のTRADEと同じトレードを2回まで行うことができる（1回で終了しても良い）。</li>
@@ -4435,6 +4459,8 @@
             "NECROMANCER": {
                 jp: "牧師",
                 en: "PRIEST",
+                "s-eng": "PURGE-PRAY",
+                "s-jp": "霊魂情報化",
                 summary: "数字墓地/記号墓地から1枚除外",
                 desc: `<ol>
 <li>数字墓地もしくは記号墓地の、好きなカード1枚を除外する。</li>
@@ -4444,6 +4470,8 @@
             },
             "POLITICIAN": {
                 jp: "政治家",
+                "s-eng": "WHITE-HOUSE",
+                "s-jp": "白色防火壁",
                 summary: "手札干渉の対象外（記号カード使用で解除）",
                 desc: `<ol>
 <li>発動すると、手札干渉効果（<span style="color: #e03e2d;"><strong>TRADE</strong></span>、<span style="color: #843fa1;"><strong>ハッカー</strong></span>、<span style="color: #843fa1;"><strong>占い師</strong></span>、<span style="color: #843fa1;"><strong>皇帝</strong></span>、<span style="color: #843fa1;"><strong>警察官</strong><span style="color: #d9ebff;">、</span><strong>盗賊</strong><span style="color: #d9ebff;">、</span><strong>ピエロ</strong><span style="color: #d9ebff;">、</span><strong>工作員</strong></span>）に選択されなくなる。</li>
@@ -4460,6 +4488,8 @@
             },
             "AGENT": {
                 jp: "工作員",
+                "s-eng": "T-RAID",
+                "s-jp": "攪乱工作",
                 summary: "任意の2人の手札をランダムに1枚交換",
                 desc: `<ol>
 <li>自分を含む任意のプレイヤーから対象を2人を選ぶ。</li>
@@ -4625,7 +4655,6 @@
         let necromancerTargetIdx = -1;
         // ★追加: ハッカー解除制御用の変数
         let lastCleanupTurnIdx = -1;
-        let myRankPlayed = false; // ★追加: 順位決定音が再生済みかどうかのフラグ
         let lastChatTimeProcessed = 0; // ★追加: チャット吹き出し用
         let roleDraftPendingSelection = null;
         let roleDraftAdvanceBusy = false;
@@ -6952,25 +6981,6 @@
                 btnHost.classList.add("hidden");
             }
 
-            // ↓↓↓ render関数内の「通知チェック」の上あたりに追加 ↓↓↓
-            // --- 7. 自分の順位決定音 (敗者も含む) ---
-            if (data.rankings && data.rankings[myId]) {
-                if (!myRankPlayed) {
-                    let rank = data.rankings[myId];
-                    let total = data.playerOrder.length;
-                    
-                    if (rank === 1) playSoundEffect('RANK_1');     // 1位
-                    else if (rank === total) playSoundEffect('RANK_4'); // ★最下位(敗者)
-                    else playSoundEffect('RANK_2_3');              // それ以外
-                    
-                    myRankPlayed = true; // 再生済みにする
-                }
-            } else {
-                // まだ順位がついていない（またはゲーム開始時）はリセット
-                myRankPlayed = false;
-            }
-
-            // ↑↑↑ 書き換えここまで ↑↑↑
             // 通知チェック
             const myPlayer = players[myId] || {};
             if (myPlayer.notification) {
@@ -7303,6 +7313,7 @@
                     // ▲▲▲ 追加ここまで ▲▲▲
 
                     let totalPlayers = gameState.playerOrder.length;
+                    appendRankSound(soundList, currentRank, totalPlayers);
 
                     if (currentRank >= totalPlayers - 1) {
                          updates[`rooms/${currentRoom}/status`] = "finished";
@@ -7313,6 +7324,7 @@
                         if(loserId) {
                             // 敗者の順位を確定
                             updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            appendRankSound(soundList, totalPlayers, totalPlayers);
                             
                             // 敗者の手札（通常手札 + ハッキング中の手札）を取得
                             let lHand = gameState.hands[loserId] || [];
@@ -7775,6 +7787,7 @@
                 // ▲▲▲ 追加ここまで ▲▲▲
 
                 let totalPlayers = gameState.playerOrder.length;
+                appendRankSound(soundList, currentRank, totalPlayers);
                 if (currentRank >= totalPlayers - 1) {
                          updates[`rooms/${currentRoom}/status`] = "finished";
 
@@ -7784,6 +7797,7 @@
                         if(loserId) {
                             // 敗者の順位を確定
                             updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            appendRankSound(soundList, totalPlayers, totalPlayers);
                             
                             // 敗者の手札（通常手札 + ハッキング中の手札）を取得
                             let lHand = gameState.hands[loserId] || [];
@@ -7824,6 +7838,18 @@
             return gameState.playerOrder[gameState.turnIdx] === myId;
         }
         function getTop(arr) { return (arr && arr.length > 0) ? arr[arr.length-1] : null; }
+        function getRankSoundType(rank, totalPlayers) {
+            if (!Number.isFinite(rank) || !Number.isFinite(totalPlayers) || totalPlayers <= 0) return null;
+            if (rank === 1) return "RANK_1";
+            if (rank === totalPlayers) return "RANK_4";
+            return "RANK_2_3";
+        }
+        function appendRankSound(soundList, rank, totalPlayers) {
+            if (!Array.isArray(soundList)) return;
+            const rankSound = getRankSoundType(rank, totalPlayers);
+            if (!rankSound) return;
+            if (!soundList.includes(rankSound)) soundList.push(rankSound);
+        }
         function getAstronomerObservation(data = gameState) {
             if (!data || !data.astronomerObservation) return null;
             const rawVal = Number(data.astronomerObservation.value);
@@ -8890,6 +8916,7 @@ function toggleGamblerSelect(el, maxCount) {
                 // ▲▲▲ 追加ここまで ▲▲▲
                 
                 let totalPlayers = gameState.playerOrder.length;
+                appendRankSound(soundList, currentRank, totalPlayers);
                 if (currentRank >= totalPlayers - 1) {
                          updates[`rooms/${currentRoom}/status`] = "finished";
 
@@ -8899,6 +8926,7 @@ function toggleGamblerSelect(el, maxCount) {
                         if(loserId) {
                             // 敗者の順位を確定
                             updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            appendRankSound(soundList, totalPlayers, totalPlayers);
                             
                             // 敗者の手札（通常手札 + ハッキング中の手札）を取得
                             let lHand = gameState.hands[loserId] || [];
@@ -10330,6 +10358,7 @@ async function execAlchemist(resultVal) {
         // ▲▲▲ 追加ここまで ▲▲▲
         
         let totalPlayers = gameState.playerOrder.length;
+        appendRankSound(soundList, currentRank, totalPlayers);
         if (currentRank >= totalPlayers - 1) {
              updates[`rooms/${currentRoom}/status`] = "finished";
 
@@ -10339,6 +10368,7 @@ async function execAlchemist(resultVal) {
                         if(loserId) {
                             // 敗者の順位を確定
                             updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
+                            appendRankSound(soundList, totalPlayers, totalPlayers);
                             
                             // 敗者の手札（通常手札 + ハッキング中の手札）を取得
                             let lHand = gameState.hands[loserId] || [];
