@@ -3129,107 +3129,491 @@
         margin-top: 5px;
         padding-top: 4px;
     }
-    /* --- カットインアニメーション用CSS --- */
+    /* --- スキルカットイン演出 --- */
     #cut-in-overlay {
         position: fixed;
+        inset: 0;
+        z-index: 12050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.12s linear;
+        font-family: var(--font-ui);
+        --cut-in-theme: var(--seki-s);
+    }
+    #cut-in-overlay.active {
+        opacity: 1;
+    }
+    #cut-in-overlay.attr-s {
+        --cut-in-theme: var(--seki-s);
+    }
+    #cut-in-overlay.attr-e {
+        --cut-in-theme: var(--seki-e);
+    }
+    #cut-in-overlay.attr-k {
+        --cut-in-theme: var(--seki-k);
+    }
+
+    #cut-in-overlay > svg {
+        position: absolute;
+        width: 0;
+        height: 0;
+    }
+    #cut-in-canvas,
+    #cut-in-scanlines,
+    #cut-in-metadata,
+    #cut-in-fx {
+        position: absolute;
+        inset: 0;
+    }
+    #cut-in-canvas {
+        z-index: 0;
+    }
+    #cut-in-scanlines {
+        z-index: 5;
+        opacity: 0.58;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.26) 51%);
+        background-size: 100% 4px;
+    }
+    #cut-in-metadata {
+        z-index: 8;
+        opacity: 0.5;
+        mix-blend-mode: screen;
+        font-family: var(--font-readable);
+        font-size: 10px;
+        color: var(--cut-in-theme);
+        overflow: hidden;
+    }
+    .cut-in-meta-group {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        letter-spacing: 0.03em;
+    }
+    .cut-in-meta-top-left {
+        top: 20px;
+        left: 20px;
+    }
+    .cut-in-meta-top-right {
+        top: 20px;
+        right: 20px;
+        text-align: right;
+    }
+    .cut-in-meta-bot-left {
+        bottom: 20px;
+        left: 20px;
+    }
+    .cut-in-meta-bot-right {
+        bottom: 20px;
+        right: 20px;
+        text-align: right;
+    }
+    .cut-in-meta-log-scroll {
+        top: 10%;
+        left: 2%;
+        width: 210px;
+        height: 80%;
+        overflow: hidden;
+        opacity: 0.38;
+        mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+    }
+    .cut-in-meta-log-content {
+        white-space: pre;
+        line-height: 1.2;
+        animation: cutInMetaScrollUp 8s linear infinite;
+    }
+    .cut-in-meta-log-scroll-2 {
+        top: 15%;
+        left: 15%;
+        width: 165px;
+        height: 70%;
+        overflow: hidden;
+        opacity: 0.2;
+        font-size: 8px;
+        mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    }
+    .cut-in-meta-log-content-2 {
+        white-space: pre;
+        line-height: 1.2;
+        animation: cutInMetaScrollUp 12s linear infinite;
+    }
+    .cut-in-meta-hex {
+        top: 5%;
+        right: 2%;
+        writing-mode: vertical-rl;
+        opacity: 0.28;
+        letter-spacing: 2px;
+        font-size: 9px;
+        height: 90%;
+        mask-image: linear-gradient(to bottom, transparent, black, transparent);
+    }
+    .cut-in-meta-hex-content {
+        white-space: pre;
+        animation: cutInMetaScrollDown 25s linear infinite;
+    }
+    .cut-in-meta-system-scroll {
+        top: 20%;
+        right: 8%;
+        width: 180px;
+        height: 60%;
+        overflow: hidden;
+        opacity: 0.25;
+        text-align: right;
+        mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+    }
+    .cut-in-meta-system-content {
+        white-space: pre;
+        line-height: 1.4;
+        animation: cutInMetaScrollUp 10s linear infinite;
+    }
+    .cut-in-meta-stream {
+        position: absolute;
+        white-space: nowrap;
+        opacity: 0.35;
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+    .cut-in-meta-stream-top {
+        top: 5px;
+        left: 0;
+        animation: cutInMetaDriftRight 40s linear infinite;
+    }
+    .cut-in-meta-stream-bottom {
+        bottom: 5px;
+        left: 0;
+        animation: cutInMetaDriftLeft 40s linear infinite;
+    }
+    .cut-in-meta-bg-code {
+        position: absolute;
+        top: 0;
+        left: 20%;
+        width: 60%;
+        height: 100%;
+        opacity: 0.05;
+        font-size: 12px;
+        overflow: hidden;
+        mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    }
+    .cut-in-meta-bg-code-content {
+        white-space: pre;
+        animation: cutInMetaScrollUp 30s linear infinite;
+    }
+    @keyframes cutInMetaScrollUp {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-50%); }
+    }
+    @keyframes cutInMetaScrollDown {
+        0% { transform: translateY(-50%); }
+        100% { transform: translateY(0); }
+    }
+    @keyframes cutInMetaDriftRight {
+        0% { transform: translateX(-50%); }
+        100% { transform: translateX(0); }
+    }
+    @keyframes cutInMetaDriftLeft {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    #cut-in-slit {
+        position: relative;
+        z-index: 20;
+        width: min(180vw, 1500px);
+        height: clamp(220px, 35vh, 350px);
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        opacity: 0;
+        transform: rotate(-4deg);
+        background: rgba(5, 12, 25, 0.95);
+        border-top: 2px solid var(--cut-in-theme);
+        border-bottom: 2px solid var(--cut-in-theme);
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.82), inset 0 0 50px var(--cut-in-theme);
+        backdrop-filter: blur(10px);
+    }
+    #cut-in-overlay.attr-s.active #cut-in-slit {
+        animation: cutInSEntrance 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+    #cut-in-overlay.attr-e.active #cut-in-slit {
+        animation: cutInEEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    #cut-in-overlay.attr-k.active #cut-in-slit {
+        animation: cutInKEntrance 0.3s steps(5) forwards;
+    }
+    #cut-in-overlay.attr-k.active::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 15;
+        background: #000;
+        animation: cutInKBlackout 0.3s forwards;
+    }
+    @keyframes cutInSEntrance {
+        0% { opacity: 0; transform: rotate(-4deg) scaleY(0.1); filter: blur(10px); }
+        100% { opacity: 1; transform: rotate(-4deg) scaleY(1); filter: blur(0); }
+    }
+    @keyframes cutInEEntrance {
+        0% { opacity: 0; transform: rotate(-4deg) translateX(150%) skewX(-30deg); }
+        70% { transform: rotate(-4deg) translateX(-5%) skewX(5deg); }
+        100% { opacity: 1; transform: rotate(-4deg) translateX(0) skewX(0); }
+    }
+    @keyframes cutInKEntrance {
+        0% { opacity: 0; transform: rotate(0deg) scale(1.5); }
+        50% { opacity: 0.5; transform: rotate(-6deg) scale(0.9); filter: invert(1); }
+        100% { opacity: 1; transform: rotate(-4deg) scale(1); filter: none; }
+    }
+    @keyframes cutInKBlackout {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    #cut-in-overlay.impact-pulse {
+        animation: cutInShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    #cut-in-overlay.impact-pulse #cut-in-slit {
+        filter: url(#cut-in-rgb-shift) brightness(1.35);
+    }
+    @keyframes cutInShake {
+        0% { transform: translate(0, 0); }
+        10% { transform: translate(-5px, -2px); }
+        20% { transform: translate(5px, 2px); }
+        30% { transform: translate(-7px, 0); }
+        40% { transform: translate(7px, 0); }
+        100% { transform: translate(0, 0); }
+    }
+
+    #cut-in-role-image-wrap {
+        position: absolute;
+        left: 8%;
+        bottom: -15%;
+        height: 150%;
+        z-index: 10;
+        transform: rotate(4deg);
+        filter: drop-shadow(0 0 30px var(--cut-in-theme));
+        opacity: 1;
+        transition: opacity 0.2s ease;
+    }
+    #cut-in-role-image-wrap.is-hidden {
+        opacity: 0;
+    }
+    #cut-in-role-img {
+        width: auto;
+        height: 100%;
+        object-fit: contain;
+    }
+    #cut-in-info {
+        position: relative;
+        z-index: 20;
+        margin-left: 45%;
+        width: 50%;
+        transform: rotate(4deg);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    #cut-in-tags {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    #cut-in-role-name {
+        background: var(--cut-in-theme);
+        color: #000;
+        padding: 5px 30px;
+        font-family: var(--font-display-strong);
+        font-size: clamp(24px, 5vw, 40px);
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        clip-path: polygon(0% 0%, 95% 0%, 100% 100%, 0% 100%);
+        box-shadow: 0 0 30px var(--cut-in-theme);
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+    #cut-in-player-name {
+        padding-left: 5px;
+        font-size: clamp(14px, 3vw, 20px);
+        font-family: var(--font-readable);
+        font-weight: bold;
+        letter-spacing: 0.06em;
+        opacity: 0.9;
+        color: #eff6ff;
+        text-shadow: 0 0 5px var(--cut-in-theme);
+    }
+    #cut-in-skill-names {
+        text-align: left;
+    }
+    #cut-in-skill-eng {
+        margin: 0;
+        line-height: 0.9;
+        white-space: nowrap;
+        font-family: var(--font-display-strong);
+        font-size: clamp(40px, 8vw, 70px);
+        font-weight: 900;
+        letter-spacing: 2px;
+        color: #ffffff;
+        text-shadow: 0 0 30px var(--cut-in-theme);
+    }
+    #cut-in-skill-jp {
+        margin: 5px 0 0 5px;
+        white-space: nowrap;
+        font-family: var(--font-readable);
+        font-size: clamp(18px, 4vw, 30px);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: var(--cut-in-theme);
+        text-shadow: 0 0 14px rgba(255, 255, 255, 0.15);
+    }
+
+    #cut-in-fx {
+        z-index: 12;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    #cut-in-overlay.active #cut-in-fx {
+        opacity: 1;
+    }
+    #cut-in-overlay.attr-s #cut-in-fx {
+        background: radial-gradient(circle at center, rgba(0, 234, 255, 0.1) 0%, transparent 70%);
+    }
+    #cut-in-overlay.attr-s #cut-in-fx::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 150vh;
+        height: 150vh;
+        border: 2px dashed rgba(0, 234, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        background:
+            radial-gradient(transparent 60%, rgba(0, 234, 255, 0.2) 61%, transparent 62%),
+            radial-gradient(transparent 40%, rgba(0, 234, 255, 0.2) 41%, transparent 42%);
+        animation: cutInSOrbitSpin 20s linear infinite;
+    }
+    #cut-in-overlay.attr-s #cut-in-fx::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100vh;
+        height: 100vh;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        mix-blend-mode: overlay;
+        background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 234, 255, 0.5) 20deg, transparent 40deg);
+        animation: cutInSScanSpin 4s linear infinite;
+    }
+    @keyframes cutInSOrbitSpin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    @keyframes cutInSScanSpin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    #cut-in-overlay.attr-e #cut-in-fx {
+        mix-blend-mode: screen;
+        background: radial-gradient(circle at center, rgba(0, 255, 106, 0.05) 0%, transparent 80%);
+    }
+    #cut-in-overlay.attr-e #cut-in-fx::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 200%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 106, 0.1) 20%, rgba(0, 255, 106, 0.3) 25%, rgba(0, 255, 106, 0.1) 30%, transparent 50%);
+        background-size: 50% 100%;
+        animation: cutInELiquidFlow 3s linear infinite;
+    }
+    #cut-in-overlay.attr-e #cut-in-fx::after {
+        content: "";
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.7); /* 背景を少し暗くする */
-        z-index: 9999; /* 最前面に表示 */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        pointer-events: none; /* アニメーション中も裏の操作を阻害しないならnone、邪魔するならauto */
-        opacity: 0; /* 初期状態は透明 */
-        transition: opacity 0.3s;
+        filter: blur(2px);
+        background: repeating-linear-gradient(0deg, transparent, transparent 48%, rgba(0, 255, 106, 0.1) 50%, transparent 52%);
+        background-size: 100% 200%;
+        animation: cutInEPulse 4s ease-in-out infinite;
+    }
+    @keyframes cutInELiquidFlow {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    @keyframes cutInEPulse {
+        0% { background-position: 0 0; opacity: 0.3; }
+        50% { opacity: 0.6; }
+        100% { background-position: 0 100%; opacity: 0.3; }
     }
 
-    /* JavaScriptで hidden が外れたら表示（opacityはanimate-cut-inで制御してもよいが、ベースを表示にする） */
-    #cut-in-overlay:not(.hidden) {
-        opacity: 1;
+    #cut-in-overlay.attr-k #cut-in-fx {
+        opacity: 0.8;
+        mix-blend-mode: screen;
+        background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255, 0, 0, 0.6) 30deg, transparent 60deg, transparent 180deg, rgba(255, 0, 0, 0.6) 210deg, transparent 240deg);
+        animation: cutInKSiren 1s linear infinite;
+    }
+    #cut-in-overlay.attr-k #cut-in-fx::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 0, 0, 0.5) 3px, transparent 4px);
+        animation: cutInKNoise 0.2s steps(10) infinite;
+    }
+    #cut-in-overlay.attr-k.active::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        pointer-events: none;
+        box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.8);
+        animation: cutInKFlash 0.1s infinite alternate;
+    }
+    @keyframes cutInKSiren {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes cutInKNoise {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(10px, 10px); }
+    }
+    @keyframes cutInKFlash {
+        0% { opacity: 0.3; }
+        100% { opacity: 0.7; }
     }
 
-    #cut-in-content {
-        text-align: center;
-        color: #ffeb3b;
-        font-family: var(--font-display-strong);
-        text-shadow: 0 0 10px #ff9800;
-        transform: scale(0); /* 最初は小さく */
-    }
-
-    /* アニメーションクラスが付与されたときの動作 */
-    .animate-cut-in #cut-in-content {
-        animation: cutInZoom 2.5s ease-out forwards;
-    }
-
-    /* 動きの定義 */
-    @keyframes cutInZoom {
-        0% { transform: scale(0) rotate(-10deg); opacity: 0; }
-        20% { transform: scale(1.2) rotate(0deg); opacity: 1; }
-        30% { transform: scale(1.0); }
-        80% { transform: scale(1.0); opacity: 1; }
-        100% { transform: scale(1.5); opacity: 0; }
-    }
-    
-    /* 役職名：ゴールドのグラデーションで高級感を出す */
-    #cut-in-role { 
-        font-size: 50px; 
-        font-weight: 900;
-        margin-bottom: 5px; 
-        
-        /* 金色のグラデーション文字 */
-        background: linear-gradient(to bottom, #fff 0%, #ffd700 50%, #bf953f 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        
-        /* 影をつけて浮き上がらせる */
-        filter: drop-shadow(0 4px 0px rgba(0,0,0,0.5));
-        
-        /* 少し斜体にしてスピード感を出す */
-        font-style: italic;
-        letter-spacing: 2px;
-    }
-    /* プレイヤー名：白文字でシンプルに */
-    #cut-in-player { 
-        font-size: 20px; 
-        color: #ddd; 
-        margin-bottom: 15px;
-        letter-spacing: 1px;
-        font-weight: bold;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    }
-
-    /* ▼▼▼ クッキリ・読みやすい版 ▼▼▼ */
-    #cut-in-text { 
-        font-family: var(--font-display-strong);
-        font-weight: 900;
-        font-size: 60px; /* 少し大きくして視認性UP */
-        
-        font-style: italic;
-        letter-spacing: 0.1em;
-        transform: skewX(-15deg);
-
-        /* グラデーション：白を多めにして明るくクッキリさせる */
-        background: linear-gradient(to bottom, #ffffff 45%, #cfd8dc 50%, #78909c 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-
-        /* ★ここがポイント：filterではなく「線」で縁取りする */
-        /* これにより文字の輪郭がバシッと決まります */
-        -webkit-text-stroke: 2px #000;
-
-        /* 影：ぼかし(px)を0にして、パキッとした影を落とす */
-        filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.8));
-            
-        margin-top: 10px;
-        white-space: nowrap;
-        
-        /* 隠し味：少しだけ光らせたい場合は以下をコメントアウト解除 */
-        /* text-shadow: 0 0 10px rgba(255,255,255,0.5); */
+    @media (max-width: 768px) {
+        #cut-in-slit {
+            width: 200%;
+            height: 350px;
+        }
+        #cut-in-role-image-wrap {
+            left: -10%;
+            bottom: 0;
+            height: 110%;
+            opacity: 0.3;
+        }
+        #cut-in-info {
+            margin-left: 10%;
+            width: 85%;
+        }
+        #cut-in-role-name {
+            font-size: 28px;
+            padding: 5px 20px;
+        }
     }
 
     #visual-overlay {
@@ -3829,12 +4213,141 @@
         </div>
     </div>
 
-    <div id="cut-in-overlay" class="hidden">
-        <div id="cut-in-bg"></div>
-        <div id="cut-in-content">
-            <div id="cut-in-role">ROLE NAME</div>
-            <div id="cut-in-player">Player Name</div>
-            <div id="cut-in-text">SKILL ACTIVATED!</div>
+    <div id="cut-in-overlay" class="hidden" aria-hidden="true">
+        <svg aria-hidden="true" focusable="false">
+            <defs>
+                <filter id="cut-in-rgb-shift" x="-20%" y="-20%" width="140%" height="140%">
+                    <feOffset in="SourceGraphic" dx="-5" dy="0" result="offR"></feOffset>
+                    <feOffset in="SourceGraphic" dx="0" dy="0" result="offG"></feOffset>
+                    <feOffset in="SourceGraphic" dx="5" dy="0" result="offB"></feOffset>
+                    <feColorMatrix in="offR" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="chanR"></feColorMatrix>
+                    <feColorMatrix in="offG" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="chanG"></feColorMatrix>
+                    <feColorMatrix in="offB" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="chanB"></feColorMatrix>
+                    <feMerge>
+                        <feMergeNode in="chanR"></feMergeNode>
+                        <feMergeNode in="chanG"></feMergeNode>
+                        <feMergeNode in="chanB"></feMergeNode>
+                    </feMerge>
+                </filter>
+            </defs>
+        </svg>
+        <canvas id="cut-in-canvas" aria-hidden="true"></canvas>
+        <div id="cut-in-scanlines" aria-hidden="true"></div>
+        <div id="cut-in-metadata" aria-hidden="true">
+            <div class="cut-in-meta-group cut-in-meta-top-left">
+                <span>SYS_ID: 44X-99 ALPHA</span>
+                <span>MEM: 2048TB [OK]</span>
+                <span>SYNC: 99.9%</span>
+                <span>PROT: ENCRYPTED_V4</span>
+            </div>
+            <div class="cut-in-meta-group cut-in-meta-top-right">
+                <span>UPTIME: 4492:12:44</span>
+                <span>CONN: SECURE</span>
+                <span>MODE: BURST</span>
+            </div>
+            <div class="cut-in-meta-group cut-in-meta-bot-left">
+                <span>SEC_SECTOR: 7G</span>
+                <span>TRACE: NULL</span>
+            </div>
+            <div class="cut-in-meta-group cut-in-meta-bot-right">
+                <span>LAT: 35.6895 LON: 139.6917</span>
+                <span>PACKET_LOSS: 0.00%</span>
+                <span>THREAT_LVL: MONITORING</span>
+                <span>S.E.K.I. OS VER 2.0</span>
+            </div>
+
+            <div class="cut-in-meta-group cut-in-meta-log-scroll">
+                <div class="cut-in-meta-log-content">> INITIATING HANDSHAKE...
+> CONNECTING TO SERVER...
+> AUTHENTICATING USER...
+> LOADING ASSETS...
+> [SUCCESS] STREAM OPEN
+> BUFFERING DATA... 12%
+> BUFFERING DATA... 45%
+> BUFFERING DATA... 89%
+> [WARNING] HIGH LATENCY
+> OPTIMIZING ROUTE...
+> ROUTE FOUND: NODE_04
+> DECRYPTING KEY...
+> ACCESS GRANTED.
+> SYSTEM READY.
+> EXECUTING SCRIPT...
+> CHECKING INTEGRITY...
+> THREAT DETECTED: NONE
+> ALL SYSTEMS GO.
+> WAITING FOR INPUT...</div>
+            </div>
+            <div class="cut-in-meta-group cut-in-meta-log-scroll-2">
+                <div class="cut-in-meta-log-content-2">[INFO] Process 4491 started
+[INFO] Memory alloc: 4096KB
+[WARN] Deprecated API call
+[INFO] Thread 2 suspended
+[INFO] Garbage collection...
+[INFO] GC finished in 4ms
+[INFO] New socket open: 8080
+[INFO] Token verified
+[INFO] Session ID: x99a-22</div>
+            </div>
+            <div class="cut-in-meta-group cut-in-meta-hex">
+                <div class="cut-in-meta-hex-content">0F 3A 9C 4D 55 1B 00 FF
+A2 4E 88 90 11 22 33 44
+55 66 77 88 99 AA BB CC
+DD EE FF 00 12 34 56 78
+9A BC DE F0 0F 3A 9C 4D
+55 1B 00 FF A2 4E 88 90</div>
+            </div>
+            <div class="cut-in-meta-group cut-in-meta-system-scroll">
+                <div class="cut-in-meta-system-content">CPU0: 12% [ACTIVE]
+CPU1: 45% [ACTIVE]
+CPU2: 09% [IDLE]
+CPU3: 88% [BURST]
+GPU0: 99% [RENDER]
+VRAM: 8GB / 12GB
+TEMP: 65C (NOMINAL)
+FAN: 1200 RPM
+POWER: STABLE
+PING: 1ms</div>
+            </div>
+            <div class="cut-in-meta-stream cut-in-meta-stream-top">SCANNING_NETWORK // CHECKING_PORTS // FIREWALL_ACTIVE // USER_AUTH: OK // ENCRYPTION: AES-256 // CONNECTION: STABLE //</div>
+            <div class="cut-in-meta-stream cut-in-meta-stream-bottom">DOWNLOADING_RESOURCES [||||||||||||||||----] 82% COMPLETE // VERIFYING CHECKSUM // INTEGRITY: 100% // NO MALWARE DETECTED //</div>
+            <div class="cut-in-meta-bg-code">
+                <div class="cut-in-meta-bg-code-content">function initSystem() {
+  const core = new Core();
+  core.loadModules(["net", "crypto", "fs"]);
+  core.startService("daemon");
+  if (core.status === "ok") {
+    console.log("System Ready");
+  } else {
+    core.reboot();
+  }
+  return core.id;
+}
+class Core {
+  constructor() {
+    this.id = Math.random();
+    this.status = "init";
+  }
+  loadModules(mods) {
+    this.modules = mods;
+  }
+}</div>
+            </div>
+        </div>
+        <div id="cut-in-fx" aria-hidden="true"></div>
+        <div id="cut-in-slit">
+            <div id="cut-in-role-image-wrap">
+                <img src="" id="cut-in-role-img" alt="Role visual">
+            </div>
+            <div id="cut-in-info">
+                <div id="cut-in-tags">
+                    <div id="cut-in-role-name">ROLE NAME</div>
+                    <div id="cut-in-player-name">PLAYER NAME</div>
+                </div>
+                <div id="cut-in-skill-names">
+                    <div id="cut-in-skill-eng">COMMAND</div>
+                    <div id="cut-in-skill-jp">スキル名</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -10758,41 +11271,280 @@ async function execAgentSwap(pidA, pidB) {
     await db.ref().update(updates);
 }
 
-// カットイン再生関数（画像対応版）
+// --- カットイン演出（新仕様） ---
+const CUT_IN_GROUP_TO_ATTR = {
+    STRATEGY: "s",
+    EFFICIENCY: "e",
+    KILLER: "k"
+};
+const CUT_IN_RANDOM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?";
+let cutInImpactTimer = null;
+let cutInPulseOffTimer = null;
+let cutInDecodeTimerEng = null;
+let cutInDecodeTimerJp = null;
+let cutInEndTimer = null;
+let cutInDecodeToken = 0;
+let cutInCanvasRef = null;
+let cutInCanvasCtx = null;
+let cutInCanvasRaf = null;
+let cutInCanvasRunning = false;
+let cutInCanvasResizeBound = false;
+let cutInCanvasParticles = [];
+let cutInCanvasPalette = ["#00d8ff", "#34f78d", "#ff355e"];
+
+function clearCutInTimers() {
+    clearTimeout(cutInImpactTimer);
+    clearTimeout(cutInPulseOffTimer);
+    clearTimeout(cutInDecodeTimerEng);
+    clearTimeout(cutInDecodeTimerJp);
+    clearTimeout(cutInEndTimer);
+}
+
+function resolveCutInAttr(roleKey) {
+    let groupKey = null;
+    if (typeof getRoleGroup === "function") {
+        groupKey = getRoleGroup(roleKey);
+    } else if (typeof ROLE_TO_GROUP !== "undefined" && ROLE_TO_GROUP) {
+        groupKey = ROLE_TO_GROUP[roleKey];
+    }
+    return CUT_IN_GROUP_TO_ATTR[groupKey] || "s";
+}
+
+function getCutInPalette(attrCode) {
+    if (attrCode === "e") return ["#34f78d", "#9bffc5", "#00b760"];
+    if (attrCode === "k") return ["#ff355e", "#ff7b95", "#a80028"];
+    return ["#00d8ff", "#69e8ff", "#048ea6"];
+}
+
+function ensureCutInCanvasContext() {
+    if (!cutInCanvasRef) {
+        cutInCanvasRef = document.getElementById("cut-in-canvas");
+    }
+    if (!cutInCanvasRef || typeof cutInCanvasRef.getContext !== "function") {
+        return false;
+    }
+    if (!cutInCanvasCtx) {
+        cutInCanvasCtx = cutInCanvasRef.getContext("2d");
+    }
+    if (!cutInCanvasCtx) {
+        return false;
+    }
+    if (!cutInCanvasResizeBound) {
+        window.addEventListener("resize", () => {
+            if (cutInCanvasRunning) resizeCutInCanvas();
+        }, { passive: true });
+        cutInCanvasResizeBound = true;
+    }
+    return true;
+}
+
+function resizeCutInCanvas() {
+    if (!cutInCanvasRef) return;
+    const nextW = Math.max(1, Math.floor(window.innerWidth));
+    const nextH = Math.max(1, Math.floor(window.innerHeight));
+    if (cutInCanvasRef.width !== nextW) cutInCanvasRef.width = nextW;
+    if (cutInCanvasRef.height !== nextH) cutInCanvasRef.height = nextH;
+}
+
+function createCutInParticle(randomY = false) {
+    if (!cutInCanvasRef) return null;
+    const width = cutInCanvasRef.width || 1;
+    const height = cutInCanvasRef.height || 1;
+    return {
+        x: Math.random() * width,
+        y: randomY ? Math.random() * height : (height + Math.random() * height),
+        speed: Math.random() * 1.8 + 0.8,
+        size: Math.random() * 2.6 + 0.8,
+        alpha: Math.random() * 0.28 + 0.18,
+        color: cutInCanvasPalette[Math.floor(Math.random() * cutInCanvasPalette.length)]
+    };
+}
+
+function resetCutInParticle(particle) {
+    if (!cutInCanvasRef || !particle) return;
+    const width = cutInCanvasRef.width || 1;
+    const height = cutInCanvasRef.height || 1;
+    particle.x = Math.random() * width;
+    particle.y = height + Math.random() * height;
+    particle.speed = Math.random() * 1.8 + 0.8;
+    particle.size = Math.random() * 2.6 + 0.8;
+    particle.alpha = Math.random() * 0.28 + 0.18;
+    particle.color = cutInCanvasPalette[Math.floor(Math.random() * cutInCanvasPalette.length)];
+}
+
+function initCutInParticles(count = 50) {
+    cutInCanvasParticles = [];
+    for (let i = 0; i < count; i++) {
+        const particle = createCutInParticle(true);
+        if (particle) cutInCanvasParticles.push(particle);
+    }
+}
+
+function renderCutInCanvasFrame() {
+    if (!cutInCanvasRunning || !cutInCanvasCtx || !cutInCanvasRef) return;
+
+    cutInCanvasCtx.fillStyle = "#020a14";
+    cutInCanvasCtx.globalAlpha = 1;
+    cutInCanvasCtx.fillRect(0, 0, cutInCanvasRef.width, cutInCanvasRef.height);
+
+    cutInCanvasParticles.forEach(particle => {
+        particle.y -= particle.speed;
+        if (particle.y < -50) {
+            resetCutInParticle(particle);
+        }
+        cutInCanvasCtx.fillStyle = particle.color;
+        cutInCanvasCtx.globalAlpha = particle.alpha;
+        cutInCanvasCtx.fillRect(particle.x, particle.y, particle.size, 25);
+    });
+    cutInCanvasCtx.globalAlpha = 1;
+
+    cutInCanvasRaf = requestAnimationFrame(renderCutInCanvasFrame);
+}
+
+function stopCutInCanvas() {
+    cutInCanvasRunning = false;
+    if (cutInCanvasRaf) {
+        cancelAnimationFrame(cutInCanvasRaf);
+        cutInCanvasRaf = null;
+    }
+    if (cutInCanvasCtx && cutInCanvasRef) {
+        cutInCanvasCtx.clearRect(0, 0, cutInCanvasRef.width, cutInCanvasRef.height);
+    }
+}
+
+function startCutInCanvas(attrCode) {
+    if (!ensureCutInCanvasContext()) return;
+    stopCutInCanvas();
+    cutInCanvasPalette = getCutInPalette(attrCode);
+    resizeCutInCanvas();
+    initCutInParticles(50);
+    cutInCanvasRunning = true;
+    renderCutInCanvasFrame();
+}
+
+function buildCutInRandomString(length) {
+    const safeLength = Math.max(0, Number(length) || 0);
+    if (safeLength === 0) return "";
+    let output = "";
+    for (let i = 0; i < safeLength; i++) {
+        output += CUT_IN_RANDOM_CHARS[Math.floor(Math.random() * CUT_IN_RANDOM_CHARS.length)];
+    }
+    return output;
+}
+
+function animateCutInDecodeText(element, finalText, duration, token) {
+    if (!element) return;
+    const target = String(finalText || "");
+    if (!target) {
+        element.innerText = "";
+        return;
+    }
+    const total = target.length;
+    let startTime = null;
+
+    function frame(timestamp) {
+        if (token !== cutInDecodeToken) return;
+        if (startTime === null) startTime = timestamp;
+        const progress = Math.min(1, (timestamp - startTime) / Math.max(1, duration));
+        const decodedCount = Math.floor(progress * total);
+        let mixed = target.slice(0, decodedCount);
+        for (let i = decodedCount; i < total; i++) {
+            mixed += CUT_IN_RANDOM_CHARS[Math.floor(Math.random() * CUT_IN_RANDOM_CHARS.length)];
+        }
+        element.innerText = mixed;
+        if (progress < 1) {
+            requestAnimationFrame(frame);
+        }
+    }
+
+    requestAnimationFrame(frame);
+}
+
+function resetCutInOverlayClasses(overlay) {
+    overlay.classList.remove("active", "impact-pulse", "attr-s", "attr-e", "attr-k");
+}
+
 function playCutInAnimation(roleKey, roleNameJp, playerName) {
     const overlay = document.getElementById("cut-in-overlay");
-    const roleDiv = document.getElementById("cut-in-role");
-    const playerDiv = document.getElementById("cut-in-player");
-    
-    // 画像があるかチェック
-    const imgUrl = ROLE_IMAGES[roleKey];
-    
-    // 画像があれば背景にセット、なければ黒背景
+    const roleNameEl = document.getElementById("cut-in-role-name");
+    const playerNameEl = document.getElementById("cut-in-player-name");
+    const skillEngEl = document.getElementById("cut-in-skill-eng");
+    const skillJpEl = document.getElementById("cut-in-skill-jp");
+    const roleImgWrap = document.getElementById("cut-in-role-image-wrap");
+    const roleImgEl = document.getElementById("cut-in-role-img");
+    if (!overlay || !roleNameEl || !playerNameEl || !skillEngEl || !skillJpEl || !roleImgWrap || !roleImgEl) return;
+
+    clearCutInTimers();
+    cutInDecodeToken += 1;
+    const token = cutInDecodeToken;
+
+    stopCutInCanvas();
+    resetCutInOverlayClasses(overlay);
+
+    const info = (typeof ROLE_INFO !== "undefined" && ROLE_INFO[roleKey]) ? ROLE_INFO[roleKey] : null;
+    const roleName = (info && info.jp) ? info.jp : (roleNameJp || roleKey || "ROLE");
+    const skillEng = (info && info["s-eng"]) ? info["s-eng"] : (roleKey || "SKILL");
+    const skillJp = (info && info["s-jp"]) ? info["s-jp"] : (roleName || "スキル発動");
+    const attrCode = resolveCutInAttr(roleKey);
+    const imgUrl = (typeof ROLE_IMAGES !== "undefined" && ROLE_IMAGES[roleKey]) ? ROLE_IMAGES[roleKey] : "";
+    roleImgEl.onerror = () => {
+        roleImgWrap.classList.add("is-hidden");
+        roleImgEl.removeAttribute("src");
+    };
+
+    roleNameEl.innerText = roleName;
+    playerNameEl.innerText = playerName || "UNKNOWN";
+    skillEngEl.innerText = "";
+    skillJpEl.innerText = "";
+
     if (imgUrl) {
-        // 画像を暗くして表示（文字を目立たせるため linear-gradient を被せる）
-        overlay.style.background = `
-            linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-            url('${imgUrl}') no-repeat center center / cover
-        `;
+        roleImgWrap.classList.remove("is-hidden");
+        roleImgEl.src = imgUrl;
+        roleImgEl.alt = `${roleName} visual`;
     } else {
-        overlay.style.background = "rgba(0, 0, 0, 0.8)";
+        roleImgWrap.classList.add("is-hidden");
+        roleImgEl.removeAttribute("src");
+        roleImgEl.alt = "Role visual";
     }
-        
-    // テキストセット
-    roleDiv.innerText = roleNameJp; 
-    playerDiv.innerText = playerName;
 
+    overlay.setAttribute("aria-hidden", "false");
     overlay.classList.remove("hidden");
-    overlay.classList.remove("animate-cut-in");
-        
-    void overlay.offsetWidth; // リフロー発生（アニメーション再始動のおまじない）
-    overlay.classList.add("animate-cut-in");
+    overlay.classList.add(`attr-${attrCode}`);
+    void overlay.offsetWidth;
+    overlay.classList.add("active");
 
-    setTimeout(() => {
+    startCutInCanvas(attrCode);
+
+    let impactDelay = 500;
+    if (attrCode === "e") impactDelay = 400;
+    if (attrCode === "k") impactDelay = 300;
+
+    cutInImpactTimer = setTimeout(() => {
+        if (token !== cutInDecodeToken) return;
+        overlay.classList.add("impact-pulse");
+        skillEngEl.innerText = buildCutInRandomString(skillEng.length);
+        skillJpEl.innerText = buildCutInRandomString(skillJp.length);
+    }, impactDelay);
+
+    cutInPulseOffTimer = setTimeout(() => {
+        if (token !== cutInDecodeToken) return;
+        overlay.classList.remove("impact-pulse");
+    }, impactDelay + 400);
+
+    cutInDecodeTimerEng = setTimeout(() => {
+        animateCutInDecodeText(skillEngEl, skillEng, 600, token);
+    }, impactDelay + 100);
+
+    cutInDecodeTimerJp = setTimeout(() => {
+        animateCutInDecodeText(skillJpEl, skillJp, 800, token);
+    }, impactDelay + 100);
+
+    cutInEndTimer = setTimeout(() => {
+        if (token !== cutInDecodeToken) return;
+        resetCutInOverlayClasses(overlay);
         overlay.classList.add("hidden");
-        overlay.classList.remove("animate-cut-in");
-        // 終わったら背景をリセットしておく
-        overlay.style.background = "";
+        overlay.setAttribute("aria-hidden", "true");
+        stopCutInCanvas();
     }, 2500);
 }
 
