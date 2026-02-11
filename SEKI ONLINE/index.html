@@ -3881,7 +3881,7 @@
         "POLITICIAN": "./images/politician.png",
         "POLICE OFFICER": "./images/policeofficer.png",
         "ALCHEMIST": "./images/alchemist.png",
-        "NECROMANCER": "./images/necromancer.png",
+        "NECROMANCER": "./images/priest.png",
         "AGENT": "./images/agent.png",
         "ASTRONOMER": "./images/astronomer.png",
         //他もあれば追加
@@ -3960,7 +3960,7 @@
             'SKILL_POLITICIAN': "./sounds/skill_politician.mp3",
             'SKILL_POLICE OFFICER': "./sounds/skill_policeofficer.mp3",
             'SKILL_ALCHEMIST': "./sounds/skill_alchemist.mp3",
-            'SKILL_NECROMANCER': "./sounds/skill_necromancer.mp3",
+            'SKILL_NECROMANCER': "./sounds/skill_priest.mp3",
             'SKILL_AGENT': "./sounds/skill_agent.mp3",
             'SKILL_ASTRONOMER': "./sounds/skill_astronomer.mp3",
         };
@@ -4299,7 +4299,7 @@
 <div><strong>ターン終了！</strong></div>`
             },
             "ANGLER": { 
-                jp: "釣り人",   
+                jp: "釣り師",   
                 summary: "手札1枚を除外、墓地から1枚回収",
                 desc: `<ol>
 <li>自分の手札から好きな<strong>カード</strong>1枚を除外する。</li>
@@ -4432,7 +4432,8 @@
 <div><strong>ターン終了！</strong></div>`
             },
             "NECROMANCER": {
-                jp: "死霊使い",
+                jp: "牧師",
+                en: "PRIEST",
                 summary: "数字墓地/記号墓地から1枚除外",
                 desc: `<ol>
 <li>数字墓地もしくは記号墓地の、好きなカード1枚を除外する。</li>
@@ -4505,6 +4506,12 @@
             if (!roleKey) return "";
             const info = ROLE_INFO[roleKey];
             return info ? info.jp : roleKey;
+        }
+
+        function getRoleDisplayCode(roleKey) {
+            if (!roleKey) return "";
+            const info = ROLE_INFO[roleKey];
+            return (info && info.en) ? info.en : roleKey;
         }
 
         function sortRoleKeysForDisplay(roleKeys = []) {
@@ -5181,7 +5188,7 @@
             const groupLabel = getRoleGroupLabel(groupKey);
             const html = `
                 <div class="font-readable">
-                    <p><strong>${groupLabel}</strong> / ${roleKey}</p>
+                    <p><strong>${groupLabel}</strong> / ${getRoleDisplayCode(roleKey)}</p>
                     <p><strong>${info.jp}</strong></p>
                     <p>${info.summary}</p>
                     <hr>
@@ -5478,7 +5485,7 @@
                                 ${roleImageHtml}
                                 <div class="role-draft-card-inner">
                                     <div class="role-draft-group">${groupMeta.label || groupKey}</div>
-                                    <div class="role-draft-role fit-role-text">${roleKey}</div>
+                                    <div class="role-draft-role fit-role-text">${getRoleDisplayCode(roleKey)}</div>
                                     <div class="role-draft-role-jp">${info ? info.jp : "-"}</div>
                                 </div>
                             </div>
@@ -5498,7 +5505,7 @@
 
                 bodyHtml = `<div class="role-draft-choice-row">${cardsHtml}</div>`;
                 if (isMySelecting) {
-                    const selectedLabel = selectedRoleForUi ? `${getRoleDisplayName(selectedRoleForUi)} (${selectedRoleForUi})` : "未選択";
+                    const selectedLabel = selectedRoleForUi ? `${getRoleDisplayName(selectedRoleForUi)} (${getRoleDisplayCode(selectedRoleForUi)})` : "未選択";
                     footerHtml = `
                         <div class="role-draft-footer">
                             <span class="role-draft-selected-label">選択中: ${selectedLabel}</span>
@@ -5508,7 +5515,7 @@
                 } else if (mySelectedRole) {
                     footerHtml = `
                         <div class="role-draft-footer">
-                            <span class="role-draft-selected-label">確定済み: ${getRoleDisplayName(mySelectedRole)} (${mySelectedRole})</span>
+                            <span class="role-draft-selected-label">確定済み: ${getRoleDisplayName(mySelectedRole)} (${getRoleDisplayCode(mySelectedRole)})</span>
                         </div>
                     `;
                 } else {
@@ -5547,7 +5554,7 @@
                         return `
                             <button type="button" class="role-draft-unused-item ${groupClass}" onclick="showRoleDraftUnusedDetail('${safeRoleKey}')">
                                 <span class="role-draft-unused-item-main">${label}</span>
-                                <span class="role-draft-unused-item-sub">${roleKey}</span>
+                                <span class="role-draft-unused-item-sub">${getRoleDisplayCode(roleKey)}</span>
                                 <span class="role-draft-unused-item-meta">${groupLabel}</span>
                             </button>
                         `;
@@ -6564,7 +6571,7 @@
 
                     roleArea.innerHTML = `
                         <div class="${roleCardClass}" style="${bgStyle}">
-                            <div class="role-name">${myRole}</div>
+                            <div class="role-name">${getRoleDisplayCode(myRole)}</div>
                             <div class="role-jp">${rInfo.jp}</div>
                             <div class="role-desc">${rInfo.summary}</div>
                             ${actBtnHtml}
@@ -7914,7 +7921,7 @@
             // 既存の「ドローなしでリセット」する処理へ委譲します
             return execPassNoDraw(true);
         }
-/* --- ANGLER (釣り人) の実装 --- */
+/* --- ANGLER (釣り師) の実装 --- */
 
 // ステップ1: 手札から除外するカードを選ぶ
 function activateAngler() {
@@ -7937,7 +7944,7 @@ function activateAngler() {
         html += `<div class="card ${c.type}" style="${style}" onclick="anglerStep2(${i})">${c.val}</div>`;
     });
     html += `</div>`;
-    openModal("釣り人: エサ選択", html);
+    openModal("釣り師: エサ選択", html);
 }
 
 // ステップ2: 墓地から拾うカードを選ぶ
@@ -7960,7 +7967,7 @@ function anglerStep2(excludeIdx) {
     });
     
     html += `</div>`;
-    openModal("釣り人: 釣魚選択", html);
+    openModal("釣り師: 釣魚選択", html);
 }
 
 // ステップ3: 実行
@@ -8000,7 +8007,7 @@ async function execAngler(excludeIdx, targetType, targetGraveIdx) {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
     // ログ
-    await pushLog(`${myName}が[釣り人]を発動！手札を除外して墓地の [${pickedCard.val}] を釣り上げました`, 'public');
+    await pushLog(`${myName}が[釣り師]を発動！手札を除外して墓地の [${pickedCard.val}] を釣り上げました`, 'public');
     //playSoundEffect('SKILL'); 
 
     // 4. ターン終了処理
@@ -10340,7 +10347,7 @@ function activateNecromancer() {
         <p style="font-size:12px; color:#9cb3c9; margin-top:10px;">※選択後に「除外を実行」を押してください。</p>
     `;
 
-    openModal("ネクロマンサー: 死者蘇生", html);
+    openModal("牧師: 霊魂浄化", html);
 }
 
 function selectNecromancerTarget(targetType, targetIdx, el) {
@@ -10742,7 +10749,7 @@ function setupEffectListener() {
                                 <div class="seki-guide-role-main">
                                     <div class="seki-guide-role-jp">
                                         ${info.jp}
-                                        <span class="seki-guide-role-en">${key}</span>
+                                        <span class="seki-guide-role-en">${getRoleDisplayCode(key)}</span>
                                         ${publicTag}
                                     </div>
                                     <div class="seki-guide-role-summary">
@@ -10996,7 +11003,7 @@ function setupEffectListener() {
         window.leaveRoom = leaveRoom; // これを追加
         // windowオブジェクトに登録してHTMLから呼べるようにする
         window.showPlayerLogs = showPlayerLogs;
-        // 釣り人
+        // 釣り師
         window.activateAngler = activateAngler;
         window.anglerStep2 = anglerStep2;
         window.execAngler = execAngler;
@@ -11461,7 +11468,7 @@ function setupEffectListener() {
             } else {
                 const roleHtml = roleCandidates.map(roleKey => {
                     const roleInfo = ROLE_INFO[roleKey];
-                    const label = roleInfo ? `${roleInfo.jp} / ${roleKey}` : roleKey;
+                    const label = roleInfo ? `${roleInfo.jp} / ${getRoleDisplayCode(roleKey)}` : roleKey;
                     const attrClass = getRoleAttrClass(roleKey);
                     return `<div class="hud-role-pill ${attrClass}">${label}</div>`;
                 }).join("");
