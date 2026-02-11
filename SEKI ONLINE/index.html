@@ -11065,8 +11065,7 @@ async function execHacker() {
     let actList = {...(gameState.activatedList || {})};
     actList[myId] = true;
     updates[`rooms/${currentRoom}/activatedList`] = actList;
-    
-    updates[`rooms/${currentRoom}/lastSound`] = { type: 'SKILL_HACKER', id: Date.now() };
+    // 音は activatedList の変化をトリガーにカットイン側で再生する（重複再生防止）
     await pushLog(`${myName}が[ハッカー]を発動！システムをハッキングしました`, 'public');
 
     // ★削除: 以下の3行を削除（またはコメントアウト）してください！
@@ -11378,9 +11377,8 @@ async function execAlchemist(resultVal) {
     let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
     let nextTotal = hand.length + myHackedCount;
 
-    // ★2. 音の決定（スキル音 + UNO/DOS）
-    let baseSound = (typeof SOUND_FILES !== 'undefined' && SOUND_FILES['SKILL_ALCHEMIST']) ? 'SKILL_ALCHEMIST' : 'SKILL';
-    let soundList = [baseSound];
+    // ★2. 音の決定（重複防止のため、役職音はカットイン側に一本化）
+    let soundList = [];
 
     if (nextTotal === 1) soundList.push('UNO');
     else if (nextTotal === 2) soundList.push('DOS');
