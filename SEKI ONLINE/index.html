@@ -4701,6 +4701,7 @@ class Core {
             'TRADE':   './sounds/trade.mp3',
             'DIG UP':  './sounds/digup.mp3',
             'DISCARD': './sounds/discard.mp3',
+            'RESET': './sounds/reset.mp3',
             // 役職発動音
             'SKILL': './sounds/skill_default.mp3',
             'SKILL_ANGLER': "./sounds/skill_angler.mp3",
@@ -7902,6 +7903,7 @@ class Core {
                 updates[`rooms/${currentRoom}/exclusion`] = excl;
                 updates[`rooms/${currentRoom}/graveNum`] = [];
                 updates[`rooms/${currentRoom}/passCount`] = 0;
+                updates[`rooms/${currentRoom}/lastSound`] = { type: 'RESET', id: Date.now() };
                 await pushLog(`${myName}がドローせずリセットしました`, 'public');
             } else {
                 updates[`rooms/${currentRoom}/passCount`] = (gameState.passCount || 0) + 1;
@@ -8008,6 +8010,7 @@ class Core {
                 updates[`rooms/${currentRoom}/exclusion`] = excl;
                 updates[`rooms/${currentRoom}/graveNum`] = [];
                 updates[`rooms/${currentRoom}/passCount`] = 0;
+                updates[`rooms/${currentRoom}/lastSound`] = { type: 'RESET', id: Date.now() };
                 await pushLog(`${myName}がリセットして1枚引きました`, 'public');
             } else {
                 updates[`rooms/${currentRoom}/passCount`] = (gameState.passCount || 0) + 1;
