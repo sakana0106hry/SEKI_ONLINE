@@ -2205,7 +2205,7 @@
     /* モーダル */
     #modal-overlay {
         position: fixed; top:0; left:0; width:100%; height:100%;
-        background: linear-gradient(140deg, rgba(228, 248, 255, 0.76), rgba(196, 238, 255, 0.74)); z-index: 999;
+        background: rgba(2, 7, 15, 0.74); z-index: 999;
         backdrop-filter: blur(5px);
         display: flex; justify-content: center; align-items: center;
         animation: fadeIn 0.2s ease;
@@ -2214,21 +2214,21 @@
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
     #modal-overlay.board-visible {
-        background: rgba(179, 227, 252, 0.2);
+        background: rgba(0,0,0,0.05);
         backdrop-filter: none;
     }
     #modal-overlay.modal-tone-guide {
-        background: linear-gradient(135deg, rgba(228, 251, 255, 0.78), rgba(186, 245, 255, 0.74));
+        background: rgba(2, 10, 20, 0.62);
     }
     #modal-overlay.modal-tone-alert {
-        background: linear-gradient(135deg, rgba(255, 240, 246, 0.8), rgba(255, 223, 235, 0.76));
+        background: rgba(36, 2, 12, 0.7);
     }
 
     #modal-box {
         background:
-            linear-gradient(155deg, rgba(245, 253, 255, 0.97), rgba(227, 246, 255, 0.95)),
-            radial-gradient(circle at 12% 18%, rgba(0, 216, 255, 0.2), transparent 38%);
-        color: #1a5f86;
+            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
+            radial-gradient(circle at 12% 18%, rgba(0, 216, 255, 0.1), transparent 34%);
+        color: var(--seki-text-main);
         padding: 25px;
         border-radius: 14px;
         max-width: 90%;
@@ -2237,25 +2237,25 @@
         width: 400px;
         overflow: hidden; text-align: center; display:flex; flex-direction:column;
         font-family: var(--font-readable);
-        box-shadow: 0 16px 34px rgba(79, 172, 255, 0.26), 0 0 24px rgba(0, 216, 255, 0.24);
-        border: 1px solid rgba(0, 184, 230, 0.55);
+        box-shadow: var(--seki-shadow-panel), var(--seki-shadow-glow);
+        border: 1px solid var(--seki-panel-border);
         transition: background 0.2s, opacity 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
     #modal-box.modal-size-default { width: 400px; max-width: 90%; }
     #modal-box.modal-size-wide { width: 600px; max-width: 95%; }
     #modal-box.modal-size-narrow { width: 340px; max-width: 86%; }
     #modal-box.modal-tone-guide {
-        border-color: rgba(0, 205, 255, 0.72);
+        border-color: rgba(0, 216, 255, 0.44);
     }
     #modal-box.modal-tone-alert {
-        border-color: rgba(255, 118, 152, 0.75);
-        box-shadow: 0 16px 34px rgba(255, 135, 170, 0.24), 0 0 20px rgba(255, 135, 170, 0.3);
+        border-color: rgba(255, 53, 94, 0.6);
+        box-shadow: var(--seki-shadow-panel), 0 0 22px rgba(255, 53, 94, 0.25);
     }
     #modal-overlay.board-visible #modal-box {
-        background: linear-gradient(155deg, rgba(241, 251, 255, 0.8), rgba(221, 243, 255, 0.76));
-        border-color: rgba(0, 184, 230, 0.75);
-        box-shadow: 0 8px 20px rgba(98, 184, 255, 0.28);
-        opacity: 0.56;
+        background: rgba(13, 22, 40, 0.34);
+        border-color: rgba(209, 231, 255, 0.75);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        opacity: 0.4;
     }
     #modal-title {
         margin: 0 0 12px 0;
@@ -2265,7 +2265,7 @@
         font-size: 22px;
         font-weight: 700;
         letter-spacing: 0.05em;
-        color: #0f5f89;
+        color: #9ce8ff;
         text-shadow: 0 0 12px rgba(125, 219, 255, 0.6);
     }
     #modal-content {
@@ -2276,52 +2276,52 @@
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
         font-size: 14px;
-        color: #1f6388;
+        color: var(--seki-text-sub);
     }
     .modal-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
     .modal-btn {
         margin: 5px;
         padding: 10px 20px;
-        border: 1px solid rgba(97, 178, 230, 0.6);
+        border: 1px solid rgba(142, 182, 227, 0.45);
         border-radius: var(--seki-radius-sm);
         cursor: pointer;
         font-size: 14px;
         font-family: var(--font-ui);
         letter-spacing: var(--font-ui-emphasis-tracking);
-        text-shadow: none;
-        color: #0f5d86;
-        background: linear-gradient(135deg, #f4fcff, #dff5ff);
+        text-shadow: var(--font-ui-emphasis-shadow);
+        color: var(--seki-text-main);
+        background: linear-gradient(135deg, rgba(9, 27, 52, 0.9), rgba(6, 18, 35, 0.88));
         transition: transform var(--seki-transition-fast), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast), filter var(--seki-transition-fast);
     }
     .modal-btn:hover:not(:disabled) {
         transform: translateY(-1px);
-        border-color: rgba(0, 193, 240, 0.86);
-        box-shadow: 0 5px 14px rgba(79, 171, 255, 0.28), 0 0 10px rgba(0, 216, 255, 0.35);
+        border-color: rgba(0, 216, 255, 0.7);
+        box-shadow: 0 5px 14px rgba(0,0,0,0.35), 0 0 10px rgba(0, 216, 255, 0.24);
         filter: saturate(1.1);
     }
     .modal-btn:disabled,
     .modal-btn.is-disabled {
-        background: #deedf7;
-        color: #7397b2;
-        border-color: #b8d5e8;
+        background: rgba(89, 102, 119, 0.9);
+        color: rgba(239, 246, 255, 0.76);
+        border-color: rgba(151, 166, 187, 0.7);
         cursor: not-allowed;
         box-shadow: none;
         transform: none;
     }
     .modal-btn.primary {
-        background: linear-gradient(135deg, #b8f2ff, #7fd3ff 52%, #50beff);
-        border-color: rgba(44, 152, 224, 0.78);
-        color: #075078;
+        background: linear-gradient(135deg, #0f314d, #166d98 44%, #00d8ff);
+        border-color: rgba(0, 216, 255, 0.7);
+        color: #effbff;
         font-weight: 700;
     }
     .modal-btn.danger {
-        background: linear-gradient(135deg, #ffd8e4, #ffb9cd 48%, #ff95b4);
-        border-color: rgba(255, 135, 170, 0.82);
-        color: #8a2851;
+        background: linear-gradient(135deg, #7f1730, #cc244a 46%, #ff355e);
+        border-color: rgba(255, 143, 166, 0.78);
+        color: #fff5f8;
         font-weight: 700;
     }
     .modal-btn.ghost {
-        background: linear-gradient(135deg, #f8fdff, #e9f8ff);
+        background: rgba(12, 22, 35, 0.7);
     }
     .modal-note {
         display: block;
@@ -2351,7 +2351,7 @@
     }
     .modal-card-label {
         font-size: 12px;
-        color: #4f7ea1;
+        color: var(--seki-text-muted);
         margin-bottom: 4px;
     }
     .modal-notif-wrap {
@@ -2394,16 +2394,16 @@
         margin-top: 10px;
         padding: 8px 10px;
         border-radius: var(--seki-radius-sm);
-        border: 1px solid rgba(109, 184, 232, 0.5);
-        background: rgba(230, 247, 255, 0.88);
+        border: 1px solid rgba(143, 176, 214, 0.35);
+        background: rgba(6, 16, 32, 0.6);
     }
     .seki-section.warn {
-        border-color: rgba(255, 147, 179, 0.75);
-        background: rgba(255, 236, 243, 0.92);
+        border-color: rgba(255, 143, 166, 0.55);
+        background: rgba(72, 12, 27, 0.35);
     }
     .seki-section.info {
-        border-color: rgba(82, 186, 240, 0.72);
-        background: rgba(232, 249, 255, 0.92);
+        border-color: rgba(0, 216, 255, 0.5);
+        background: rgba(8, 26, 48, 0.42);
     }
     .seki-note {
         display: block;
@@ -2425,12 +2425,12 @@
         padding: 6px 0;
     }
     .seki-log-time {
-        color: #3f7ca4;
+        color: #9cb3c9;
         font-size: 12px;
         margin-right: 8px;
     }
     .seki-log-text {
-        color: #1f6388;
+        color: #d9ebff;
     }
     .seki-disabled-note {
         font-size: 12px;
@@ -2443,10 +2443,10 @@
     }
     .seki-host-mode-box {
         margin-bottom: 15px;
-        background: rgba(232, 248, 255, 0.92);
+        background: rgba(6, 16, 32, 0.64);
         padding: 10px;
         border-radius: var(--seki-radius-sm);
-        border: 1px solid rgba(87, 177, 233, 0.52);
+        border: 1px solid rgba(143, 176, 214, 0.32);
     }
     .seki-host-mode-item {
         display: flex;
@@ -2470,7 +2470,7 @@
     }
     .seki-host-mode-meta {
         font-size: 12px;
-        color: #4f7ea1;
+        color: #9cb3c9;
         margin-left: 5px;
     }
     .seki-host-actions {
@@ -2492,9 +2492,9 @@
     .seki-guide-role-group {
         margin-bottom: 14px;
         padding: 8px 8px 2px;
-        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.52);
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
         border-radius: 10px;
-        background: linear-gradient(160deg, rgba(241, 252, 255, 0.94), rgba(225, 245, 255, 0.9));
+        background: linear-gradient(160deg, rgba(6, 16, 32, 0.62), rgba(4, 11, 23, 0.5));
     }
     .seki-guide-group-title {
         margin: 0 0 8px 0;
@@ -2536,13 +2536,13 @@
     }
     .seki-guide-role-en {
         font-size: 13px;
-        color: #33739b;
+        color: #cce6ff;
         font-weight: 400;
         margin-left: 4px;
     }
     .seki-guide-role-summary {
         font-size: 12px;
-        color: #1f6388;
+        color: #d9ebff;
         display: flex;
         justify-content: space-between;
         align-items: baseline;
@@ -2550,31 +2550,31 @@
     .seki-guide-role-detail {
         margin-top: 10px;
         padding: 10px;
-        background: rgba(232, 248, 255, 0.92);
+        background: rgba(6, 16, 32, 0.52);
         border-radius: 5px;
         font-size: 12px;
-        color: #1f6388;
+        color: #d9ebff;
         line-height: 1.6;
-        border: 1px solid rgba(108, 184, 233, 0.4);
+        border: 1px solid rgba(143, 176, 214, 0.28);
     }
     .seki-guide-hint {
         font-size: 12px;
-        color: #4f7ea1;
+        color: #9cb3c9;
         white-space: nowrap;
     }
     .seki-guide-public-tag {
         margin-left: 6px;
         font-size: 12px;
-        color: #4f7ea1;
-        background: rgba(210, 235, 249, 0.9);
-        border: 1px solid rgba(148, 199, 228, 0.8);
+        color: #cfd7de;
+        background: rgba(93, 104, 114, 0.5);
+        border: 1px solid rgba(180, 190, 198, 0.6);
         border-radius: 10px;
         padding: 1px 6px;
     }
     .seki-rule-root {
         text-align: left;
         font-size: 13px;
-        color: #1f6388;
+        color: #d9ebff;
     }
     .seki-rule-paragraph {
         margin: 0 0 10px 0;
@@ -2600,9 +2600,9 @@
     }
     .score-dist {
         font-size: 12px;
-        color: #1f6388;
+        color: #d9ebff;
         margin-bottom: 10px;
-        background: rgba(255, 240, 195, 0.75);
+        background: rgba(188, 140, 20, 0.2);
         padding: 5px;
         border-radius: 4px;
         text-align: center;
@@ -2615,7 +2615,7 @@
     }
     .score-head {
         border-bottom: 2px solid rgba(143, 176, 214, 0.45);
-        background: rgba(227, 246, 255, 0.9);
+        background: rgba(8, 26, 48, 0.55);
     }
     .score-table th,
     .score-table td {
@@ -2631,7 +2631,7 @@
     }
     .score-empty {
         padding: 20px;
-        color: #4f7ea1;
+        color: #9cb3c9;
         text-align: center;
     }
     .score-row {
@@ -2650,42 +2650,42 @@
     }
     .score-reset-btn {
         font-size: 12px;
-        color: #356f96;
-        background: rgba(235, 250, 255, 0.95);
-        border: 1px solid rgba(108, 184, 233, 0.55);
+        color: #9cb3c9;
+        background: rgba(6, 16, 32, 0.6);
+        border: 1px solid rgba(143, 176, 214, 0.4);
         border-radius: 4px;
         padding: 4px 8px;
         cursor: pointer;
         transition: border-color var(--seki-transition-fast), color var(--seki-transition-fast), background var(--seki-transition-fast);
     }
     .score-reset-btn:hover {
-        border-color: rgba(0, 193, 240, 0.75);
-        color: #0f5d86;
-        background: rgba(220, 246, 255, 0.95);
+        border-color: rgba(0, 216, 255, 0.65);
+        color: #d9ebff;
+        background: rgba(8, 26, 48, 0.7);
     }
 
     /* ログスタイル */
     .log-entry { text-align: left; padding: 8px; border-bottom: 1px solid rgba(143, 176, 214, 0.28); font-size: 13px; display: flex; align-items: flex-start; }
-    .log-time { color: #4f7ea1; margin-right: 10px; font-size: 12px; min-width: 45px; }
+    .log-time { color: #a1b4cc; margin-right: 10px; font-size: 12px; min-width: 45px; }
     .log-text { word-break: break-all; line-height: 1.4; }
-    .log-private .log-text { color: #9f3f64; font-weight: bold; background: rgba(255, 215, 229, 0.7); padding: 2px 5px; border-radius: 4px;}
+    .log-private .log-text { color: #ffc8d3; font-weight: bold; background: rgba(136, 20, 45, 0.34); padding: 2px 5px; border-radius: 4px;}
     .log-chat { background: rgba(0, 216, 255, 0.08); }
     
     /* チャット入力 */
     #chat-input-container { display: flex; gap: 8px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(143, 176, 214, 0.3); }
     #chat-input {
-        color: #145f8f;
+        color: var(--seki-text-main);
         flex: 1;
         padding: 10px;
         border-radius: 20px;
         border: 1px solid rgba(126, 173, 224, 0.45);
         outline:none;
-        background: rgba(236, 250, 255, 0.95);
+        background: rgba(6, 16, 32, 0.78);
         font-family: var(--font-readable);
     }
     #chat-send-btn { background: linear-gradient(135deg, #157a53, #34b583); color: white; border-radius: 20px; padding: 0 20px; border: 1px solid rgba(93, 255, 192, 0.45); }
 
-    .host-settings { margin-bottom: 15px; font-size: 14px; text-align: left; background: rgba(232, 248, 255, 0.92); padding: 10px; border-radius: 8px; border: 1px solid rgba(90, 182, 235, 0.5); }
+    .host-settings { margin-bottom: 15px; font-size: 14px; text-align: left; background: rgba(6, 16, 32, 0.55); padding: 10px; border-radius: 8px; border: 1px solid rgba(0, 216, 255, 0.24); }
     .host-settings label { margin-right: 15px; cursor: pointer; display: inline-block; padding: 5px; }
 /* --- 追加修正: 墓地カードのはみ出し防止 --- */
     
@@ -4080,7 +4080,7 @@
                 jp: "政治家",
                 summary: "手札干渉の対象外（記号カード使用で解除）",
                 desc: `<ol>
-<li>発動すると、手札干渉効果（<span style="color: #e03e2d;"><strong>TRADE</strong></span>、<span style="color: #843fa1;"><strong>ハッカー</strong></span>、<span style="color: #843fa1;"><strong>占い師</strong></span>、<span style="color: #843fa1;"><strong>皇帝</strong></span>、<span style="color: #843fa1;"><strong>警察官</strong><span style="color: #1f6388;">、</span><strong>盗賊</strong><span style="color: #1f6388;">、</span><strong>ピエロ</strong><span style="color: #1f6388;">、</span><strong>工作員</strong></span>）に選択されなくなる。</li>
+<li>発動すると、手札干渉効果（<span style="color: #e03e2d;"><strong>TRADE</strong></span>、<span style="color: #843fa1;"><strong>ハッカー</strong></span>、<span style="color: #843fa1;"><strong>占い師</strong></span>、<span style="color: #843fa1;"><strong>皇帝</strong></span>、<span style="color: #843fa1;"><strong>警察官</strong><span style="color: #d9ebff;">、</span><strong>盗賊</strong><span style="color: #d9ebff;">、</span><strong>ピエロ</strong><span style="color: #d9ebff;">、</span><strong>工作員</strong></span>）に選択されなくなる。</li>
 <li>自分のターンを行う。</li>
 </ol>
 <ul>
@@ -7027,7 +7027,7 @@
                         onClick = `onclick="execDiscard(${idx}, ${i})"`;
                     } else {
                         // 選択不可 (グレーアウト)
-                        style = 'opacity:0.5; cursor:not-allowed; border:1px dashed #8cb6d3; background:rgba(127,211,255,0.18); transform:scale(0.95);';
+                        style = 'opacity:0.3; cursor:not-allowed; border:1px dashed #777; background:rgba(0,0,0,0.2); transform:scale(0.95);';
                         if(cImg) {
                             style += `background-image:url('${cImg}'); background-size:cover; background-position:center; color:transparent;`;
                         }
@@ -7145,14 +7145,14 @@
 
             targetHand.forEach(c => {
                 let content = "?";
-                let style = "cursor:pointer; background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
+                let style = "cursor:pointer; background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
                 let cssClass = "card"; // ★修正: 初期値はただのcard
 
                 // 公開カードなら中身を表示
                 // ★ハッキングチェック
                 if (c.isHacked) {
                     cssClass += " hacked";
-                    style = "cursor:not-allowed; border:1px solid #aacde3; background:#e7f4ff;";
+                    style = "cursor:not-allowed; border:1px solid #5f6f82; background:#2a3440; color:#cfd8dc;";
                     content = "🔒"; // 裏向きでもロックされていることはわかる
                     onClick = ""; // クリック無効
                 }
@@ -7641,7 +7641,7 @@ async function activateFortuneTeller() {
              let imgUrl = CARD_IMAGES[c.val];
              
              // 共通のスタイル（小さめのカードにする）
-             let baseStyle = "display:inline-block; width:30px; height:45px; border-radius:4px; margin:2px; vertical-align:middle; line-height:45px; text-align:center; font-weight:bold; border:1px solid #ccc; background:#fafafa; color:#333; position:relative;";
+             let baseStyle = "display:inline-block; width:30px; height:45px; border-radius:4px; margin:2px; vertical-align:middle; line-height:45px; text-align:center; font-weight:bold; border:1px solid #78909c; background:#455a64; color:#cfd8dc; position:relative;";
              
              // 画像がある場合（記号など）：背景画像にして文字を消す
              if (imgUrl) {
@@ -7662,7 +7662,7 @@ async function activateFortuneTeller() {
         html += `
             <div style="margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
                 <div style="font-weight:bold; color:#fdd835;">${pName}</div>
-                <div style="font-size:12px;">役職: <span style="color:#080000;">${pRoleJP}</span></div>
+                <div style="font-size:12px;">役職: <span style="color:#d9ebff;">${pRoleJP}</span></div>
                 <div style="font-size:12px;">手札: ${handHtml}</div>
             </div>
         `;
@@ -7802,10 +7802,10 @@ function activateThief(count = 1) {
         const handLen = hand.length;
         if (handLen === 0) return;
         let revealed = hand.filter(c => c.isOpen).map(c => c.val).join(", ");
-        let revealedInfo = revealed ? `<br><span style="font-size:12px; color:#125c8a;">(公開: ${revealed})</span>` : "";
+        let revealedInfo = revealed ? `<br><span style="font-size:12px; color:#d9ebff;">(公開: ${revealed})</span>` : "";
 
         if (isPoliticianShieldActive(pid)) {
-            html += `<button disabled style="display:block; width:100%; margin:5px 0; padding:10px; background:#d6ebf7; color:#4f7ea1; opacity:0.88; border:1px solid #a7cde4; border-radius:6px; cursor:not-allowed;">
+            html += `<button disabled style="display:block; width:100%; margin:5px 0; padding:10px; background:#243848; color:#d9ebff; opacity:0.92; border:1px solid #5f7d93; border-radius:6px; cursor:not-allowed;">
                 ${pName} (政治家で対象外)
             </button>`;
         } else {
@@ -7817,7 +7817,7 @@ function activateThief(count = 1) {
     });
 
     if (!canUseTarget) {
-        html += `<p style="font-size:12px; color:#4f7ea1;">対象にできるプレイヤーがいません。</p>`;
+        html += `<p style="font-size:12px; color:#9cb3c9;">対象にできるプレイヤーがいません。</p>`;
     }
 
     openModal(`盗賊: ターゲット選択 (${count}回目)`, html);
@@ -7842,14 +7842,14 @@ function thiefSelectTake(targetId, count) {
 
     targetHand.forEach(c => {
         let content = "?";
-        let style = "cursor:pointer; background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
+        let style = "cursor:pointer; background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
         let cssClass = "card"; 
         let onClick = `onclick="thiefSelectGive('${targetId}', ${c.originalIndex}, ${count})"`;
 
         // ★ハッカー対応
         if (c.isHacked) {
             cssClass += " hacked";
-            style = "cursor:not-allowed; border:1px solid #aacde3; background:#e7f4ff;";
+            style = "cursor:not-allowed; border:1px solid #5f6f82; background:#2a3440; color:#cfd8dc;";
             content = "🔒"; 
             onClick = "";
         }
@@ -7995,7 +7995,7 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
             <button onclick="activateThief(2)" style="width:100%; padding:15px; background:#d32f2f; color:white; font-weight:bold; margin-bottom:10px;">
                 はい (もう一度盗む)
             </button>
-            <button onclick="endThiefTurn()" style="width:100%; padding:15px; background:#bfe8ff; color:#0f5d86; border:1px solid #91c9ea;">
+            <button onclick="endThiefTurn()" style="width:100%; padding:15px; background:#444; color:white;">
                 いいえ (ターンを終了する)
             </button>
         `;
@@ -8045,13 +8045,13 @@ function activateHunter() {
         </p>
         
         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="width:48%; background:rgba(127,211,255,0.18); border-radius:8px; padding:5px;">
-                <div style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:5px; font-size:12px;">自分の手札 (除外)</div>
+            <div style="width:48%; background:rgba(8,26,48,0.45); border:1px solid rgba(143,176,214,0.3); border-radius:8px; padding:5px;">
+                <div style="font-weight:bold; border-bottom:1px solid rgba(143,176,214,0.38); color:#d9ebff; margin-bottom:5px; font-size:12px;">自分の手札 (除外)</div>
                 <div id="hunter-hand-list" style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;"></div>
             </div>
 
-            <div style="width:48%; background:rgba(127,211,255,0.18); border-radius:8px; padding:5px;">
-                <div style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:5px; font-size:12px;">記号山札 (入手)</div>
+            <div style="width:48%; background:rgba(8,26,48,0.45); border:1px solid rgba(143,176,214,0.3); border-radius:8px; padding:5px;">
+                <div style="font-weight:bold; border-bottom:1px solid rgba(143,176,214,0.38); color:#d9ebff; margin-bottom:5px; font-size:12px;">記号山札 (入手)</div>
                 <div id="hunter-deck-list" style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;"></div>
             </div>
         </div>
@@ -8060,9 +8060,9 @@ function activateHunter() {
             <p id="hunter-msg" style="color:#d32f2f; font-size:12px; font-weight:bold;">枚数が一致していません</p>
             
             <button onclick="execHunterSwap()" id="btn-hunter-exec" disabled 
-                style="background:#deedf7; color:#7397b2; padding:10px 30px; font-weight:bold; border-radius:20px; border:1px solid #b8d5e8;">交換して終了</button>
+                style="background:#4f5966; color:#d9ebff; padding:10px 30px; font-weight:bold; border-radius:20px; border:1px solid rgba(143,176,214,0.45);">交換して終了</button>
             <br>
-            <button onclick="execHunterSwap(true)" style="background:#d6f1ff; color:#0f5d86; margin-top:10px; padding:8px 20px; font-size:12px; border-radius:20px; border:1px solid #91c9ea;">
+            <button onclick="execHunterSwap(true)" style="background:#546e7a; color:#fff; margin-top:10px; padding:8px 20px; font-size:12px; border-radius:20px;">
                 交換せずに終了
             </button>
         </div>
@@ -8132,12 +8132,14 @@ function checkHunterCount() {
 
     if (handSel > 0 && handSel === deckSel) {
         btn.disabled = false;
-        btn.style.background = "#e65100"; // 狩人っぽいオレンジ
+        btn.style.background = "#2c684f";
+        btn.style.color = "#eff6ff";
         msg.innerText = `OK! (${handSel}枚交換)`;
-        msg.style.color = "#e65100";
+        msg.style.color = "#7dffc0";
     } else {
         btn.disabled = true;
-        btn.style.background = "#ccc";
+        btn.style.background = "#4f5966";
+        btn.style.color = "#d9ebff";
         if (handSel === 0 && deckSel === 0) {
             msg.innerText = "交換するカードを選んでください";
         } else {
@@ -8226,18 +8228,18 @@ function activateGambler() {
 
     let html = `
         <p>数字山札の一番上を予想してください。<br>
-        <span style="font-size:12px; color:#666;">※実行すると全員に通知されます</span>
+        <span style="font-size:12px; color:#9cb3c9;">※実行すると全員に通知されます</span>
         </p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-            <button onclick="execGamblerGuess('A')" style="padding:15px; background:#4fc3f7; color:#01579b; font-weight:bold; border-radius:8px;">
+            <button onclick="execGamblerGuess('A')" style="padding:15px; background:#0f314d; color:#d9f4ff; font-weight:bold; border:1px solid #4ba3d6; border-radius:8px;">
                 A: 小さい (1, 2, 3, 4)<br>
                 <span style="font-size:12px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
             </button>
-            <button onclick="execGamblerGuess('B')" style="padding:15px; background:#ffb74d; color:#e65100; font-weight:bold; border-radius:8px;">
+            <button onclick="execGamblerGuess('B')" style="padding:15px; background:#5a3312; color:#ffe2b7; font-weight:bold; border:1px solid #ffb86b; border-radius:8px;">
                 B: 大きい (6, 7, 8, 9)<br>
                 <span style="font-size:12px;">的中: 手札1枚捨て / 外れ: ターン終了</span>
             </button>
-            <button onclick="execGamblerGuess('C')" style="padding:15px; background:#ba68c8; color:#4a148c; font-weight:bold; border-radius:8px;">
+            <button onclick="execGamblerGuess('C')" style="padding:15px; background:#35184d; color:#efdcff; font-weight:bold; border:1px solid #c084ff; border-radius:8px;">
                 C: 命知らず (0, 5)<br>
                 <span style="font-size:12px;">的中: 手札2枚捨て / 外れ: カードを獲得しターン終了</span>
             </button>
@@ -8276,7 +8278,7 @@ async function execGamblerGuess(type) {
         guessTitle: guessText,
         cardVal: val,
         sub: win ? "WIN!!" : "LOSE...",
-        color: win ? "#d50000" : "#333",
+        color: win ? "#ff4d73" : "#9cb3c9",
         isWin: win,
         guessType: type, // ★追加: これで「大当たり」かどうか判定する
         timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -8344,7 +8346,7 @@ function gamblerSelectDiscard(count) {
     if (hand.length < count) count = hand.length;
 
     let html = `
-        <p style="font-size:14px; font-weight:bold; color:#2e7d32;">
+        <p style="font-size:14px; font-weight:bold; color:#7dffc0;">
             おめでとうございます！<br>
             手札から <span style="font-size:18px;">${count}枚</span> 選んで捨ててください。
         </p>
@@ -8354,7 +8356,7 @@ function gamblerSelectDiscard(count) {
         <div style="margin-top:15px; text-align:center;">
              <p id="gambler-msg" style="font-size:12px;">あと ${count} 枚選んでください</p>
             <button onclick="execGamblerDiscard(${count})" id="btn-gambler-exec" disabled 
-                style="background:#ccc; color:#fff; padding:10px 30px; border-radius:20px;">${getModalActionLabel("confirm")}</button>
+                style="background:#4f5966; color:#d9ebff; padding:10px 30px; border-radius:20px; border:1px solid rgba(143,176,214,0.45);">${getModalActionLabel("confirm")}</button>
         </div>
     `;
 
@@ -8400,14 +8402,15 @@ function toggleGamblerSelect(el, maxCount) {
 
     if (selCount === maxCount) {
         btn.disabled = false;
-        btn.style.background = "#2e7d32";
+        btn.style.background = "#2c684f";
+        btn.style.color = "#eff6ff";
         msg.innerText = "OK!";
-        msg.style.color = "#2e7d32";
+        msg.style.color = "#7dffc0";
     } else {
         btn.disabled = true;
-        btn.style.background = "#ccc";
+        btn.style.background = "#4f5966";
         msg.innerText = `あと ${maxCount - selCount} 枚選んでください`;
-        msg.style.color = "#2a6f96";
+        msg.style.color = "#9cb3c9";
     }
 }
 
@@ -8578,18 +8581,18 @@ function showVisualEffect(data) {
 function activateMagician() {
     let html = `
         <p>どのサプライズを行いますか？<br>
-        <span style="font-size:12px; color:#888;">※手札のカードは消費しません（コストとして必要な場合を除く）</span>
+        <span style="font-size:12px; color:#9cb3c9;">※手札のカードは消費しません（コストとして必要な場合を除く）</span>
         </p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
             <button onclick="execMagicianReverse()" style="padding:15px; background:#e91e63; color:white; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">🔄 REVERSE</span>
                 <span style="font-size:12px; margin-top:4px;">強弱をひっくり返す！</span>
             </button>
-            <button onclick="activateMagicianTrade()" style="padding:15px; background:#ffb74d; color:#e65100; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button onclick="activateMagicianTrade()" style="padding:15px; background:#5a3312; color:#ffe2b7; font-weight:bold; border:1px solid #ffb86b; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">🤝 TRADE</span>
                 <span style="font-size:12px; margin-top:4px;">こっそりカードを交換する！</span>
             </button>
-            <button onclick="activateMagicianDigUp()" style="padding:15px; background:#d7f1ff; color:#0f5d86; font-weight:bold; border-radius:8px; border:1px solid #91c9ea; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button onclick="activateMagicianDigUp()" style="padding:15px; background:#8d6e63; color:white; font-weight:bold; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size:18px;">⛏ DIG UP</span>
                 <span style="font-size:12px; margin-top:4px;">カードを拾ってすり替える！</span>
             </button>
@@ -8671,14 +8674,14 @@ function magicianSelectTake(targetId) {
 
     targetHand.forEach(c => {
         let content = "?";
-        let style = "cursor:pointer; background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
+        let style = "cursor:pointer; background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
         let cssClass = "card"; 
         let onClick = `onclick="magicianSelectGive('${targetId}', ${c.originalIndex})"`;
 
         // ★ハッカー対応
         if (c.isHacked) {
             cssClass += " hacked";
-            style = "cursor:not-allowed; border:1px solid #aacde3; background:#e7f4ff;";
+            style = "cursor:not-allowed; border:1px solid #5f6f82; background:#2a3440; color:#cfd8dc;";
             content = "🔒"; 
             onClick = "";
         }
@@ -8914,7 +8917,7 @@ function activateEmperor() {
         <p style="font-size:14px;">
             市民の手札をすべて回収しました。<br>
             <strong>あなたが望む「1枚」を選んでください。</strong><br>
-            <span style="font-size:12px; color:#4f7ea1;">残りは自動的に再分配されます。</span>
+            <span style="font-size:12px; color:#9cb3c9;">残りは自動的に再分配されます。</span>
         </p>
         <div class="modal-list">
     `;
@@ -9101,7 +9104,7 @@ async function activatePoliceOfficer() {
 function policeTradeStart() {
     let html = `
         <p><strong>【捜査協力の要請】</strong><br>続けてトレード(交換)を行いますか？<br>
-        <span style="font-size:12px; color:#4f7ea1;">(任意: 行わない場合は下のボタンで終了)</span>
+        <span style="font-size:12px; color:#9cb3c9;">(任意: 行わない場合は下のボタンで終了)</span>
         </p>
 
         <p style="margin-top:10px;">相手を選んでください</p>
@@ -9117,7 +9120,7 @@ function policeTradeStart() {
         
         // 公開情報の表示
         let revealed = hand.filter(c => c.isOpen).map(c => c.val).join(", ");
-        let revealedInfo = revealed ? `<br><span style="font-size:12px; color:#125c8a;">(公開: ${revealed})</span>` : "";
+        let revealedInfo = revealed ? `<br><span style="font-size:12px; color:#d9ebff;">(公開: ${revealed})</span>` : "";
 
         if (count > 0) {
             if (isPoliticianShieldActive(pid)) {
@@ -9137,7 +9140,7 @@ function policeTradeStart() {
     // ▼▼▼ キャンセルボタン（トレードしない）を追加 ▼▼▼
     html += `
         <div style="margin-top:20px; border-top:1px solid #9ec9e5; padding-top:10px;">
-            <button onclick="endPoliceTurn()" style="background:#d7f1ff; color:#0f5d86; padding:10px 20px; border-radius:20px; border:1px solid #91c9ea;">
+            <button onclick="endPoliceTurn()" style="background:#78909c; color:white; padding:10px 20px; border-radius:20px;">
                 捜査を終了する (トレードしない)
             </button>
         </div>
@@ -9190,7 +9193,7 @@ function policeSelectTake(targetId) {
             if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:2px solid #fff;`;
         } else {
             content = "?";
-            style += "background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
+            style += "background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
         }
 
         html += `<div class="${cssClass}" style="${style}" ${onClick}>${content}</div>`;
@@ -9317,7 +9320,7 @@ function renderHackerUI() {
         <div id="hacker-ui-container" style="text-align:left; max-height:300px; overflow-y:auto;">`;
 
     if (targets.length === 0) {
-        html += `<p style="text-align:center; color:#4f7ea1;">ハッキング可能な相手がいません。</p>`;
+        html += `<p style="text-align:center; color:#9cb3c9;">ハッキング可能な相手がいません。</p>`;
     }
     if (blockedTargets.length > 0) {
         html += `<p class="seki-disabled-note" style="text-align:center;">※政治家の保護中プレイヤーは対象外です</p>`;
@@ -9333,9 +9336,9 @@ function renderHackerUI() {
         
         let selectedIdx = hackerTargets[pid]; 
 
-        html += `<div style="margin-bottom:10px; background:rgba(127,211,255,0.18); padding:8px; border-radius:5px;">
-                    <div style="font-weight:bold; font-size:12px; margin-bottom:5px; color:#125c8a;">
-                        ${p.name} <span style="font-size:12px; color:#4f7ea1;">(手札:${hand.length})</span>
+        html += `<div style="margin-bottom:10px; background:rgba(8,26,48,0.45); border:1px solid rgba(143,176,214,0.3); padding:8px; border-radius:5px;">
+                    <div style="font-weight:bold; font-size:12px; margin-bottom:5px; color:#d9ebff;">
+                        ${p.name} <span style="font-size:12px; color:#9cb3c9;">(手札:${hand.length})</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:4px;">`;
         
@@ -9352,7 +9355,7 @@ function renderHackerUI() {
                 let cImg = CARD_IMAGES[c.val];
                 if (cImg) style += `background-image:url('${cImg}'); color:transparent; border:none;`;
             } else {
-                style += "background:#d9f3ff; color:#2a6f96; border:1px solid #8dc8e9;";
+                style += "background:#455a64; color:#cfd8dc; border:1px solid #78909c;";
             }
 
             if (isSel) {
@@ -9373,11 +9376,11 @@ function renderHackerUI() {
     let canExec = (currentSelectCount === requiredCount && requiredCount > 0);
 
     html += `<div style="text-align:center; margin-top:10px;">
-                <p style="font-size:12px; color:${canExec ? '#2e7d32' : '#d32f2f'}; margin-bottom:5px;">
+                <p style="font-size:12px; color:${canExec ? '#7dffc0' : '#ff9fb3'}; margin-bottom:5px;">
                     選択状況: ${currentSelectCount} / ${requiredCount} 人
                 </p>
                 <button onclick="execHacker()" ${canExec ? '' : 'disabled'} 
-                style="background:${canExec ? '#d32f2f' : '#ccc'}; color:white; padding:10px 30px; font-weight:bold; border-radius:20px; transition:0.3s;">
+                style="background:${canExec ? '#a61f3a' : '#4f5966'}; color:#eff6ff; padding:10px 30px; font-weight:bold; border:1px solid rgba(143,176,214,0.4); border-radius:20px; transition:0.3s;">
                 ウイルス送信
                 </button>
              </div>`;
@@ -9551,14 +9554,14 @@ function renderAlchemistUI() {
 
     // HTML組み立て
     let html = `
-        <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom:10px; background:rgba(220,245,255,0.9); padding:10px; border-radius:8px; border:1px solid #9ed9fb;">
+        <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom:10px; background:rgba(8,26,48,0.55); padding:10px; border-radius:8px; border:1px solid rgba(0,216,255,0.24);">
             <div style="text-align:center;">
-                <div style="font-size:12px; color:#125c8a; font-weight:bold; margin-bottom:5px;">素材A (ドロー)</div>
+                <div style="font-size:12px; color:#d9ebff; font-weight:bold; margin-bottom:5px;">素材A (ドロー)</div>
                 <div class="card num" style="${drawStyle} margin:0 auto;">${alchemyDrawnCard.val}</div>
             </div>
             <div style="font-size:20px; color:#aaa;">+</div>
             <div style="text-align:center;">
-                <div style="font-size:12px; color:#125c8a; font-weight:bold; margin-bottom:5px;">素材B (手札)</div>
+                <div style="font-size:12px; color:#d9ebff; font-weight:bold; margin-bottom:5px;">素材B (手札)</div>
                 <div id="alchemy-hand-preview" style="width:54px; height:86px; border:2px dashed #9ec9e5; border-radius:6px; line-height:86px; color:#7ea5bf;">?</div>
             </div>
         </div>
@@ -9578,7 +9581,7 @@ function renderAlchemistUI() {
             if (isSelected) style += "border:3px solid #42b6ff; transform:scale(1.1); box-shadow:0 0 10px #72ccff;";
             
             if (c.isHacked) {
-                style += "cursor:not-allowed; filter:grayscale(100%); border:1px solid #aacde3; background:#e7f4ff;";
+                style += "cursor:not-allowed; filter:grayscale(100%); border:1px solid #5f6f82; background:#2a3440; color:#cfd8dc;";
                 onClick = `onclick="showInfoModal('ロック', 'ハッキングされているカードは素材にできません')"`;
             } else {
                 onClick = `onclick="selectAlchemistHand(${i})"`;
@@ -9629,8 +9632,8 @@ function renderAlchemistUI() {
         }
 
         const makeBtn = (label, val, can, isInvalidCalc) => {
-            let bg = can ? "#7fcfff" : "#deedf7"; 
-            let color = can ? "#075078" : "#6d8ea6";
+            let bg = can ? "#4a148c" : "#4f5966"; 
+            let color = can ? "#f7e8ff" : "#b8c7d6";
             let cursor = can ? "pointer" : "not-allowed"; // カーソルを禁止マークに
             
             // 出せる時だけクリックイベントを設定
@@ -9651,14 +9654,14 @@ function renderAlchemistUI() {
             // 表示値がnullの場合は "?" と表示
             let dispVal = (val !== null) ? val : "?";
 
-            return `<button ${onClick} ${disabledAttr} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:1px solid #8dc8e9; box-shadow:0 2px 6px rgba(79, 171, 255, 0.22);">
+            return `<button ${onClick} ${disabledAttr} style="background:${bg}; color:${color}; padding:10px 5px; border-radius:8px; cursor:${cursor}; width:48%; font-weight:bold; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                         ${label} <span style="font-size:18px;">[${dispVal}]</span>${note}
                     </button>`;
         };
 
         html += `
-            <div style="margin-top:15px; padding:10px; background:rgba(232,248,255,0.92); border:1px solid #9ed9fb; border-radius:8px;">
-                <p style="margin:0 0 10px 0; font-weight:bold; color:#125c8a; font-size:12px;">錬成結果 (場の強弱に従う)</p>
+            <div style="margin-top:15px; padding:10px; background:rgba(8,26,48,0.58); border:1px solid rgba(143,176,214,0.45); border-radius:8px;">
+                <p style="margin:0 0 10px 0; font-weight:bold; color:#d9ebff; font-size:12px;">錬成結果 (場の強弱に従う)</p>
                 <div style="display:flex; justify-content:space-between; gap:5px;">
                     ${makeBtn("和 (+)", sumVal, canSum)}
                     ${makeBtn("差 (-)", diffVal, canDiff)}
@@ -9670,7 +9673,7 @@ function renderAlchemistUI() {
     }
 
     // 中止ボタン
-    let footerHtml = `<button onclick="execAlchemistKeep()" class="modal-btn" style="background:#d7f1ff; color:#0f5d86; border:1px solid #91c9ea; margin-top:10px; width:100%;">
+    let footerHtml = `<button onclick="execAlchemistKeep()" class="modal-btn" style="background:#78909c; margin-top:10px; width:100%;">
                         錬金失敗 (ドロー素材を除外する)
                       </button>`;
 
@@ -9684,7 +9687,7 @@ function renderAlchemistUI() {
         if(prev) {
             prev.innerText = c.val;
             prev.style.border = "2px solid #42b6ff";
-            prev.style.color = "#125c8a";
+            prev.style.color = "#9ce8ff";
             prev.style.fontWeight = "bold";
             prev.style.fontSize = "22px";
         }
@@ -9889,7 +9892,7 @@ function activateNecromancer() {
                 html += `
                     <div style="position:relative; display:inline-block;">
                         <div class="card num necromancer-item" data-card-val="${c.val}" style="${style}" onclick="selectNecromancerTarget('num', ${i}, this)">${c.val}</div>
-                        <span style="position:absolute; top:-8px; right:-6px; background:#ffeaa0; color:#8a5c19; font-size:12px; font-weight:bold; padding:1px 5px; border-radius:10px; border:1px solid #fff;">TOP</span>
+                        <span style="position:absolute; top:-8px; right:-6px; background:#3b2b08; color:#ffd778; font-size:12px; font-weight:bold; padding:1px 5px; border-radius:10px; border:1px solid #7a6230;">TOP</span>
                     </div>
                 `;
             } else {
@@ -9924,12 +9927,12 @@ function activateNecromancer() {
 
     html += `
         <div style="margin-top:12px; text-align:center;">
-            <p id="necromancer-msg" style="font-size:12px; color:#4f7ea1; margin:0 0 8px;">カードを1枚選択してください</p>
-            <button id="btn-necromancer-exec" onclick="execNecromancer()" disabled style="background:#deedf7; color:#7397b2; padding:10px 30px; font-weight:bold; border-radius:20px; border:1px solid #b8d5e8; cursor:not-allowed;">
+            <p id="necromancer-msg" style="font-size:12px; color:#9cb3c9; margin:0 0 8px;">カードを1枚選択してください</p>
+            <button id="btn-necromancer-exec" onclick="execNecromancer()" disabled style="background:#4f5966; color:#d9ebff; padding:10px 30px; font-weight:bold; border-radius:20px; border:1px solid rgba(143,176,214,0.45); cursor:not-allowed;">
                 除外を実行
             </button>
         </div>
-        <p style="font-size:12px; color:#4f7ea1; margin-top:10px;">※選択後に「除外を実行」を押してください。</p>
+        <p style="font-size:12px; color:#9cb3c9; margin-top:10px;">※選択後に「除外を実行」を押してください。</p>
     `;
 
     openModal("ネクロマンサー: 死者蘇生", html);
@@ -9951,14 +9954,14 @@ function selectNecromancerTarget(targetType, targetIdx, el) {
         let zone = (targetType === 'num') ? '数字墓地' : '記号墓地';
         let val = (el && el.dataset && el.dataset.cardVal !== undefined) ? el.dataset.cardVal : '?';
         msg.innerText = `選択中: ${zone} [${val}]`;
-        msg.style.color = '#125c8a';
+        msg.style.color = '#d9ebff';
     }
 
     let btn = document.getElementById('btn-necromancer-exec');
     if (btn) {
         btn.disabled = false;
-        btn.style.background = '#7fcfff';
-        btn.style.color = '#075078';
+        btn.style.background = '#4a148c';
+        btn.style.color = '#fff';
         btn.style.border = '1px solid #8dc8e9';
         btn.style.cursor = 'pointer';
     }
@@ -11093,7 +11096,7 @@ function setupEffectListener() {
     /* メインのモーダルより上に表示 */
     #sub-modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(145deg, rgba(229, 249, 255, 0.78), rgba(191, 241, 255, 0.74));
+        background: rgba(2, 7, 15, 0.72);
         z-index: 9999;
         display: flex; justify-content: center; align-items: center;
         backdrop-filter: blur(5px);
@@ -11103,17 +11106,17 @@ function setupEffectListener() {
 
     #sub-modal-box {
         background:
-            linear-gradient(155deg, rgba(246, 253, 255, 0.97), rgba(228, 247, 255, 0.95)),
-            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.22), transparent 38%);
-        color: #1a5f86;
+            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
+            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.11), transparent 36%);
+        color: var(--seki-text-main);
         width: 90%; max-width: 600px;
         max-height: 80vh;
         border-radius: 14px;
         padding: 20px;
         position: relative;
         font-family: var(--font-readable);
-        box-shadow: 0 16px 34px rgba(79, 172, 255, 0.26), 0 0 24px rgba(0, 216, 255, 0.26);
-        border: 1px solid rgba(0, 184, 230, 0.6);
+        box-shadow: var(--seki-shadow-panel), 0 0 24px rgba(0, 216, 255, 0.18);
+        border: 1px solid rgba(0, 216, 255, 0.36);
         display: flex; flex-direction: column;
         animation: subPopIn 0.2s ease-out;
     }
@@ -11123,7 +11126,7 @@ function setupEffectListener() {
         margin: 0 0 10px 0;
         border-bottom: 2px solid rgba(0, 200, 255, 0.58);
         padding-bottom: 5px;
-        color: #0f5f89;
+        color: #9ce8ff;
         font-family: var(--font-ui);
         font-size: 22px;
         font-weight: 700;
@@ -11133,29 +11136,29 @@ function setupEffectListener() {
 
     #sub-modal-box .close-btn {
         position: absolute; top: 10px; right: 15px;
-        font-size: 24px; cursor: pointer; color: #0f5f89;
+        font-size: 24px; cursor: pointer; color: #a8c7e4;
     }
 
     /* メインモーダルに追加する共通ボタン */
     #modal-board-toggle {
         position: absolute; top: 10px; right: 10px;
-        border: 1px solid rgba(92, 180, 234, 0.72);
+        border: 1px solid rgba(122, 168, 218, 0.6);
         border-radius: 16px;
-        background: linear-gradient(135deg, #f8fdff, #e4f6ff);
-        color: #0f5d86;
+        background: rgba(7, 22, 42, 0.92);
+        color: #e6f6ff;
         padding: 3px 10px; font-size: 12px; cursor: pointer;
         line-height: 1.2; z-index: 100;
         transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
     }
     #modal-board-toggle:hover {
-        border-color: rgba(0, 193, 240, 0.82);
-        box-shadow: 0 0 10px rgba(0, 216, 255, 0.36);
+        border-color: rgba(0, 216, 255, 0.78);
+        box-shadow: 0 0 10px rgba(0, 216, 255, 0.28);
         transform: translateY(-1px);
     }
     #modal-board-toggle.active {
-        background: linear-gradient(135deg, #b8f2ff, #7fd3ff 52%, #50beff);
-        border-color: rgba(43, 153, 226, 0.82);
-        color: #075078;
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+        border-color: rgba(0, 216, 255, 0.88);
+        color: #fff;
     }
 
     #modal-help-btns {
@@ -11164,19 +11167,19 @@ function setupEffectListener() {
     }
     .help-icon-btn {
         background: none;
-        border: 1px solid rgba(92, 180, 234, 0.72);
+        border: 1px solid rgba(122, 168, 218, 0.6);
         border-radius: 4px;
         cursor: pointer;
         font-size: 14px;
         padding: 2px 6px;
-        color: #0f5d86;
-        background: linear-gradient(135deg, #f8fdff, #e4f6ff);
+        color: #e6f6ff;
+        background: rgba(7, 22, 42, 0.92);
         transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
     }
     .help-icon-btn:hover {
         transform: scale(1.06);
-        border-color: rgba(0, 193, 240, 0.82);
-        box-shadow: 0 2px 9px rgba(85, 176, 244, 0.28), 0 0 10px rgba(0, 216, 255, 0.36);
+        border-color: rgba(0, 216, 255, 0.8);
+        box-shadow: 0 2px 9px rgba(0,0,0,0.2), 0 0 10px rgba(0, 216, 255, 0.28);
     }
 </style>
 
