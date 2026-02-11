@@ -1355,6 +1355,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: space-between; /* 上下に要素を分散 */
+        position: relative;
         
         background: linear-gradient(155deg, rgba(6, 16, 32, 0.62), rgba(3, 9, 20, 0.54));
         border-radius: 20px;
@@ -1364,6 +1365,267 @@
         padding: 5px;
         margin: 0 5px;
         z-index: 1;
+        overflow: hidden;
+    }
+    #role-draft-monitor {
+        position: absolute;
+        inset: 0;
+        z-index: 45;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px;
+        box-sizing: border-box;
+        border-radius: 18px;
+        border: 1px solid rgba(0, 216, 255, 0.25);
+        background:
+            radial-gradient(circle at 18% 16%, rgba(0, 216, 255, 0.16), transparent 42%),
+            radial-gradient(circle at 84% 22%, rgba(255, 53, 94, 0.12), transparent 36%),
+            linear-gradient(150deg, rgba(2, 7, 14, 0.97), rgba(1, 5, 10, 0.98));
+        color: #dff6ff;
+        overflow: hidden;
+    }
+    #role-draft-monitor.hidden {
+        display: none !important;
+    }
+    #role-draft-monitor::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.03) 0px,
+            rgba(255, 255, 255, 0.03) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.26;
+    }
+    #role-draft-monitor.phase-noise-out {
+        animation: roleDraftNoiseOut 900ms steps(10, end) forwards;
+    }
+    #role-draft-monitor.phase-noise-out::before {
+        opacity: 0.6;
+        animation: roleDraftNoiseFlicker 120ms steps(2, end) infinite;
+    }
+    .role-draft-stage {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        min-height: 0;
+    }
+    .role-draft-headline {
+        margin: 0;
+        padding: 5px 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 216, 255, 0.32);
+        background: rgba(2, 10, 20, 0.8);
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-shadow: 0 0 8px rgba(0, 216, 255, 0.28);
+    }
+    .role-draft-logo-wrap {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .role-draft-logo {
+        width: min(82%, 380px);
+        max-height: 58%;
+        object-fit: contain;
+        opacity: 0;
+        filter: drop-shadow(0 0 10px rgba(0, 216, 255, 0.35));
+        animation: roleDraftLogoFade 900ms ease forwards;
+    }
+    .role-draft-choice-row {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+        min-height: 0;
+        align-items: stretch;
+    }
+    .role-draft-card {
+        flex: 1 1 0;
+        min-width: 0;
+        border-radius: 10px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.54);
+        background: linear-gradient(
+            140deg,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.22),
+            rgba(3, 10, 21, 0.9) 65%
+        );
+        color: #eff6ff;
+        padding: 8px 6px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 4px;
+        transition: transform 0.18s ease, border-color 0.18s ease, opacity 0.25s ease;
+    }
+    .role-draft-card.selectable {
+        cursor: pointer;
+    }
+    .role-draft-card.selectable:hover {
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.9);
+        transform: translateY(-1px);
+    }
+    .role-draft-card.selected {
+        box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.7), 0 0 14px rgba(255, 235, 59, 0.26);
+    }
+    .role-draft-card.fade-out {
+        opacity: 0.15;
+        transform: scale(0.96);
+    }
+    .role-draft-card.disabled {
+        opacity: 0.76;
+        cursor: default;
+    }
+    .role-draft-group {
+        font-size: 11px;
+        color: var(--role-accent, #9ce8ff);
+        letter-spacing: 0.08em;
+        text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.35);
+    }
+    .role-draft-role {
+        font-size: 14px;
+        font-family: var(--font-display-strong);
+        letter-spacing: 0.04em;
+        word-break: break-word;
+    }
+    .role-draft-role-jp {
+        font-size: 12px;
+        color: #d9ebff;
+    }
+    .role-draft-summary {
+        font-size: 10px;
+        line-height: 1.35;
+        color: #b8ccdf;
+    }
+    .role-draft-placeholder {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: rgba(239, 246, 255, 0.86);
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+        letter-spacing: 0.08em;
+    }
+    .role-draft-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 6px 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 216, 255, 0.28);
+        background: rgba(2, 10, 20, 0.82);
+    }
+    .role-draft-selected-label {
+        font-size: 11px;
+        color: #d9ebff;
+    }
+    .role-draft-confirm-btn {
+        border: 1px solid rgba(0, 216, 255, 0.66);
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+        color: #f4fbff;
+        padding: 5px 12px;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        font-family: var(--font-ui);
+        cursor: pointer;
+    }
+    .role-draft-confirm-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.52;
+        background: rgba(92, 110, 128, 0.72);
+        border-color: rgba(132, 147, 168, 0.62);
+    }
+    .role-draft-text-block {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        text-align: center;
+        padding: 10px 8px;
+        overflow-y: auto;
+    }
+    .role-draft-maintext {
+        font-family: var(--font-display-strong);
+        font-size: clamp(18px, 4.5vw, 34px);
+        letter-spacing: 0.08em;
+        color: #e9fbff;
+        text-shadow: 0 0 10px rgba(0, 216, 255, 0.42), 0 0 18px rgba(52, 247, 141, 0.22);
+    }
+    .role-draft-subtext {
+        font-size: 12px;
+        color: #b9d5ea;
+        max-width: 95%;
+    }
+    .role-draft-unused-list {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .role-draft-unused-item {
+        border-radius: 8px;
+        border: 1px solid rgba(122, 138, 153, 0.7);
+        background: rgba(75, 85, 95, 0.48);
+        color: #eef4f9;
+        font-size: 11px;
+        line-height: 1.35;
+        padding: 5px 4px;
+        cursor: pointer;
+        opacity: 0.84;
+    }
+    .role-draft-unused-item:hover {
+        opacity: 1;
+    }
+    .role-badge-group-mask {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    @keyframes roleDraftLogoFade {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes roleDraftNoiseOut {
+        0% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            clip-path: inset(0 0 0 0);
+        }
+        60% {
+            opacity: 0.45;
+            transform: translate3d(3px, -2px, 0) scale(0.99);
+            clip-path: inset(18% 0 26% 0);
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(0, 0, 0) scale(0.97);
+            clip-path: inset(48% 0 52% 0);
+        }
+    }
+    @keyframes roleDraftNoiseFlicker {
+        0% { transform: translate3d(0, 0, 0); opacity: 0.22; }
+        50% { transform: translate3d(-2px, 1px, 0); opacity: 0.6; }
+        100% { transform: translate3d(2px, -1px, 0); opacity: 0.26; }
     }
     /* --- ゾーン分けデザイン --- */
     
@@ -1863,6 +2125,10 @@
         border-bottom: 1px solid rgba(var(--role-accent-rgb, 143, 176, 214), 0.28);
         padding-bottom: 5px;
     }
+    .seki-guide-role-item.is-public-unused {
+        opacity: 0.58;
+        filter: grayscale(0.45);
+    }
     .seki-guide-summary {
         cursor: pointer;
         display: flex;
@@ -1911,6 +2177,15 @@
         font-size: 10px;
         color: #9cb3c9;
         white-space: nowrap;
+    }
+    .seki-guide-public-tag {
+        margin-left: 6px;
+        font-size: 10px;
+        color: #cfd7de;
+        background: rgba(93, 104, 114, 0.5);
+        border: 1px solid rgba(180, 190, 198, 0.6);
+        border-radius: 10px;
+        padding: 1px 6px;
     }
     .seki-rule-root {
         text-align: left;
@@ -2774,6 +3049,8 @@
                     </div>
                     
                     <div id="msg" class="seki-msg">待機中...</div>
+
+                    <div id="role-draft-monitor" class="hidden" aria-live="polite"></div>
                 </div>
 
                 <div id="area-right" class="player-zone col"></div>
@@ -2900,11 +3177,14 @@
             // BGM
             'BGM_LOBBY': './sounds/bgm_lobby.mp3',
             'BGM_BATTLE': './sounds/bgm_battle.mp3',
+            'BGM_CHOICE': './sounds/bgm_choice.mp3',
             // システム通知
             'turn':    './sounds/turn.mp3',  // 自分の番
             'chat':    './sounds/chat.mp3',  // チャット受信
             'JOIN': './sounds/join.mp3',
             'BOOTING': './sounds/booting.mp3',
+            'CONFIRM': './sounds/confirm.mp3',
+            'SYSTEM_ONLINE': './sounds/systemonline.mp3',
             'WARNING': './sounds/warning.mp3', // トレードの被害
             'DOS': './sounds/dos.mp3',
             'UNO': './sounds/uno.mp3',
@@ -3173,6 +3453,7 @@
                 btn.innerText = "🔊";
                 // 再開処理
                 if (gameState && gameState.status === 'playing') playBgm('BGM_BATTLE');
+                else if (gameState && gameState.status === 'role_selecting') playBgm('BGM_CHOICE');
                 else playBgm('BGM_LOBBY');
             }
         }
@@ -3460,6 +3741,102 @@
             const safeCount = Math.max(0, Number(count) || 0);
             return pool.slice(0, safeCount);
         }
+        const ROLE_DRAFT_GROUP_ORDER = ["STRATEGY", "EFFICIENCY", "KILLER"];
+        const ROLE_DRAFT_PHASE_MS = {
+            booting: 2200,
+            resolving: 1000,
+            reveal_unused: 2600,
+            system_online: 2200,
+            noise_out: 900
+        };
+
+        function getRoleGroupLabel(groupKey) {
+            return (ROLE_GROUP_META[groupKey] && ROLE_GROUP_META[groupKey].label) ? ROLE_GROUP_META[groupKey].label : groupKey;
+        }
+
+        function getRoleDisplayName(roleKey) {
+            if (!roleKey) return "";
+            const info = ROLE_INFO[roleKey];
+            return info ? info.jp : roleKey;
+        }
+
+        function sortRoleKeysForDisplay(roleKeys = []) {
+            const safe = Array.isArray(roleKeys) ? roleKeys.filter(Boolean) : [];
+            return safe.sort((a, b) => {
+                const gA = getRoleGroup(a);
+                const gB = getRoleGroup(b);
+                const groupIdxA = ROLE_DRAFT_GROUP_ORDER.indexOf(gA);
+                const groupIdxB = ROLE_DRAFT_GROUP_ORDER.indexOf(gB);
+                if (groupIdxA !== groupIdxB) return groupIdxA - groupIdxB;
+
+                const groupRolesA = ROLE_GROUPS[gA] || [];
+                const groupRolesB = ROLE_GROUPS[gB] || [];
+                const idxA = groupRolesA.indexOf(a);
+                const idxB = groupRolesB.indexOf(b);
+                if (idxA !== idxB) return idxA - idxB;
+                return String(a).localeCompare(String(b));
+            });
+        }
+
+        function collectPublicUnusedRoles(unusedByPlayer = {}) {
+            const uniq = [];
+            const seen = new Set();
+            Object.values(unusedByPlayer || {}).forEach(list => {
+                if (!Array.isArray(list)) return;
+                list.forEach(roleKey => {
+                    if (!roleKey || seen.has(roleKey)) return;
+                    seen.add(roleKey);
+                    uniq.push(roleKey);
+                });
+            });
+            return sortRoleKeysForDisplay(uniq);
+        }
+
+        function buildRoleDraftChoices(playerIds) {
+            const groupPools = {};
+            ROLE_DRAFT_GROUP_ORDER.forEach(groupKey => {
+                const pool = [...(ROLE_GROUPS[groupKey] || [])];
+                shuffle(pool);
+                groupPools[groupKey] = pool;
+            });
+
+            const choicesByPlayer = {};
+            playerIds.forEach(pid => {
+                const oneSet = {};
+                ROLE_DRAFT_GROUP_ORDER.forEach(groupKey => {
+                    const pool = groupPools[groupKey] || [];
+                    oneSet[groupKey] = pool.length > 0 ? pool.pop() : null;
+                });
+                choicesByPlayer[pid] = oneSet;
+            });
+
+            return choicesByPlayer;
+        }
+
+        function getRoleDraftHostId(data = gameState) {
+            if (!data) return null;
+            const rd = data.roleDraft || {};
+            if (Array.isArray(rd.order) && rd.order.length > 0) return rd.order[0];
+            if (Array.isArray(data.playerOrder) && data.playerOrder.length > 0) return data.playerOrder[0];
+            const players = data.players || {};
+            const sorted = getSortedPlayerIds(players);
+            return sorted.length > 0 ? sorted[0] : null;
+        }
+
+        function getRoleDraftActivePlayerId(data = gameState) {
+            const rd = (data && data.roleDraft) ? data.roleDraft : null;
+            if (!rd || !Array.isArray(rd.order) || rd.order.length === 0) return null;
+            const idx = Math.max(0, Number(rd.currentIdx) || 0);
+            return rd.order[idx] || null;
+        }
+
+        function appendLogEntryToState(state, text, type = "public", targetId = null) {
+            if (!state) return;
+            const logs = Array.isArray(state.logs) ? [...state.logs] : [];
+            logs.push({ text, type, targetId, timestamp: Date.now() });
+            if (logs.length > 50) logs.splice(0, logs.length - 50);
+            state.logs = logs;
+        }
 
         let myId = localStorage.getItem("seki_uid_v2");
         if (!myId) {
@@ -3493,6 +3870,9 @@
         let lastCleanupTurnIdx = -1;
         let myRankPlayed = false; // ★追加: 順位決定音が再生済みかどうかのフラグ
         let lastChatTimeProcessed = 0; // ★追加: チャット吹き出し用
+        let roleDraftPendingSelection = null;
+        let roleDraftAdvanceBusy = false;
+        let roleDraftPhaseAudioToken = "";
         const ASSET_LOADING_MIN_MS = 2500;
         let assetLoadingShownAt = 0;
         let assetLoadingUiTimer = null;
@@ -3535,6 +3915,7 @@
             mContent: document.getElementById("modal-content"),
             deckNum: document.getElementById("deckNumCount"),
             deckSym: document.getElementById("deckSymCount"),
+            roleDraftMonitor: document.getElementById("role-draft-monitor"),
             mFooter: document.getElementById("modal-footer"),
             btnJoin: document.getElementById("btn-join"),
             btnChat: document.getElementById("btn-chat-icon")
@@ -4011,6 +4392,401 @@
         }
 
         setupRoomSuggestionEvents();
+
+        function showRoleDraftRoleDetail(roleKey) {
+            const info = ROLE_INFO[roleKey];
+            if (!info) return;
+            const groupKey = getRoleGroup(roleKey);
+            const groupLabel = getRoleGroupLabel(groupKey);
+            const html = `
+                <div class="font-readable">
+                    <p><strong>${groupLabel}</strong> / ${roleKey}</p>
+                    <p><strong>${info.jp}</strong></p>
+                    <p>${info.summary}</p>
+                    <hr>
+                    <div>${info.desc}</div>
+                </div>
+            `;
+            openModal(`役職詳細: ${info.jp}`, html, { tone: "guide", size: "wide" });
+        }
+
+        function showRoleDraftUnusedDetail(roleKey) {
+            showRoleDraftRoleDetail(roleKey);
+        }
+
+        function selectRoleDraftCandidate(roleKey) {
+            if (!gameState || gameState.status !== "role_selecting" || !gameState.roleDraft) return;
+            const rd = gameState.roleDraft;
+            if (rd.phase !== "selecting") return;
+            const currentPid = getRoleDraftActivePlayerId(gameState);
+            if (currentPid !== myId) return;
+
+            const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
+            const validRoles = ROLE_DRAFT_GROUP_ORDER.map(groupKey => myChoices[groupKey]).filter(Boolean);
+            if (!validRoles.includes(roleKey)) return;
+
+            roleDraftPendingSelection = roleKey;
+            showRoleDraftRoleDetail(roleKey);
+            renderRoleDraftMonitor(gameState);
+        }
+
+        let roleDraftConfirmBusy = false;
+        async function confirmRoleDraftSelection() {
+            if (roleDraftConfirmBusy) return;
+            if (!gameState || gameState.status !== "role_selecting" || !gameState.roleDraft) return;
+            if (!currentRoom) return;
+
+            const selectedRoleKey = roleDraftPendingSelection;
+            if (!selectedRoleKey) {
+                showInfoModal("役職選択", "役職を1つ選択してください。");
+                return;
+            }
+
+            roleDraftConfirmBusy = true;
+            try {
+                const roomRef = db.ref(`rooms/${currentRoom}`);
+                const result = await roomRef.transaction((state) => {
+                    if (!state || state.status !== "role_selecting" || !state.roleDraft) return state;
+
+                    const rd = state.roleDraft;
+                    if ((rd.phase || "") !== "selecting") return state;
+
+                    const order = Array.isArray(rd.order) ? rd.order : [];
+                    const currentIdx = Math.max(0, Number(rd.currentIdx) || 0);
+                    const activePid = order[currentIdx] || null;
+                    if (activePid !== myId) return state;
+
+                    const alreadySelected = rd.selectedRoles && rd.selectedRoles[myId];
+                    if (alreadySelected) return state;
+
+                    const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
+                    const validRoles = ROLE_DRAFT_GROUP_ORDER.map(groupKey => myChoices[groupKey]).filter(Boolean);
+                    if (!validRoles.includes(selectedRoleKey)) return state;
+
+                    const selectedGroup = getRoleGroup(selectedRoleKey);
+                    if (!selectedGroup) return state;
+
+                    rd.selectedRoles = { ...(rd.selectedRoles || {}), [myId]: selectedRoleKey };
+                    rd.selectedGroups = { ...(rd.selectedGroups || {}), [myId]: selectedGroup };
+
+                    const unselectedRoles = validRoles.filter(roleKey => roleKey !== selectedRoleKey);
+                    rd.unusedByPlayer = { ...(rd.unusedByPlayer || {}), [myId]: unselectedRoles };
+                    rd.resolve = {
+                        playerId: myId,
+                        selectedRole: selectedRoleKey,
+                        selectedGroup: selectedGroup,
+                        unselectedRoles: unselectedRoles
+                    };
+
+                    rd.currentIdx = currentIdx + 1;
+                    const now = Date.now();
+                    rd.phase = "resolving";
+                    rd.phaseStartedAt = now;
+                    rd.phaseEndsAt = now + ROLE_DRAFT_PHASE_MS.resolving;
+
+                    if (rd.currentIdx >= order.length) {
+                        rd.publicUnusedRoles = collectPublicUnusedRoles(rd.unusedByPlayer || {});
+                        state.publicRoleInfo = {
+                            unselectedRoles: [...rd.publicUnusedRoles],
+                            selectedGroups: { ...(rd.selectedGroups || {}) }
+                        };
+                    }
+
+                    const pName = (state.players && state.players[myId] && state.players[myId].name) ? state.players[myId].name : "Player";
+                    appendLogEntryToState(state, `${pName} が役職を確定しました（${getRoleGroupLabel(selectedGroup)}）`, "public");
+
+                    state.roleDraft = rd;
+                    state.lastSound = { type: "CONFIRM", id: now + Math.floor(Math.random() * 1000) };
+                    return state;
+                });
+
+                if (!result.committed) {
+                    showInfoModal("役職選択", "確定処理に失敗しました。最新状態で再試行してください。");
+                    return;
+                }
+
+                roleDraftPendingSelection = null;
+            } catch (e) {
+                showInfoModal("エラー", "役職確定エラー: " + e.message);
+            } finally {
+                roleDraftConfirmBusy = false;
+            }
+        }
+
+        function handleRoleDraftPhaseSound(data = gameState) {
+            if (!data || data.status !== "role_selecting" || !data.roleDraft) {
+                roleDraftPhaseAudioToken = "";
+                return;
+            }
+
+            const rd = data.roleDraft;
+            const token = `${rd.phase || ""}:${rd.phaseStartedAt || 0}`;
+            if (token === roleDraftPhaseAudioToken) return;
+            roleDraftPhaseAudioToken = token;
+
+            if (rd.phase === "booting") {
+                playSoundEffect("BOOTING");
+            } else if (rd.phase === "system_online") {
+                playSoundEffect("SYSTEM_ONLINE");
+            }
+        }
+
+        function renderRoleDraftMonitor(data = gameState) {
+            const monitor = els.roleDraftMonitor || document.getElementById("role-draft-monitor");
+            if (!monitor) return;
+
+            if (!data || data.status !== "role_selecting" || !data.roleDraft) {
+                monitor.classList.add("hidden");
+                monitor.classList.remove("phase-noise-out");
+                monitor.innerHTML = "";
+                roleDraftPendingSelection = null;
+                handleRoleDraftPhaseSound(null);
+                return;
+            }
+
+            const rd = data.roleDraft;
+            const players = data.players || {};
+            const phase = rd.phase || "booting";
+            const currentPid = getRoleDraftActivePlayerId(data);
+            const currentName = (currentPid && players[currentPid]) ? players[currentPid].name : "Player";
+            const resolveInfo = rd.resolve || null;
+            const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
+            const mySelectedRole = (rd.selectedRoles && rd.selectedRoles[myId]) ? rd.selectedRoles[myId] : null;
+            const isMySelecting = phase === "selecting" && currentPid === myId && !mySelectedRole;
+
+            if (!isMySelecting) roleDraftPendingSelection = null;
+            const selectedRoleForUi = isMySelecting ? roleDraftPendingSelection : null;
+
+            let headline = "";
+            let bodyHtml = "";
+            let footerHtml = "";
+
+            if (phase === "booting") {
+                headline = "ROLE DRAFT MONITOR / BOOTING";
+                bodyHtml = `
+                    <div class="role-draft-logo-wrap">
+                        <img src="./images/new_logo.png" class="role-draft-logo" alt="S.E.K.I.">
+                    </div>
+                `;
+                footerHtml = `<div class="role-draft-footer"><span class="role-draft-selected-label">役職選択システムを初期化中...</span></div>`;
+            } else if (phase === "selecting" || phase === "resolving") {
+                if (phase === "selecting") headline = `${currentName} が役職を選択中`;
+                else {
+                    const resolvedName = (resolveInfo && resolveInfo.playerId && players[resolveInfo.playerId]) ? players[resolveInfo.playerId].name : currentName;
+                    headline = `${resolvedName} の役職を確定中...`;
+                }
+
+                let cardsHtml = "";
+                ROLE_DRAFT_GROUP_ORDER.forEach(groupKey => {
+                    const groupMeta = ROLE_GROUP_META[groupKey] || {};
+                    const groupClass = groupMeta.cssClass || "";
+                    const roleKey = myChoices[groupKey];
+                    const info = ROLE_INFO[roleKey] || null;
+                    let cardClass = `role-draft-card ${groupClass}`.trim();
+
+                    if (phase === "resolving" && resolveInfo) {
+                        if (isMySelecting || (resolveInfo.playerId === myId && mySelectedRole)) {
+                            if (roleKey && resolveInfo.selectedRole !== roleKey) cardClass += " fade-out";
+                        } else if (resolveInfo.selectedGroup !== groupKey) {
+                            cardClass += " fade-out";
+                        }
+                    }
+
+                    if (isMySelecting && roleKey) {
+                        if (selectedRoleForUi === roleKey) cardClass += " selected";
+                        cardClass += " selectable";
+                        const safeRoleKey = String(roleKey).replace(/'/g, "\\'");
+                        cardsHtml += `
+                            <div class="${cardClass}" onclick="selectRoleDraftCandidate('${safeRoleKey}')">
+                                <div class="role-draft-group">${groupMeta.label || groupKey}</div>
+                                <div class="role-draft-role">${roleKey}</div>
+                                <div class="role-draft-role-jp">${info ? info.jp : "-"}</div>
+                                <div class="role-draft-summary">${info ? info.summary : ""}</div>
+                            </div>
+                        `;
+                    } else {
+                        cardClass += " disabled";
+                        cardsHtml += `
+                            <div class="${cardClass}">
+                                <div class="role-draft-group">${groupMeta.label || groupKey}</div>
+                                <div class="role-draft-placeholder">CLASSIFIED</div>
+                            </div>
+                        `;
+                    }
+                });
+
+                bodyHtml = `<div class="role-draft-choice-row">${cardsHtml}</div>`;
+                if (isMySelecting) {
+                    const selectedLabel = selectedRoleForUi ? `${getRoleDisplayName(selectedRoleForUi)} (${selectedRoleForUi})` : "未選択";
+                    footerHtml = `
+                        <div class="role-draft-footer">
+                            <span class="role-draft-selected-label">選択中: ${selectedLabel}</span>
+                            <button type="button" class="role-draft-confirm-btn" onclick="confirmRoleDraftSelection()" ${selectedRoleForUi ? "" : "disabled"}>決定</button>
+                        </div>
+                    `;
+                } else if (mySelectedRole) {
+                    footerHtml = `
+                        <div class="role-draft-footer">
+                            <span class="role-draft-selected-label">確定済み: ${getRoleDisplayName(mySelectedRole)} (${mySelectedRole})</span>
+                        </div>
+                    `;
+                } else {
+                    footerHtml = `
+                        <div class="role-draft-footer">
+                            <span class="role-draft-selected-label">待機中: ${currentName} の選択を待っています</span>
+                        </div>
+                    `;
+                }
+            } else if (phase === "reveal_unused") {
+                headline = "UNSELECTED ROLES / PUBLIC";
+                const list = sortRoleKeysForDisplay(rd.publicUnusedRoles || []);
+                const items = list.map(roleKey => {
+                    const roleInfo = ROLE_INFO[roleKey];
+                    const label = roleInfo ? roleInfo.jp : roleKey;
+                    const safeRoleKey = String(roleKey).replace(/'/g, "\\'");
+                    return `<button type="button" class="role-draft-unused-item" onclick="showRoleDraftUnusedDetail('${safeRoleKey}')">${label}<br><small>${roleKey}</small></button>`;
+                }).join("");
+                bodyHtml = `
+                    <div class="role-draft-text-block">
+                        <div class="role-draft-maintext">UNSELECTED ROLES</div>
+                        <div class="role-draft-subtext">選ばれなかった役職のみ公開されます（詳細を確認可能）</div>
+                        <div class="role-draft-unused-list">${items || '<div class="role-draft-subtext">公開対象なし</div>'}</div>
+                    </div>
+                `;
+                footerHtml = `<div class="role-draft-footer"><span class="role-draft-selected-label">公開データを同期中...</span></div>`;
+            } else if (phase === "system_online") {
+                headline = "AUTHENTICATION COMPLETE";
+                bodyHtml = `
+                    <div class="role-draft-text-block">
+                        <div class="role-draft-maintext">ALL ROLES AUTHENTICATED.</div>
+                        <div class="role-draft-maintext">SYSTEM ONLINE...</div>
+                    </div>
+                `;
+            } else {
+                headline = "TRANSITIONING";
+                bodyHtml = `
+                    <div class="role-draft-text-block">
+                        <div class="role-draft-maintext">SYSTEM ONLINE...</div>
+                        <div class="role-draft-subtext">戦闘フィールドへ移行します</div>
+                    </div>
+                `;
+            }
+
+            monitor.classList.remove("hidden");
+            monitor.classList.toggle("phase-noise-out", phase === "noise_out");
+            monitor.innerHTML = `
+                <div class="role-draft-stage">
+                    <p class="role-draft-headline">${headline}</p>
+                    ${bodyHtml}
+                    ${footerHtml}
+                </div>
+            `;
+            handleRoleDraftPhaseSound(data);
+        }
+
+        async function advanceRoleDraftPhaseIfNeeded(data = gameState) {
+            if (roleDraftAdvanceBusy) return;
+            if (!data || data.status !== "role_selecting" || !data.roleDraft || !currentRoom) return;
+            if (getRoleDraftHostId(data) !== myId) return;
+
+            const rd = data.roleDraft;
+            const phaseEndsAt = Number(rd.phaseEndsAt) || 0;
+            if (phaseEndsAt <= 0 || Date.now() < phaseEndsAt) return;
+
+            roleDraftAdvanceBusy = true;
+            try {
+                await db.ref(`rooms/${currentRoom}`).transaction((state) => {
+                    if (!state || state.status !== "role_selecting" || !state.roleDraft) return state;
+
+                    const currentRd = state.roleDraft;
+                    const now = Date.now();
+                    const phase = currentRd.phase || "booting";
+                    const endAt = Number(currentRd.phaseEndsAt) || 0;
+                    if (endAt > 0 && now < endAt) return state;
+
+                    let clearRoleDraft = false;
+
+                    if (phase === "booting") {
+                        currentRd.phase = "selecting";
+                        currentRd.phaseStartedAt = now;
+                        currentRd.phaseEndsAt = 0;
+                        currentRd.resolve = null;
+                    } else if (phase === "resolving") {
+                        const order = Array.isArray(currentRd.order) ? currentRd.order : [];
+                        const done = (Number(currentRd.currentIdx) || 0) >= order.length;
+                        if (done) {
+                            currentRd.phase = "reveal_unused";
+                            currentRd.phaseStartedAt = now;
+                            currentRd.phaseEndsAt = now + ROLE_DRAFT_PHASE_MS.reveal_unused;
+                            currentRd.resolve = null;
+                            if (!Array.isArray(currentRd.publicUnusedRoles) || currentRd.publicUnusedRoles.length === 0) {
+                                currentRd.publicUnusedRoles = collectPublicUnusedRoles(currentRd.unusedByPlayer || {});
+                            }
+                            state.publicRoleInfo = {
+                                unselectedRoles: [...(currentRd.publicUnusedRoles || [])],
+                                selectedGroups: { ...(currentRd.selectedGroups || {}) }
+                            };
+                            appendLogEntryToState(state, "未選択役職を公開しました", "public");
+                        } else {
+                            currentRd.phase = "selecting";
+                            currentRd.phaseStartedAt = now;
+                            currentRd.phaseEndsAt = 0;
+                            currentRd.resolve = null;
+                        }
+                    } else if (phase === "reveal_unused") {
+                        currentRd.phase = "system_online";
+                        currentRd.phaseStartedAt = now;
+                        currentRd.phaseEndsAt = now + ROLE_DRAFT_PHASE_MS.system_online;
+                    } else if (phase === "system_online") {
+                        currentRd.phase = "noise_out";
+                        currentRd.phaseStartedAt = now;
+                        currentRd.phaseEndsAt = now + ROLE_DRAFT_PHASE_MS.noise_out;
+                    } else if (phase === "noise_out") {
+                        const finalRoles = { ...(currentRd.selectedRoles || {}) };
+                        const selectedGroups = { ...(currentRd.selectedGroups || {}) };
+                        const publicUnusedRoles = Array.isArray(currentRd.publicUnusedRoles)
+                            ? [...currentRd.publicUnusedRoles]
+                            : collectPublicUnusedRoles(currentRd.unusedByPlayer || {});
+                        const revealed = { ...(state.revealedRoles || {}) };
+
+                        Object.entries(finalRoles).forEach(([pid, roleKey]) => {
+                            if (roleKey === "EMPEROR") revealed[pid] = true;
+                        });
+
+                        state.roles = finalRoles;
+                        state.revealedRoles = revealed;
+                        state.publicRoleInfo = {
+                            unselectedRoles: publicUnusedRoles,
+                            selectedGroups: selectedGroups
+                        };
+                        state.status = "playing";
+                        state.turnIdx = 0;
+                        appendLogEntryToState(state, "ALL ROLES AUTHENTICATED. SYSTEM ONLINE...", "public");
+
+                        Object.keys(finalRoles).forEach(pid => {
+                            if (finalRoles[pid] !== "EMPEROR") return;
+                            const pName = (state.players && state.players[pid]) ? state.players[pid].name : "Player";
+                            appendLogEntryToState(state, `${pName} は [皇帝] であることをカミングアウトしました！`, "public");
+                        });
+
+                        clearRoleDraft = true;
+                    }
+
+                    state.roleDraft = clearRoleDraft ? null : currentRd;
+                    return state;
+                });
+            } catch (e) {
+                console.warn("role draft phase advance error", e);
+            } finally {
+                roleDraftAdvanceBusy = false;
+            }
+        }
+
+        setInterval(() => {
+            if (!gameState || gameState.status !== "role_selecting") return;
+            renderRoleDraftMonitor(gameState);
+            advanceRoleDraftPhaseIfNeeded(gameState);
+        }, 250);
 
         // --- モーダル関数 ---
         function normalizeModalOptions(options = {}) {
@@ -4525,15 +5301,7 @@
                 shuffle(deckSym);
 
                 /* --- execInitGame関数内 --- */
-                
                 let hands = {};
-                let roles = {};
-                
-                // 役職シャッフル（重複なしで配るため）
-                let availRoles = [...ROLES];
-                shuffle(availRoles);
-                
-      
                 playerIds.forEach((pid, i) => {
                     let h = [];
                     // ★枚数選択反映
@@ -4541,36 +5309,13 @@
                     for(let k=0; k<2; k++) h.push(deckSym.pop());
                     h = sortCards(h);
                     hands[pid] = h;
-                    roles[pid] = availRoles.pop();
                 });
 
-                // ★追加: 皇帝のカミングアウト判定
-                let revealedRoles = {};
-                let coLogs = [];
-                
-                playerIds.forEach(pid => {
-                    const r = roles[pid];
-                    if (r === "EMPEROR") {
-                        revealedRoles[pid] = true; // 最初から公開状態にする
-                        let rNameJP = (ROLE_INFO[r]) ? ROLE_INFO[r].jp : r;
-                        coLogs.push({
-                            text: `${players[pid].name} は [${rNameJP}] であることをカミングアウトしました！`,
-                            type: 'public',
-                            timestamp: Date.now()
-                        });
-                        
-                        // 皇帝ならカットイン演出も予約（initDataのログに入れておく）
-                        if (r === "EMPEROR") {
-                             // ここで直接カットインは出せないので、ログを見て検知させるか、
-                             // シンプルにログ通知だけで済ませるのが安全です。
-                        }
-                    }
-                });
-                
-                // ▲▲▲ ここまで挿入 ▲▲▲
+                const roleDraftChoices = buildRoleDraftChoices(playerIds);
+                const now = Date.now();
 
                 const initData = {
-                    status: "playing",
+                    status: "role_selecting",
                     deckNum,
                     deckSym,
                     graveNum: [],
@@ -4580,12 +5325,32 @@
                     turnIdx: 0,
                     playerOrder: playerIds,
                     passCount: 0,
-                    hands, roles, players, rankings: {}, 
+                    hands,
+                    roles: {},
+                    players,
+                    rankings: {},
                     astronomerObservation: null,
                     // 【追加】能力使用済みフラグ（初期値は空）
                     activatedList: {},
                     politicianShield: {},
-                    revealedRoles: revealedRoles,
+                    revealedRoles: {},
+                    publicRoleInfo: {
+                        unselectedRoles: [],
+                        selectedGroups: {}
+                    },
+                    roleDraft: {
+                        order: playerIds,
+                        currentIdx: 0,
+                        choicesByPlayer: roleDraftChoices,
+                        selectedRoles: {},
+                        selectedGroups: {},
+                        unusedByPlayer: {},
+                        publicUnusedRoles: [],
+                        phase: "booting",
+                        phaseStartedAt: now,
+                        phaseEndsAt: now + ROLE_DRAFT_PHASE_MS.booting,
+                        resolve: null
+                    },
 
                     // ★追加: ハッキングされたカードの隔離所
                     hackedHands: null,
@@ -4596,13 +5361,15 @@
 
                     // ログにカミングアウト情報を追加
                     logs: [
-                        {text: `ゲーム開始！(数字${numCount}枚モード)`, type: "public", timestamp: Date.now()},
-                        ...coLogs 
+                        {text: `ゲーム開始！(数字${numCount}枚モード)`, type: "public", timestamp: now},
+                        {text: "役職選択フェーズを開始します", type: "public", timestamp: now + 1}
                     ]
                 };
 
                 wasMyTurn = false;
                 hasFinished = false;
+                roleDraftPendingSelection = null;
+                roleDraftPhaseAudioToken = "";
                 await db.ref(`rooms/${currentRoom}`).update(initData);
             } catch(e) { showInfoModal("エラー", "開始エラー: " + e.message); }
         }
@@ -4664,10 +5431,25 @@
             // 3. データ準備
             const players = data.players || {};
             const hands = data.hands || {};
-            const roles = data.roles || {};
+            const roleDraft = data.roleDraft || null;
+            const savedRoles = data.roles || {};
+            const draftSelectedRoles = (roleDraft && roleDraft.selectedRoles) ? roleDraft.selectedRoles : {};
+            const roles = (data.status === "role_selecting")
+                ? { ...savedRoles, ...draftSelectedRoles }
+                : savedRoles;
             const hackedHands = data.hackedHands || {};
             const currentAct = data.activatedList || {};
             const currentRev = data.revealedRoles || {};
+            const publicRoleInfo = data.publicRoleInfo || {};
+            const selectedGroupMap = {
+                ...((roleDraft && roleDraft.selectedGroups) ? roleDraft.selectedGroups : {}),
+                ...((publicRoleInfo && publicRoleInfo.selectedGroups) ? publicRoleInfo.selectedGroups : {})
+            };
+
+            renderRoleDraftMonitor(data);
+            if (data.status === "role_selecting") {
+                advanceRoleDraftPhaseIfNeeded(data);
+            }
 
             // ★追加: 墓地トップとリセット権所有者の計算（位置を上に移動）
             let top = (data.graveNum && data.graveNum.length > 0) ? data.graveNum[data.graveNum.length-1] : null;
@@ -4707,7 +5489,7 @@
             // -----------------------------------------------------
             // A. ゲーム進行中の描画
             // -----------------------------------------------------
-            if (data.status === "playing" || data.status === "finished") {
+            if (data.status === "playing" || data.status === "finished" || data.status === "role_selecting") {
                 
                 // --- 1. 手札の描画 (統合版・安全対策済み) ---
                 if (handContainer) {
@@ -4849,6 +5631,8 @@
                             ${actBtnHtml}
                         </div>
                     `;
+                } else if (roleArea) {
+                    roleArea.innerHTML = "";
                 }
 
                 // --- 4. 演出・音・カットイン ---
@@ -4886,6 +5670,8 @@
                 // ★修正: ゲーム終了時はロビーBGM（または停止）に切り替える
                 if (data.status === "playing") {
                     playBgm('BGM_BATTLE');
+                } else if (data.status === "role_selecting") {
+                    playBgm('BGM_CHOICE');
                 } else {
                     playBgm('BGM_LOBBY'); 
                     // ※もし無音が良ければ stopBgm(); にしてください
@@ -4908,7 +5694,8 @@
                     let myLocked = hackedHands[myId] || [];
                     let myCount = myHand.length + myLocked.length;
                     myAreaEl.classList.remove("current-turn", "warning-1", "warning-2");
-                    if (pIds[data.turnIdx] === myId) {
+                    const roleDraftActivePid = getRoleDraftActivePlayerId(data);
+                    if ((data.status === "role_selecting" && roleDraftActivePid === myId) || (data.status !== "role_selecting" && pIds[data.turnIdx] === myId)) {
                         myAreaEl.classList.add("current-turn");
                     }
                 }
@@ -4949,7 +5736,12 @@
                     else if (area.id === "area-right") bubbleClass = "bubble-pos-right";
                     // ▲▲▲ 追加ここまで ▲▲▲
 
-                    let isTurn = (pIds[data.turnIdx] === pid);
+                    let isTurn = false;
+                    if (data.status === "role_selecting") {
+                        isTurn = (getRoleDraftActivePlayerId(data) === pid);
+                    } else {
+                        isTurn = (pIds[data.turnIdx] === pid);
+                    }
                     let isRanked = (data.rankings && data.rankings[pid]);
                     let pHand = hands[pid] || [];
                     let lockedHand = hackedHands[pid] || []; 
@@ -4983,6 +5775,10 @@
                         let rank = data.rankings[pid];
                         let suffix = ["st","nd","rd"][rank-1] || "th"; // 1st, 2nd...
                         statusHtml = `<span class="status-text status-rank">🏆 ${rank}${suffix}</span>`;
+                    } else if (data.status === "role_selecting") {
+                        statusHtml = isTurn
+                            ? `<span class="status-text status-reset">PICKING</span>`
+                            : `<span class="status-text status-normal">WAITING</span>`;
                     } else if (pid === effectiveResetHolder) {
                         // リセット権を持っている場合
                         statusHtml = `<span class="status-text status-reset">RESET</span>`;
@@ -5013,6 +5809,12 @@
                         } else {
                             roleHtml = `<div class="role-badge-pill ${roleAttrClass}">${rJp}</div>`;
                         }
+                    } else if (selectedGroupMap[pid]) {
+                        const groupKey = selectedGroupMap[pid];
+                        const groupMeta = ROLE_GROUP_META[groupKey] || {};
+                        const groupClass = groupMeta.cssClass || "";
+                        const groupLabel = groupMeta.label || groupKey;
+                        roleHtml = `<div class="role-badge-pill role-badge-group-mask ${groupClass}">${groupLabel}</div>`;
                     }
 
                     // ヘッダーアイコン
@@ -5115,14 +5917,40 @@
 
                 // メッセージ
                 let isMyTurnNow = (pIds[data.turnIdx] === myId);
-                if (data.status === "finished") {
+                if (data.status === "role_selecting") {
+                    const rd = data.roleDraft || {};
+                    const activePid = getRoleDraftActivePlayerId(data);
+                    const activeName = (activePid && players[activePid]) ? players[activePid].name : "プレイヤー";
+                    const phase = rd.phase || "booting";
+                    if (phase === "booting") {
+                        els.msg.innerText = "役職選択システム起動中...";
+                    } else if (phase === "selecting") {
+                        els.msg.innerText = activePid === myId
+                            ? "役職を選択して決定してください"
+                            : `${activeName} が役職を選択中...`;
+                    } else if (phase === "resolving") {
+                        els.msg.innerText = "役職を確定中...";
+                    } else if (phase === "reveal_unused") {
+                        els.msg.innerText = "未選択役職を公開中...";
+                    } else if (phase === "system_online") {
+                        els.msg.innerText = "ALL ROLES AUTHENTICATED. SYSTEM ONLINE...";
+                    } else {
+                        els.msg.innerText = "ゲーム開始準備中...";
+                    }
+                    document.getElementById("btn-play").disabled = true;
+                    document.getElementById("btn-pass").disabled = true;
+                    lastCleanupTurnIdx = -1;
+                    wasMyTurn = false;
+                } else if (data.status === "finished") {
                      els.msg.innerText = `ゲーム終了！`;
                      document.getElementById("btn-play").disabled = true;
                      document.getElementById("btn-pass").disabled = true;
+                     wasMyTurn = false;
                 } else if (data.rankings && data.rankings[myId]) {
                     els.msg.innerText = `あなたは ${data.rankings[myId]}位 であがりました！`;
                     document.getElementById("btn-play").disabled = true;
                     document.getElementById("btn-pass").disabled = true;
+                    wasMyTurn = false;
                 
                 } else {
                     // ここでの activeCount, isInheritedReset は冒頭で計算したものを使用
@@ -5145,8 +5973,8 @@
                         document.getElementById("btn-play").disabled = true;
                         document.getElementById("btn-pass").disabled = true;
                     }
+                    wasMyTurn = isMyTurnNow;
                 }
-                wasMyTurn = isMyTurnNow;
 
             } else {
                 // 待機中 (Lobby)
@@ -5157,6 +5985,7 @@
                 if(handContainer) handContainer.innerHTML = "";
                 if(document.getElementById("my-role-panel")) document.getElementById("my-role-panel").innerHTML = "";
                 updateAstronomerIndicator(null);
+                renderRoleDraftMonitor(null);
             }
 
             // 共通: ログ更新
@@ -5298,6 +6127,9 @@
 
         // --- Action Logic ---
         function passTurn() {
+            if (!gameState || gameState.status !== "playing") {
+                return showInfoModal("待機中", "まだゲームは開始していません。");
+            }
             if (!isMyTurn()) return;
             
             let activeCount = getActiveCount(gameState);
@@ -5454,6 +6286,9 @@
         }
 
         async function playCard() {
+            if (!gameState || gameState.status !== "playing") {
+                return showInfoModal("待機中", "まだゲームは開始していません。");
+            }
             if (selectedIdx === -1) return;
             if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません");
 
@@ -8964,6 +9799,9 @@ function setupEffectListener() {
 
         function buildRoleGuideHtml() {
             let html = '<div class="font-readable seki-guide-root">';
+            const publicUnusedRoles = (gameState && gameState.publicRoleInfo && Array.isArray(gameState.publicRoleInfo.unselectedRoles))
+                ? new Set(gameState.publicRoleInfo.unselectedRoles)
+                : new Set();
 
             Object.keys(ROLE_GROUPS).forEach(groupKey => {
                 const groupRoles = ROLE_GROUPS[groupKey] || [];
@@ -8982,15 +9820,19 @@ function setupEffectListener() {
                     if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
                         imgHtml = `<img src="${ROLE_IMAGES[key]}" class="seki-guide-role-img">`;
                     }
+                    const isPublicUnused = publicUnusedRoles.has(key);
+                    const itemClass = isPublicUnused ? "is-public-unused" : "";
+                    const publicTag = isPublicUnused ? `<span class="seki-guide-public-tag">公開済み(未選択)</span>` : "";
 
                     html += `
-                        <details class="seki-guide-role-item ${groupClass}">
+                        <details class="seki-guide-role-item ${groupClass} ${itemClass}">
                             <summary class="seki-guide-summary">
                                 ${imgHtml}
                                 <div class="seki-guide-role-main">
                                     <div class="seki-guide-role-jp">
                                         ${info.jp}
                                         <span class="seki-guide-role-en">${key}</span>
+                                        ${publicTag}
                                     </div>
                                     <div class="seki-guide-role-summary">
                                         <div>${info.summary}</div>
@@ -9234,6 +10076,9 @@ function setupEffectListener() {
         window.playCutInAnimation = playCutInAnimation;
         window.openHostSettings = openHostSettings;
         window.confirmInitGameWithSettings = confirmInitGameWithSettings;
+        window.selectRoleDraftCandidate = selectRoleDraftCandidate;
+        window.confirmRoleDraftSelection = confirmRoleDraftSelection;
+        window.showRoleDraftUnusedDetail = showRoleDraftUnusedDetail;
         window.showRoleList = showRoleList;
         window.showRule = showRule;
         window.leaveRoom = leaveRoom; // これを追加
@@ -9329,6 +10174,11 @@ function setupEffectListener() {
         <div class="hud-section-title">SYMBOL</div>
         <div class="hud-grid-sym" id="hud-grid-sym">
             <div class="hud-loading">Loading...</div>
+        </div>
+
+        <div class="hud-section-title">PUBLIC ROLES</div>
+        <div class="hud-grid-role" id="hud-grid-role">
+            <div class="hud-loading">No Data</div>
         </div>
         
         <div class="hud-footnote">
@@ -9426,6 +10276,35 @@ function setupEffectListener() {
         display: grid;
         grid-template-columns: repeat(2, 1fr); /* 記号は2列 */
         gap: 4px;
+    }
+    .hud-grid-role {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+    }
+    .hud-role-pill {
+        border-radius: 8px;
+        border: 1px solid rgba(163, 196, 231, 0.3);
+        padding: 4px 6px;
+        text-align: center;
+        font-size: 11px;
+        color: #f4fbff;
+        letter-spacing: 0.04em;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
+    }
+    .hud-role-pill.role-attr-strategy {
+        background: linear-gradient(135deg, rgba(0, 216, 255, 0.46), rgba(1, 16, 25, 0.86));
+        border-color: rgba(0, 216, 255, 0.72);
+    }
+    .hud-role-pill.role-attr-efficiency {
+        background: linear-gradient(135deg, rgba(52, 247, 141, 0.4), rgba(5, 20, 12, 0.86));
+        border-color: rgba(52, 247, 141, 0.72);
+    }
+    .hud-role-pill.role-attr-killer {
+        background: linear-gradient(135deg, rgba(255, 53, 94, 0.42), rgba(23, 4, 11, 0.86));
+        border-color: rgba(255, 53, 94, 0.72);
     }
 
     .hud-item {
@@ -9600,6 +10479,24 @@ function setupEffectListener() {
                 `;
             });
             gridSym.innerHTML = html;
+        }
+
+        const gridRole = document.getElementById("hud-grid-role");
+        if (gridRole) {
+            const publicUnused = (gameState.publicRoleInfo && Array.isArray(gameState.publicRoleInfo.unselectedRoles))
+                ? sortRoleKeysForDisplay(gameState.publicRoleInfo.unselectedRoles)
+                : [];
+            if (publicUnused.length === 0) {
+                gridRole.innerHTML = `<div class="hud-loading">No Public Roles</div>`;
+            } else {
+                const roleHtml = publicUnused.map(roleKey => {
+                    const roleInfo = ROLE_INFO[roleKey];
+                    const label = roleInfo ? `${roleInfo.jp} / ${roleKey}` : roleKey;
+                    const attrClass = getRoleAttrClass(roleKey);
+                    return `<div class="hud-role-pill ${attrClass}">${label}</div>`;
+                }).join("");
+                gridRole.innerHTML = roleHtml;
+            }
         }
     }
 
