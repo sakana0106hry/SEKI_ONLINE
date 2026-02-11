@@ -4492,7 +4492,7 @@
         const ROLE_DRAFT_PHASE_MS = {
             booting: 2200,
             resolving: 1200,
-            reveal_unused: 9000,
+            reveal_unused: 10000,
             system_online: 2000,
             noise_out: 2000
         };
@@ -5566,9 +5566,7 @@
 
                 bodyHtml = `
                     <div class="role-draft-text-block role-draft-text-block-unused">
-                        <div class="role-draft-maintext">UNSELECTED ROLES</div>
-                        <div class="role-draft-subtext">プレイヤーが選ばなかった役職のみが公開されます</div>
-                        <div class="role-draft-unused-absence-note">これらの役職は登場しません</div>
+                        <div class="role-draft-subtext">プレイヤーが選ばなかったこれらの役職は登場しません</div>
                         <div class="role-draft-unused-list">${sections || '<div class="role-draft-subtext">公開対象なし</div>'}</div>
                     </div>
                 `;
