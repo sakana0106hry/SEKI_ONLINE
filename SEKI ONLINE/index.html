@@ -732,12 +732,26 @@
         text-decoration-thickness: 1px;
         text-underline-offset: 2px;
     }
+    .role-attr-strategy {
+        --role-accent: var(--seki-s);
+        --role-accent-rgb: 0, 216, 255;
+    }
+    .role-attr-efficiency {
+        --role-accent: var(--seki-e);
+        --role-accent-rgb: 52, 247, 141;
+    }
+    .role-attr-killer {
+        --role-accent: var(--seki-k);
+        --role-accent-rgb: 255, 53, 94;
+    }
     .my-role-chip {
         margin-left: 10px;
-        color: #8fefff;
+        color: var(--role-accent, #8fefff);
+        text-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.32);
     }
     .my-role-chip.used {
-        color: #95a6ba;
+        opacity: 0.6;
+        filter: saturate(0.82);
     }
     .my-reset-badge {
         margin-left: 10px;
@@ -889,12 +903,18 @@
         padding: 2px 0;        /* 上下は詰めて文字スペース確保 */
         width: 95%;            /* 横幅いっぱいに広げる */
         
-        /* 明るく目立つグラデーションに変更 */
-        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff); 
-        border: 1px solid rgba(228, 248, 255, 0.85);
+        /* 属性色グラデーション */
+        background:
+            linear-gradient(
+                135deg,
+                rgba(9, 24, 40, 0.92),
+                rgba(var(--role-accent-rgb, 0, 216, 255), 0.72) 52%,
+                rgba(var(--role-accent-rgb, 0, 216, 255), 0.95)
+            );
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.86);
         
         /* ほんのり発光させて目立たせる */
-        box-shadow: 0 0 8px rgba(0, 216, 255, 0.38);
+        box-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.38);
         
         color: #fff;
         text-shadow: 0 1px 2px rgba(0,0,0,0.8);
@@ -930,6 +950,23 @@
         align-items: center;
         justify-content: center;
         white-space: nowrap;
+        background: linear-gradient(
+            135deg,
+            rgba(8, 22, 40, 0.96),
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.72) 56%,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.92)
+        );
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.72);
+        box-shadow:
+            0 3px 10px rgba(0, 0, 0, 0.35),
+            0 0 10px rgba(var(--role-accent-rgb, 0, 216, 255), 0.24);
+        color: #effbff;
+    }
+    .role-activate-btn:hover:not(:disabled) {
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.9);
+        box-shadow:
+            0 6px 16px rgba(0, 0, 0, 0.45),
+            0 0 14px rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
     }
     .role-status-badge {
         font-size: 11px;
@@ -938,8 +975,8 @@
         font-weight: bold;
     }
     .role-card.is-used {
-        filter: grayscale(1);
-        opacity: 0.6;
+        filter: saturate(0.75) brightness(0.84);
+        opacity: 0.7;
     }
 
     /* 正体不明のとき（ROLE: ???）も見やすく */
@@ -955,6 +992,8 @@
     .role-sub { 
         font-size: 13px; 
         display: inline;      /* 横に並べる */
+        color: rgba(var(--role-accent-rgb, 239, 246, 255), 0.96);
+        text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.25);
         opacity: 0.9; 
         margin-left: 4px;
     }
@@ -1152,7 +1191,7 @@
 
     /* 山札の数字 */
     .deck-count {
-        font-size: 16px;
+        font-size: 12px;
         font-weight: bold;
         color: #fff;
         text-shadow: 0 1px 2px #000;
@@ -1480,9 +1519,23 @@
         max-height: 500px;
         overflow-y: auto;
     }
+    .seki-guide-role-group {
+        margin-bottom: 14px;
+        padding: 8px 8px 2px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
+        border-radius: 10px;
+        background: linear-gradient(160deg, rgba(6, 16, 32, 0.62), rgba(4, 11, 23, 0.5));
+    }
+    .seki-guide-group-title {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: var(--role-accent, #9ce8ff);
+        text-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.24);
+    }
     .seki-guide-role-item {
         margin-bottom: 10px;
-        border-bottom: 1px solid rgba(143, 176, 214, 0.26);
+        border-bottom: 1px solid rgba(var(--role-accent-rgb, 143, 176, 214), 0.28);
         padding-bottom: 5px;
     }
     .seki-guide-summary {
@@ -1504,7 +1557,7 @@
     }
     .seki-guide-role-jp {
         font-weight: 700;
-        color: #9ce8ff;
+        color: var(--role-accent, #9ce8ff);
         font-size: 15px;
     }
     .seki-guide-role-en {
@@ -1677,12 +1730,17 @@
     }
 
     .role-card {
-        background: linear-gradient(135deg, rgba(9, 29, 55, 0.95), rgba(4, 11, 23, 0.9));
+        background:
+            linear-gradient(
+                135deg,
+                rgba(var(--role-accent-rgb, 0, 216, 255), 0.24),
+                rgba(4, 11, 23, 0.9) 65%
+            );
         color: var(--seki-text-main);
         padding: 10px 20px;
         border-radius: var(--seki-radius-sm);
-        border: 1px solid rgba(0, 216, 255, 0.35);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.45), inset 0 0 12px rgba(0, 216, 255, 0.1);
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.42);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.45), inset 0 0 12px rgba(var(--role-accent-rgb, 0, 216, 255), 0.12);
         text-align: center;
         width: 100%;
         max-width: 300px;
@@ -1705,7 +1763,8 @@
         font-family: var(--font-display-strong);
         font-size: 16px;
         letter-spacing: 1px;
-        color: #8fefff;
+        color: var(--role-accent, #8fefff);
+        text-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.35);
         text-transform: uppercase;
         font-weight: bold;
     }
@@ -1719,8 +1778,8 @@
     
     .role-desc {
         font-size: 11px;
-        color: #acd4ff;
-        border-top: 1px solid rgba(179, 223, 255, 0.32);
+        color: #d9ebff;
+        border-top: 1px solid rgba(var(--role-accent-rgb, 179, 223, 255), 0.4);
         margin-top: 5px;
         padding-top: 4px;
     }
@@ -2676,12 +2735,22 @@
         const ASTRONOMER_CHOICES = [2, 3, 4, 5, 6, 7, 8];
         const SYMBOLS = ["REVERSE", "TRADE", "DIG UP", "DISCARD"];
         const SYMBOL_COUNTS = {"REVERSE":4, "TRADE":4, "DIG UP":4, "DISCARD":1};
-        // 【修正】Ver 2.0準拠の役職定義
-        const ROLES = [
-            "ALCHEMIST", "ASTRONOMER", "ANGLER", "EMPEROR", "FORTUNE TELLER", 
-            "GAMBLER", "HACKER", "HUNTER", "CROWN",
-            "MILLIONAIRE", "POLITICIAN", "POLICE OFFICER", "THIEF", "NECROMANCER", "AGENT"
-        ];
+        // 役職の属性グループ定義
+        const ROLE_GROUPS = {
+            STRATEGY: ["HACKER", "FORTUNE TELLER", "NECROMANCER", "ASTRONOMER", "POLITICIAN"],
+            EFFICIENCY: ["ALCHEMIST", "GAMBLER", "MILLIONAIRE", "HUNTER", "ANGLER"],
+            KILLER: ["EMPEROR", "POLICE OFFICER", "THIEF", "CROWN", "AGENT"]
+        };
+        const ROLE_GROUP_META = {
+            STRATEGY: { label: "STRATEGY", cssClass: "role-attr-strategy", colorVar: "var(--seki-s)" },
+            EFFICIENCY: { label: "EFFICIENCY", cssClass: "role-attr-efficiency", colorVar: "var(--seki-e)" },
+            KILLER: { label: "KILLER", cssClass: "role-attr-killer", colorVar: "var(--seki-k)" }
+        };
+        const ROLE_TO_GROUP = Object.entries(ROLE_GROUPS).reduce((acc, [groupKey, roleKeys]) => {
+            roleKeys.forEach(roleKey => { acc[roleKey] = groupKey; });
+            return acc;
+        }, {});
+        const ROLES = Object.values(ROLE_GROUPS).flat();
 
         // 【追加】役職の日本語名と簡易説明（表示用）
         // 【修正】役職情報（簡易説明 + 詳細説明）
@@ -2891,6 +2960,27 @@
 <div><strong>ターン終了！</strong></div>`
             }
         };
+
+        function getRoleGroup(roleKey) {
+            return ROLE_TO_GROUP[roleKey] || null;
+        }
+
+        function getRoleAttrClass(roleKey) {
+            const groupKey = getRoleGroup(roleKey);
+            return (groupKey && ROLE_GROUP_META[groupKey]) ? ROLE_GROUP_META[groupKey].cssClass : "";
+        }
+
+        function getRoleChoiceCandidates(groupKey, count = 3, excludes = []) {
+            const base = Array.isArray(ROLE_GROUPS[groupKey]) ? [...ROLE_GROUPS[groupKey]] : [];
+            const excludedSet = new Set(Array.isArray(excludes) ? excludes : []);
+            const pool = base.filter(roleKey => !excludedSet.has(roleKey));
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            const safeCount = Math.max(0, Number(count) || 0);
+            return pool.slice(0, safeCount);
+        }
 
         let myId = localStorage.getItem("seki_uid_v2");
         if (!myId) {
@@ -3790,6 +3880,7 @@
                 }
 
                 if (roleArea && myRole && rInfo) {
+                    const myRoleAttrClass = getRoleAttrClass(myRole);
                     let actBtnHtml = "";
                     let isActivated = currentAct[myId];
                     let isPoliticianShielded = isPoliticianShieldActive(myId, data);
@@ -3814,7 +3905,7 @@
                         else if (myRole === "AGENT") funcName = "activateAgent()";
 
                         if (funcName) {
-                            actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini seki-btn-accent role-activate-btn">ACTIVATE</button>`;
+                            actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini role-activate-btn ${myRoleAttrClass}">ACTIVATE</button>`;
                         }
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
@@ -3836,22 +3927,15 @@
                     }
 
                     // 背景スタイル
-                    let roleCardClass = "role-card";
+                    let roleCardClass = `role-card ${myRoleAttrClass}`.trim();
                     if (isActivated) roleCardClass += " is-used";
                     const bgUrl = (typeof ROLE_IMAGES !== 'undefined') ? ROLE_IMAGES[myRole] : null;
                     let bgStyle = "";
                     
-                    if (myRole === "EMPEROR") {
-                        roleCardClass += " role-emperor";
-                        if (bgUrl) {
-                            bgStyle = `background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(0,0,0,0.6)), url('${bgUrl}'); background-size: cover; background-position: center 12%; border: 3px solid #fff; animation: goldPulse 2s infinite alternate;`;
-                        } else {
-                            bgStyle = `background: linear-gradient(45deg, #FFD700, #FDB931, #FFED86, #FFD700); background-size: 200% 200%; border: 3px solid #fff; animation: goldShine 3s ease infinite, goldPulse 2s infinite alternate; color: #3e2723; text-shadow: none;`;
-                        }
-                    } else if (bgUrl) {
-                        bgStyle = `background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url('${bgUrl}'); background-size: cover; background-position: center 12%;`;
+                    if (bgUrl) {
+                        bgStyle = `background: linear-gradient(135deg, rgba(var(--role-accent-rgb, 0, 216, 255), 0.28), rgba(0,0,0,0.78)), url('${bgUrl}'); background-size: cover; background-position: center 12%;`;
                     } else {
-                        bgStyle = `background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);`;
+                        bgStyle = `background: linear-gradient(135deg, rgba(var(--role-accent-rgb, 0, 216, 255), 0.36), rgba(4,11,23,0.92));`;
                     }
 
                     roleArea.innerHTML = `
@@ -4008,6 +4092,7 @@
                     if (isRevealed) {
                         let rName = roles[pid];
                         let rJp = (typeof ROLE_INFO !== 'undefined' && ROLE_INFO[rName]) ? ROLE_INFO[rName].jp : rName;
+                        const roleAttrClass = getRoleAttrClass(rName);
                         
                         let roleSub = "";
                         if (rName === "CROWN" && typeof currentAct[pid] === 'string') {
@@ -4021,9 +4106,9 @@
                         }
 
                         if (roleSub) {
-                            roleHtml = `<div class="role-badge-pill">${rJp}: <span class="role-sub">${roleSub}</span></div>`;
+                            roleHtml = `<div class="role-badge-pill ${roleAttrClass}">${rJp}: <span class="role-sub">${roleSub}</span></div>`;
                         } else {
-                            roleHtml = `<div class="role-badge-pill">${rJp}</div>`;
+                            roleHtml = `<div class="role-badge-pill ${roleAttrClass}">${rJp}</div>`;
                         }
                     }
 
@@ -4245,11 +4330,12 @@
                     const rKey = roles[myId];
                     const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
                     const jpName = rInfo ? rInfo.jp : rKey;
+                    const roleAttrClass = getRoleAttrClass(rKey);
                     
-                    // スキル使用済みなら灰色、未使用なら紫
+                    // 使用済みは色を残しつつ減衰表示
                     const isUsed = currentAct[myId];
                     const usedClass = isUsed ? " used" : "";
-                    myRoleHtml = `<span class="my-role-chip${usedClass}">【役職】${jpName}</span>`;
+                    myRoleHtml = `<span class="my-role-chip ${roleAttrClass}${usedClass}">【役職】${jpName}</span>`;
                 }
 
                 // ★修正: resetHolder ではなく effectiveResetHolder を使用して判定
@@ -7976,30 +8062,44 @@ function setupEffectListener() {
         function buildRoleGuideHtml() {
             let html = '<div class="font-readable seki-guide-root">';
 
-            Object.keys(ROLE_INFO).forEach(key => {
-                const info = ROLE_INFO[key];
-                let imgHtml = "";
-                if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
-                    imgHtml = `<img src="${ROLE_IMAGES[key]}" class="seki-guide-role-img">`;
-                }
+            Object.keys(ROLE_GROUPS).forEach(groupKey => {
+                const groupRoles = ROLE_GROUPS[groupKey] || [];
+                const groupMeta = ROLE_GROUP_META[groupKey] || {};
+                const groupClass = groupMeta.cssClass || "";
 
                 html += `
-                    <details class="seki-guide-role-item">
-                        <summary class="seki-guide-summary">
-                            ${imgHtml}
-                            <div class="seki-guide-role-main">
-                                <div class="seki-guide-role-jp">
-                                    ${info.jp}
-                                    <span class="seki-guide-role-en">${key}</span>
+                    <section class="seki-guide-role-group ${groupClass}">
+                        <h4 class="seki-guide-group-title">${groupMeta.label || groupKey}</h4>`;
+
+                groupRoles.forEach(key => {
+                    const info = ROLE_INFO[key];
+                    if (!info) return;
+
+                    let imgHtml = "";
+                    if (typeof ROLE_IMAGES !== 'undefined' && ROLE_IMAGES[key]) {
+                        imgHtml = `<img src="${ROLE_IMAGES[key]}" class="seki-guide-role-img">`;
+                    }
+
+                    html += `
+                        <details class="seki-guide-role-item ${groupClass}">
+                            <summary class="seki-guide-summary">
+                                ${imgHtml}
+                                <div class="seki-guide-role-main">
+                                    <div class="seki-guide-role-jp">
+                                        ${info.jp}
+                                        <span class="seki-guide-role-en">${key}</span>
+                                    </div>
+                                    <div class="seki-guide-role-summary">
+                                        <div>${info.summary}</div>
+                                        <span class="seki-guide-hint">▼詳細</span>
+                                    </div>
                                 </div>
-                                <div class="seki-guide-role-summary">
-                                    <div>${info.summary}</div>
-                                    <span class="seki-guide-hint">▼詳細</span>
-                                </div>
-                            </div>
-                        </summary>
-                        <div class="seki-guide-role-detail">${info.desc}</div>
-                    </details>`;
+                            </summary>
+                            <div class="seki-guide-role-detail">${info.desc}</div>
+                        </details>`;
+                });
+
+                html += `</section>`;
             });
 
             html += "</div>";
