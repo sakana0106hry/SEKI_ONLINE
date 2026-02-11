@@ -11655,12 +11655,9 @@ async function execNecromancer() {
     actList[myId] = true;
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
-    // ログ＆音
+    // ログ
     await pushLog(`${myName}が[ネクロマンサー]を発動！${fromLabel}の [${removedCard.val}] を蘇生して除外しました`, 'public');
-    
-    // 音の再生（スキル音があればそれ、なければDISCARD音などを代用）
-    let soundType = (typeof SOUND_FILES !== 'undefined' && SOUND_FILES['SKILL_NECROMANCER']) ? 'SKILL_NECROMANCER' : 'DISCARD';
-    updates[`rooms/${currentRoom}/lastSound`] = { type: soundType, id: Date.now() };
+    // 音は activatedList の変化をトリガーにカットイン側で再生する（重複再生防止）
 
     /* ★重要: ターンを進める処理（turnIdxの更新）は書きません。
        これにより、まだ自分のターン（playCardができる状態）が維持されます。
