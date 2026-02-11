@@ -7698,9 +7698,7 @@ async function activateFortuneTeller() {
 /* --- ASTRONOMER (天文学者) の実装 --- */
 function activateAstronomer() {
     if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません");
-    if (!gameState || !gameState.roles || gameState.roles[myId] !== "ASTRONOMER") {
-        return showInfoModal("エラー", "天文学者ではないため発動できません。");
-    }
+    if (!gameState || !gameState.roles) return showInfoModal("エラー", "ゲーム状態を取得できません。");
 
     let actList = {...(gameState.activatedList || {})};
     if (actList[myId]) return showInfoModal("使用不可", "天文学者はすでに発動済みです。");
@@ -7742,9 +7740,7 @@ function showAstronomerInvalidSelection(val) {
 
 async function execAstronomerObserve(observedVal) {
     if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません");
-    if (!gameState || !gameState.roles || gameState.roles[myId] !== "ASTRONOMER") {
-        return showInfoModal("エラー", "天文学者ではないため発動できません。");
-    }
+    if (!gameState || !gameState.roles) return showInfoModal("エラー", "ゲーム状態を取得できません。");
 
     const val = Number(observedVal);
     if (!ASTRONOMER_CHOICES.includes(val)) {
