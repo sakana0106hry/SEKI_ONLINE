@@ -11290,13 +11290,15 @@ function setupEffectListener() {
         font-family: var(--font-ui);
         user-select: none;
         z-index: 9999; /* 最前面に */
+        /* 画面が広いときもゲームテーブル右端に沿う */
+        --counter-right-anchor: max(12px, calc((100vw - 860px) / 2 + 12px));
     }
 
     /* 1. 開閉ボタン（スマホで邪魔にならないサイズ） */
     #counter-toggle-btn {
         position: fixed;
         top: 60px;       /* ヘッダーの下あたり */
-        right: 15px;     /* 右端に配置 */
+        right: var(--counter-right-anchor);
         z-index: 2000;   
         
         width: 44px; height: 44px;
@@ -11322,7 +11324,7 @@ function setupEffectListener() {
     #counter-panel {
         position: fixed;
         top: 115px;
-        right: 15px;
+        right: var(--counter-right-anchor);
         z-index: 1999;
         
         width: 240px;    /* スマホでも見やすい幅 */
