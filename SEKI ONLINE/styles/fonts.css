@@ -1,0 +1,23 @@
+/* Font rules:
+ * - フォント名の直書きは原則禁止
+ * - 新規画面は --font-ui / --font-readable を使い分ける
+ */
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1:wght@400;500;700&family=Orbitron:wght@500;700;800&family=WDXL+Lubrifont+JP+N&display=swap');
+
+:root {
+    --font-ui: "Orbitron", "WDXL Lubrifont JP N", "M PLUS 1", sans-serif;
+    --font-readable: "M PLUS 1", sans-serif;
+    --font-display-strong: "Orbitron", "WDXL Lubrifont JP N", "M PLUS 1", "Impact", "Arial Black", sans-serif;
+}
+
+.font-ui {
+    font-family: var(--font-ui);
+}
+
+.font-readable {
+    font-family: var(--font-readable);
+}
+
+.font-display-strong {
+    font-family: var(--font-display-strong);
+}

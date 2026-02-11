@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SEKI Online</title>
+    <link rel="stylesheet" href="styles/fonts.css">
     <style>
     /* ベース設定：フォントをモダンに、背景をリッチに */
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=Orbitron:wght@500;700;800&display=swap');
 
     body { 
-        font-family: "IBM Plex Sans JP", sans-serif; 
+        font-family: var(--font-ui);
         
         /* 背景を固定（スクロールしても付いてくるように） */
         background: radial-gradient(circle, #2e7d32 0%, #1b5e20 60%, #003300 100%);
@@ -141,7 +141,7 @@
 
     .version-text {
         margin: 0;
-        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         font-size: 12px;
         letter-spacing: 1.5px;
         color: #cfe8ff;
@@ -165,7 +165,7 @@
         color: #eff6ff;
         padding: 13px 14px;
         font-size: 15px;
-        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         letter-spacing: 1px;
         text-align: center;
         appearance: none;
@@ -202,14 +202,14 @@
         overflow-y: auto;
         margin-top: -2px;
         margin-bottom: 2px;
-        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         border-radius: 12px;
         border: 1px solid rgba(0, 216, 255, 0.33);
         background: rgba(2, 10, 20, 0.92);
         box-shadow: inset 0 0 14px rgba(0, 216, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.36);
     }
     .room-suggestion-title {
-        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         font-size: 11px;
         letter-spacing: 0.5px;
         color: #a5cfff;
@@ -223,7 +223,7 @@
         color: #e8f4ff;
         text-align: left;
         padding: 9px 10px;
-        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         font-size: 13px;
         cursor: pointer;
         transition: background 0.18s ease;
@@ -233,7 +233,7 @@
     }
     .room-suggestion-empty {
         padding: 10px;
-        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         font-size: 12px;
         text-align: left;
         color: #9cb3c9;
@@ -247,7 +247,7 @@
         border-radius: 12px;
         background: linear-gradient(135deg, #8f0f2d 0%, #d81f48 42%, #ff355e 100%);
         color: #fff5f8;
-        font-family: "Orbitron", "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         font-size: 16px;
         font-weight: 800;
         letter-spacing: 1px;
@@ -354,7 +354,7 @@
     /* カードの動き */
     .card:not(.selected):hover { transform: translateY(-8px) rotate(2deg); z-index: 5; }
     
-    .card.num { color: #1565c0; font-family: 'Arial Black', sans-serif; }
+    .card.num { color: #1565c0; font-family: var(--font-display-strong); }
     .card.sym { color: #c62828; font-size: 11px; text-align:center; line-height:1.1; letter-spacing: -0.5px;}
     /*.card[data-val="0"] { border: 2px solid #ab47bc; color: #8e24aa; background: #f3e5f5; }*/
 
@@ -907,6 +907,7 @@
         background: #fff; color: #333; padding: 25px; border-radius: 12px;
         max-width: 90%; max-height: 80%; width: 400px;
         overflow-y: auto; text-align: center; display:flex; flex-direction:column;
+        font-family: var(--font-readable);
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         border: 2px solid transparent;
         transition: background 0.2s, opacity 0.2s, box-shadow 0.2s, border-color 0.2s;
@@ -988,7 +989,7 @@
     }
 
     .role-name {
-        font-family: 'Arial Black', sans-serif;
+        font-family: var(--font-display-strong);
         font-size: 16px;
         letter-spacing: 1px;
         color: #dc94e9;
@@ -1035,7 +1036,7 @@
     #cut-in-content {
         text-align: center;
         color: #ffeb3b;
-        font-family: 'Arial Black', sans-serif;
+        font-family: var(--font-display-strong);
         text-shadow: 0 0 10px #ff9800;
         transform: scale(0); /* 最初は小さく */
     }
@@ -1085,7 +1086,7 @@
 
     /* ▼▼▼ クッキリ・読みやすい版 ▼▼▼ */
     #cut-in-text { 
-        font-family: 'Impact', 'Arial Black', sans-serif;
+        font-family: var(--font-display-strong);
         font-weight: 900;
         font-size: 60px; /* 少し大きくして視認性UP */
         
@@ -1111,6 +1112,10 @@
         
         /* 隠し味：少しだけ光らせたい場合は以下をコメントアウト解除 */
         /* text-shadow: 0 0 10px rgba(255,255,255,0.5); */
+    }
+
+    #visual-overlay {
+        font-family: var(--font-display-strong);
     }
     
 
@@ -1172,7 +1177,7 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         z-index: 20;
         pointer-events: none; /* クリックの邪魔をしない */
-        font-family: 'Arial Black', sans-serif;
+        font-family: var(--font-display-strong);
     }
 
     /* --- スマホ・細い画面用のスリムレイアウト --- */
@@ -1263,8 +1268,8 @@
             margin-top: 5px;     /* ステータスとの隙間 */
             white-space: nowrap; /* 折り返しなし */
             line-height: 1.2;
-            /* ★ここが重要: ゲーム全体のフォント(IBM Plex Sans JP)を強制する */
-            font-family: "IBM Plex Sans JP", sans-serif !important;
+            /* ★ここが重要: ゲーム全体のフォントトークンを強制する */
+            font-family: var(--font-ui) !important;
         }
 
         /* 何も公開されていない時 (NORMAL表示と同じような色に) */
@@ -1695,7 +1700,7 @@
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9); z-index: 9999;
     display: none; flex-direction: column; justify-content: center; align-items: center;
-    color: white; font-family: 'Arial Black', sans-serif; pointer-events: none;
+    color: white; pointer-events: none;
 ">
     <div id="squeeze-guess" style="
         position: absolute; top: 10%; 
@@ -7233,7 +7238,7 @@ function setupEffectListener() {
         }
 
         function buildRoleGuideHtml() {
-            let html = '<div style="text-align:left; max-height: 500px; overflow-y: auto;">';
+            let html = '<div class="font-readable" style="text-align:left; max-height: 500px; overflow-y: auto;">';
 
             Object.keys(ROLE_INFO).forEach(key => {
                 const info = ROLE_INFO[key];
@@ -7267,7 +7272,7 @@ function setupEffectListener() {
 
         function buildRuleGuideHtml() {
             return `
-                <div style="text-align: left; max-height: 400px; overflow-y: auto; font-size: 13px; color: #333;">
+                <div class="font-readable" style="text-align: left; max-height: 400px; overflow-y: auto; font-size: 13px; color: #333;">
                     <h4 style="border-left: 4px solid #2e7d32; padding-left: 8px; margin: 10px 0 5px 0;">基本ルール</h4>
                     <p style="margin: 0 0 10px 0;">・順に回ってくるターンで、手札を先に0枚にした人が勝ち！<br />・自分のターンでは以下から<strong>1つ</strong>の行動ができる<br />　　1. 手札から<span style="color: #3598db;"><strong>数字カード</strong></span>を数字墓地に出す（前の人より<strong>強いカード</strong>を出せる）<br />　　2. 手札から<span style="color: #e03e2d;"><strong>記号カード</strong></span>を使う<br />　　3. 一度きりの<span style="color: #843fa1;"><strong>役職能力</strong></span>を使う（詳しい説明は<strong><span style="color: #843fa1;">【役職】</span></strong>を参照）<br />　　4. <span style="color: #e67e23;"><strong>パス</strong></span>をして自分のターンを流す（パスの詳細は下部へ）</p>
                     <p style="margin: 0 0 10px 0;">&nbsp;</p>
@@ -7608,7 +7613,7 @@ function setupEffectListener() {
 <style>
     /* --- カウンティングHUDのスタイル --- */
     #counter-hud-wrapper {
-        font-family: "IBM Plex Sans JP", sans-serif;
+        font-family: var(--font-ui);
         user-select: none;
         z-index: 9999; /* 最前面に */
     }
@@ -7881,6 +7886,7 @@ function setupEffectListener() {
         border-radius: 12px;
         padding: 20px;
         position: relative;
+        font-family: var(--font-readable);
         box-shadow: 0 10px 40px rgba(0,0,0,0.8);
         display: flex; flex-direction: column;
         animation: subPopIn 0.2s ease-out;
@@ -8030,3 +8036,4 @@ function setupEffectListener() {
 
 </body>
 </html>
+
