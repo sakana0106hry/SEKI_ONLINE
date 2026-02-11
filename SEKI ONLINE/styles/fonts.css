@@ -8,6 +8,9 @@
     --font-ui: "Orbitron", "WDXL Lubrifont JP N", "M PLUS 1", sans-serif;
     --font-readable: "M PLUS 1", sans-serif;
     --font-display-strong: "Orbitron", "WDXL Lubrifont JP N", "M PLUS 1", "Impact", "Arial Black", sans-serif;
+    /* WDXLは実質400のみのため、太字強調は装飾で補う */
+    --font-ui-emphasis-tracking: 0.04em;
+    --font-ui-emphasis-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
 }
 
 .font-ui {

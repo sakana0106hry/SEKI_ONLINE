@@ -37,6 +37,8 @@
 
     body {
         font-family: var(--font-ui);
+        font-synthesis: none;
+        font-synthesis-weight: none;
         background:
             radial-gradient(circle at 18% 14%, rgba(0, 216, 255, 0.14), transparent 36%),
             radial-gradient(circle at 82% 24%, rgba(255, 53, 94, 0.11), transparent 34%),
@@ -123,8 +125,9 @@
     .seki-msg {
         margin-top: 2px;
         color: var(--seki-warning);
-        font-weight: bold;
-        font-size: 12px;
+        font-weight: 400;
+        font-size: 13px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
         height: 18px;
         line-height: 18px;
         white-space: nowrap;
@@ -143,6 +146,8 @@
         color: var(--seki-text-main);
         font-family: var(--font-ui);
         font-size: 13px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
         font-weight: 700;
         padding: 5px 12px;
         cursor: pointer;
@@ -843,7 +848,11 @@
     }
     
     /* ステータス文字のスタイル定義 */
-    .status-text { font-size: 10px; font-weight: bold; letter-spacing: 1px; }
+    .status-text {
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 1px;
+    }
     
     .status-normal { color: #8aa0b8; }
     
@@ -874,8 +883,8 @@
 
     /* --- 役職バッジ（視認性アップ版） --- */
     .role-badge-pill {
-        font-size: 13px;       /* 12px -> 13px (少し大きく) */
-        font-weight: 800;      /* 太文字にしてクッキリさせる */
+        font-size: 14px;       /* 擬似太字を避ける分、少し大きくする */
+        font-weight: 400;      /* WDXLの擬似太字を使わない */
         
         padding: 2px 0;        /* 上下は詰めて文字スペース確保 */
         width: 95%;            /* 横幅いっぱいに広げる */
@@ -895,7 +904,7 @@
         justify-content: center;
         align-items: center;
         border-radius: 12px;
-        letter-spacing: 1px;
+        letter-spacing: 0.08em;
     }
     .p-box-wrap {
         display: flex;
@@ -913,6 +922,14 @@
     }
     .role-activate-btn {
         margin-top: 8px;
+        min-width: 112px;
+        min-height: 32px;
+        padding: 6px 12px;
+        line-height: 1.2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
     }
     .role-status-badge {
         font-size: 11px;
@@ -1196,7 +1213,13 @@
         100% { background-color: #ff9800; transform: scale(1); }
     }
     .notify-active { animation: flash-notify 1s infinite; border: 2px solid #fff !important; }
-    .notify-bar { background-color: #ff9800 !important; color: white !important; font-weight: bold; }
+    .notify-bar {
+        background-color: #ff9800 !important;
+        color: white !important;
+        font-weight: bold;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+    }
 
     /* モーダル */
     #modal-overlay {
@@ -1262,6 +1285,8 @@
         cursor: pointer;
         font-size: 14px;
         font-family: var(--font-ui);
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
         color: var(--seki-text-main);
         background: linear-gradient(135deg, rgba(9, 27, 52, 0.9), rgba(6, 18, 35, 0.88));
         transition: transform var(--seki-transition-fast), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast), filter var(--seki-transition-fast);
@@ -2352,8 +2377,8 @@
             
                 <div id="my-hand"></div>
                 <div id="controls" class="seki-controls">
-                    <button id="btn-play" onclick="playCard()" class="seki-btn seki-btn-accent">決定</button>
-                    <button id="btn-pass" onclick="passTurn()" class="seki-btn seki-btn-soft">パス</button>
+                    <button id="btn-play" onclick="playCard()" class="seki-btn seki-btn-accent">PLAY</button>
+                    <button id="btn-pass" onclick="passTurn()" class="seki-btn seki-btn-soft">PASS</button>
                 </div>
 
                 <div id="my-role-panel"></div>
@@ -3789,7 +3814,7 @@
                         else if (myRole === "AGENT") funcName = "activateAgent()";
 
                         if (funcName) {
-                            actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini seki-btn-accent role-activate-btn">スキル発動</button>`;
+                            actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini seki-btn-accent role-activate-btn">ACTIVATE</button>`;
                         }
                     } else if (isActivated) {
                         let statusText = "(発動済み)";
@@ -3973,7 +3998,7 @@
                         statusHtml = `<span class="status-text status-rank">🏆 ${rank}${suffix}</span>`;
                     } else if (pid === effectiveResetHolder) {
                         // リセット権を持っている場合
-                        statusHtml = `<span class="status-text status-reset">👑 RESET</span>`;
+                        statusHtml = `<span class="status-text status-reset">RESET</span>`;
                     }
                     
                     // --- 3. 役職表示 (??? / ROLE NAME) ---
@@ -8377,6 +8402,8 @@ function setupEffectListener() {
     .hud-header {
         display: flex; justify-content: space-between; align-items: center;
         font-size: 12px; font-weight: bold; color: #a8e9ff;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
         border-bottom: 1px solid rgba(0, 216, 255, 0.28);
         padding-bottom: 5px; margin-bottom: 8px;
     }
@@ -8410,8 +8437,25 @@ function setupEffectListener() {
     /* 残り枚数が多いときは強調 */
     .hud-item.rich { border-color: rgba(0, 216, 255, 0.36); background: rgba(0, 216, 255, 0.08); }
 
-    .hud-val { font-size: 11px; font-weight: bold; color: #ccc; display: block; line-height: 1; margin-bottom: 2px; }
-    .hud-count { font-size: 15px; font-weight: 800; color: #fff; display: block; line-height: 1; }
+    .hud-val {
+        font-size: 11px;
+        font-weight: bold;
+        color: #ccc;
+        display: block;
+        line-height: 1;
+        margin-bottom: 2px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+    }
+    .hud-count {
+        font-size: 15px;
+        font-weight: 800;
+        color: #fff;
+        display: block;
+        line-height: 1;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+    }
     .hud-loading {
         grid-column: 1/-1;
         text-align: center;
