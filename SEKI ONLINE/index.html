@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -5453,6 +5453,31 @@ class Core {
         };
         let actionInFlight = false;
         let actionInFlightName = "";
+        let roomRenderRafId = null;
+        let queuedRoomSnapshot = null;
+        const renderCache = {
+            handSig: "",
+            rolePanelSig: "",
+            opponentsSig: "",
+            boardSig: "",
+            messageSig: "",
+            nameBarSig: ""
+        };
+        const roleDraftMonitorCache = {
+            signature: "",
+            html: ""
+        };
+        const logRenderCache = {
+            signature: "",
+            recentChats: []
+        };
+        const counterHudCache = {
+            signature: "",
+            numHtml: "",
+            symHtml: "",
+            roleHtml: ""
+        };
+        const lastBubbleTimestampByPid = {};
         
 
         const els = {
@@ -5647,6 +5672,14 @@ class Core {
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#39;");
+        }
+
+        function buildRenderSignature(payload) {
+            try {
+                return JSON.stringify(payload);
+            } catch (e) {
+                return `${Date.now()}`;
+            }
         }
 
         function shortAssetLabel(label) {
@@ -6229,7 +6262,9 @@ class Core {
                 monitor.classList.remove("phase-noise-out");
                 monitor.classList.remove("role-draft-density-compact", "role-draft-density-xcompact");
                 delete monitor.dataset.roleDraftPhase;
-                monitor.innerHTML = "";
+                if (monitor.innerHTML) monitor.innerHTML = "";
+                roleDraftMonitorCache.signature = "";
+                roleDraftMonitorCache.html = "";
                 roleDraftPendingSelection = null;
                 handleRoleDraftPhaseSound(null);
                 return;
@@ -6415,17 +6450,37 @@ class Core {
                 `;
             }
 
-            monitor.classList.remove("hidden");
-            monitor.classList.toggle("phase-noise-out", phase === "noise_out");
-            monitor.dataset.roleDraftPhase = phase;
-            monitor.innerHTML = `
+            const nextHtml = `
                 <div class="role-draft-stage">
                     <p class="role-draft-headline">${headline}</p>
                     ${bodyHtml}
                     ${footerHtml}
                 </div>
             `;
-            applyRoleDraftLayoutDensity(monitor);
+            const monitorSignature = buildRenderSignature({
+                phase,
+                phaseStartedAt: rd.phaseStartedAt || 0,
+                phaseEndsAt: rd.phaseEndsAt || 0,
+                currentPid: currentPid || null,
+                currentName,
+                resolveInfo,
+                myChoices,
+                mySelectedRole,
+                selectedRoleForUi,
+                publicUnusedRoles: rd.publicUnusedRoles || [],
+                selectedGroups: rd.selectedGroups || {}
+            });
+            const shouldPatchMonitor = (roleDraftMonitorCache.signature !== monitorSignature) || (roleDraftMonitorCache.html !== nextHtml);
+
+            monitor.classList.remove("hidden");
+            monitor.classList.toggle("phase-noise-out", phase === "noise_out");
+            monitor.dataset.roleDraftPhase = phase;
+            if (shouldPatchMonitor) {
+                monitor.innerHTML = nextHtml;
+                roleDraftMonitorCache.signature = monitorSignature;
+                roleDraftMonitorCache.html = nextHtml;
+                applyRoleDraftLayoutDensity(monitor);
+            }
             handleRoleDraftPhaseSound(data);
         }
 
@@ -6816,15 +6871,41 @@ class Core {
             });
         }
 
-        function renderLogs(logs) {
-            if(!logs || logs.length === 0) { els.log.innerText = "ログなし"; return; }
-            let lastLog = logs[logs.length-1];
-            
+        function renderLogs(logs, options = {}) {
+            const forceBubbleRefresh = !!(options && options.forceBubbleRefresh);
+
+            if (!logs || logs.length === 0) {
+                if (logRenderCache.signature !== "empty") {
+                    els.log.innerText = "ログなし";
+                }
+                logRenderCache.signature = "empty";
+                logRenderCache.recentChats = [];
+                return;
+            }
+
+            const lastLog = logs[logs.length - 1];
+            const signature = buildRenderSignature({
+                length: logs.length,
+                lastType: lastLog.type || "",
+                lastTargetId: lastLog.targetId || "",
+                lastTimestamp: Number(lastLog.timestamp) || 0,
+                lastText: lastLog.text || ""
+            });
+
+            if (signature === logRenderCache.signature) {
+                if (forceBubbleRefresh) {
+                    (logRenderCache.recentChats || []).forEach(l => {
+                        showChatBubble(l.targetId, l.text, l.timestamp);
+                    });
+                }
+                return;
+            }
+
             // 最新ログ表示
             let display = "";
-            for(let i=logs.length-1; i>=0; i--) {
+            for (let i = logs.length - 1; i >= 0; i--) {
                 let l = logs[i];
-                if(l.type === 'public' || l.targetId === myId || l.type === 'chat') {
+                if (l.type === 'public' || l.targetId === myId || l.type === 'chat') {
                     let time = new Date(l.timestamp).toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
                     display = `${time} ${l.text}`;
                     break;
@@ -6832,35 +6913,29 @@ class Core {
             }
             els.log.innerText = display + " (タップで履歴＆チャット)";
 
-            // ▼▼▼ 修正箇所: チャット吹き出し表示処理 ▼▼▼
-            const now = Date.now(); // 現在時刻を取得
-
-            // ▼▼▼ 追加: チャット吹き出し表示処理 ▼▼▼
-            // 今回のレンダリングでまだ処理していない、かつ新しいチャットのみ対象
+            const now = Date.now();
+            const recentChats = [];
             logs.forEach(l => {
-                if (l.type === 'chat') {
-                    // 1. 吹き出し表示ロジック (4秒以内の発言なら表示し続ける)
-                    // これにより、画面が再描画されても吹き出しが維持されます
-                    if (now - l.timestamp < 4000) {
-                        if (l.targetId) {
-                            // ★修正: 第三引数に timestamp を渡す
-                            showChatBubble(l.targetId, l.text, l.timestamp);
-                        }
-                    }
-                }
+                if (l.type !== 'chat') return;
+                if (!l.targetId) return;
+                if (now - l.timestamp >= 4000) return;
+                recentChats.push(l);
+                showChatBubble(l.targetId, l.text, l.timestamp);
             });
-            
+
+            logRenderCache.signature = signature;
+            logRenderCache.recentChats = recentChats;
+
             // 最新のタイムスタンプを記録
             if (lastLog) {
                 lastChatTimeProcessed = Math.max(lastChatTimeProcessed, lastLog.timestamp);
             }
-            // ▲▲▲ 追加ここまで ▲▲▲
 
             // ★チャット通知
             if (lastLog.type === 'chat' && lastLog.targetId !== myId) {
                 const match = lastLog.text.match(/^\[(.*?)\]/);
                 const senderName = match ? match[1] : "";
-                
+
                 if (senderName !== myName && lastLog.timestamp > lastReadLogTime) {
                     // els.btnChat.classList.add("notify-active");
                     if (Date.now() - lastLog.timestamp < 2000) { // 2秒以内の新着なら鳴らす
@@ -6874,6 +6949,9 @@ class Core {
         function showChatBubble(pid, text, timestamp) {
             const bubble = document.getElementById(`bubble-${pid}`);
             if (!bubble) return;
+            const tsNum = Number(timestamp) || 0;
+            const tsText = String(tsNum);
+            if (lastBubbleTimestampByPid[pid] === tsNum && bubble.dataset.sekiBubbleTs === tsText) return;
 
             // 名前部分 "[Name] " を除去してメッセージだけにする
             const match = text.match(/^\[.*?\] (.*)$/);
@@ -6883,8 +6961,8 @@ class Core {
 
             // ★追加: 経過時間を計算して、アニメーションを「途中から」開始させる
             // これにより、画面が書き換わっても見た目上のアニメーションは継続しているように見えます
-            const elapsed = Date.now() - timestamp;
-            
+            const elapsed = Math.max(0, Date.now() - tsNum);
+
             // アニメーションリセット（連続投稿対応）
             bubble.classList.remove("active");
             void bubble.offsetWidth; // リフロー強制
@@ -6894,6 +6972,8 @@ class Core {
             bubble.style.animationDelay = `-${elapsed}ms`;
 
             bubble.classList.add("active");
+            bubble.dataset.sekiBubbleTs = tsText;
+            lastBubbleTimestampByPid[pid] = tsNum;
         }
 
         function showLogHistory() {
@@ -6980,10 +7060,31 @@ class Core {
             }
         }
 
+        function cancelQueuedRoomRender() {
+            if (roomRenderRafId !== null) {
+                cancelAnimationFrame(roomRenderRafId);
+                roomRenderRafId = null;
+            }
+            queuedRoomSnapshot = null;
+        }
+
+        function scheduleRoomRender(snapshotData) {
+            queuedRoomSnapshot = snapshotData;
+            if (roomRenderRafId !== null) return;
+            roomRenderRafId = requestAnimationFrame(() => {
+                roomRenderRafId = null;
+                const nextData = queuedRoomSnapshot;
+                queuedRoomSnapshot = null;
+                if (!nextData) return;
+                gameState = nextData;
+                render(nextData);
+            });
+        }
+
         async function joinGame() {
             unlockAudioContext();
             playSoundEffect('JOIN');
-            if(currentRoom) return; 
+            if(currentRoom) return;
             els.btnJoin.disabled = true; 
             
             lastReadLogTime = Date.now();
@@ -7102,11 +7203,18 @@ class Core {
                 playBgm('BGM_LOBBY');
 
                 const roomRef = db.ref(`rooms/${room}`);
-                const applyRoomSnapshot = (data) => {
+                const applyRoomSnapshot = (data, options = {}) => {
+                    const deferRender = !!(options && options.deferRender);
                     if (data) {
-                        gameState = data;
-                        render(data);
+                        if (deferRender) {
+                            scheduleRoomRender(data);
+                        } else {
+                            cancelQueuedRoomRender();
+                            gameState = data;
+                            render(data);
+                        }
                     } else {
+                        cancelQueuedRoomRender();
                         if (joined && gameState && gameState.playerOrder) {
                             showInfoModal("終了", "部屋が解散（削除）されました。");
                             setTimeout(() => location.reload(), 2000);
@@ -7118,14 +7226,14 @@ class Core {
                 };
 
                 const initialRoomSnapshot = await roomRef.get();
-                applyRoomSnapshot(initialRoomSnapshot.val());
+                applyRoomSnapshot(initialRoomSnapshot.val(), { deferRender: false });
 
                 roomRef.on('value', (snapshot) => {
-                    applyRoomSnapshot(snapshot.val());
+                    applyRoomSnapshot(snapshot.val(), { deferRender: true });
                 });
-            } catch(e) { 
+            } catch(e) {
                 await hideAssetLoadingScreen();
-                showInfoModal("通信エラー", e.message); 
+                showInfoModal("通信エラー", e.message);
                 els.btnJoin.disabled = false;
             }
         }
@@ -7307,10 +7415,8 @@ class Core {
             let graveContainer = document.getElementById("grave-container");
             let handContainer = document.getElementById("my-hand");
             let hackedContainer = document.getElementById("hacked-area");
-           
-            // 2. クリア
-            if(handContainer) handContainer.innerHTML = "";
-            if(hackedContainer) hackedContainer.innerHTML = "";
+            let didPatchOpponentArea = false;
+            let didPatchNameBar = false;
 
             // 3. データ準備
             const players = data.players || {};
@@ -7376,72 +7482,89 @@ class Core {
             if (data.status === "playing" || data.status === "finished" || data.status === "role_selecting") {
                 
                 // --- 1. 手札の描画 (統合版・安全対策済み) ---
-                if (handContainer) {
-                    handContainer.innerHTML = ""; // クリア
+                const rawHand = hands[myId] || [];
+                const myLockedHand = hackedHands[myId] || [];
+                if (selectedIdx >= rawHand.length) selectedIdx = -1;
+                const handSignature = buildRenderSignature({
+                    status: data.status,
+                    selectedIdx,
+                    rankings: data.rankings || {},
+                    rawHand,
+                    myLockedHand
+                });
+                if (renderCache.handSig !== handSignature) {
+                    if (handContainer) {
+                        handContainer.innerHTML = ""; // クリア
+                        let myHand = rawHand ? sortCards(deepCopy(rawHand)) : [];
+                        const fragment = document.createDocumentFragment();
 
-                    let rawHand = hands[myId];
-                    let myHand = rawHand ? sortCards(deepCopy(rawHand)) : [];
-                    let myLockedHand = hackedHands[myId] || [];
-                    if (selectedIdx >= myHand.length) selectedIdx = -1;
-                    
-                    const fragment = document.createDocumentFragment();
+                        // 【対策A】 「通常の手札」
+                        myHand.forEach((c, i) => {
+                            let div = document.createElement("div");
+                            let cssClass = `card ${c.type}`;
+                            if (c.isOpen) cssClass += " revealed";
 
-                    // 【対策A】 「通常の手札」
-                    myHand.forEach((c, i) => {
-                        let div = document.createElement("div");
-                        let cssClass = `card ${c.type}`;
-                        if (c.isOpen) cssClass += " revealed";
+                            div.className = cssClass;
+                            div.dataset.handIndex = String(i);
+                            // if(c.val === 0) div.setAttribute("data-val", "0");
+                            if(i === selectedIdx) div.classList.add("selected");
 
-                        div.className = cssClass;
-                        div.dataset.handIndex = String(i);
-                        // if(c.val === 0) div.setAttribute("data-val", "0");
-                        if(i === selectedIdx) div.classList.add("selected");
-                        
-                        let valNode = document.createTextNode(c.val);
-                        div.appendChild(valNode);
-                        
-                        let imgUrl = CARD_IMAGES[c.val];
-                        if (imgUrl) {
-                            div.style.backgroundImage = `url('${imgUrl}')`;
-                            div.classList.add('has-img');
-                        }
+                            let valNode = document.createTextNode(c.val);
+                            div.appendChild(valNode);
 
-                        if (data.status === "playing" && !data.rankings?.[myId]) {
-                            div.onclick = () => {
-                                selectedIdx = (selectedIdx === i) ? -1 : i;
-                                updateMyHandSelectionVisual(handContainer);
-                            };
-                        }
-                        fragment.appendChild(div);
-                    });
+                            let imgUrl = CARD_IMAGES[c.val];
+                            if (imgUrl) {
+                                div.style.backgroundImage = `url('${imgUrl}')`;
+                                div.classList.add('has-img');
+                            }
 
-                    // 【対策B】 「隔離カード」
-                    myLockedHand.forEach(c => {
-                        let div = document.createElement("div");
-                        div.className = `card ${c.type} locked`; 
-                        
-                        let imgUrl = CARD_IMAGES[c.val];
-                        if (imgUrl) {
-                            div.style.backgroundImage = `url('${imgUrl}')`;
-                            div.classList.add('has-img');
-                        }
-                        
-                        let valNode = document.createTextNode(c.val);
-                        div.appendChild(valNode);
-                        // if(c.val === 0) div.setAttribute("data-val", "0");
+                            if (data.status === "playing" && !data.rankings?.[myId]) {
+                                div.onclick = () => {
+                                    selectedIdx = (selectedIdx === i) ? -1 : i;
+                                    updateMyHandSelectionVisual(handContainer);
+                                };
+                            }
+                            fragment.appendChild(div);
+                        });
 
-                        div.onclick = () => showInfoModal("ロック中", "このカードは機能停止しています。");
-                        fragment.appendChild(div);
-                    });
+                        // 【対策B】 「隔離カード」
+                        myLockedHand.forEach(c => {
+                            let div = document.createElement("div");
+                            div.className = `card ${c.type} locked`;
 
-                    handContainer.appendChild(fragment);
-                    applyMyHandLayout();
+                            let imgUrl = CARD_IMAGES[c.val];
+                            if (imgUrl) {
+                                div.style.backgroundImage = `url('${imgUrl}')`;
+                                div.classList.add('has-img');
+                            }
+
+                            let valNode = document.createTextNode(c.val);
+                            div.appendChild(valNode);
+                            // if(c.val === 0) div.setAttribute("data-val", "0");
+
+                            div.onclick = () => showInfoModal("ロック中", "このカードは機能停止しています。");
+                            fragment.appendChild(div);
+                        });
+
+                        handContainer.appendChild(fragment);
+                        applyMyHandLayout();
+                    }
+                    if (hackedContainer) hackedContainer.innerHTML = "";
+                    renderCache.handSig = handSignature;
                 }
 
                 // --- 3. 役職パネルの描画 ---
                 const myRole = roles[myId];
                 const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[myRole] : null;
-                
+                const rolePanelSignature = buildRenderSignature({
+                    status: data.status,
+                    myRole: myRole || "",
+                    activated: currentAct[myId] || "",
+                    myRank: (data.rankings && data.rankings[myId]) ? data.rankings[myId] : 0,
+                    myTurn: isMyTurn(),
+                    shield: isPoliticianShieldActive(myId, data)
+                });
+
                 let roleArea = document.getElementById("my-role-panel");
                 if(!roleArea && document.getElementById("my-area")) {
                     roleArea = document.createElement("div");
@@ -7450,75 +7573,78 @@ class Core {
                     if(controls) document.getElementById("my-area").insertBefore(roleArea, controls);
                 }
 
-                if (roleArea && myRole && rInfo) {
-                    const myRoleAttrClass = getRoleAttrClass(myRole);
-                    let actBtnHtml = "";
-                    let isActivated = currentAct[myId];
-                    let isPoliticianShielded = isPoliticianShieldActive(myId, data);
-                    
-                    if (isMyTurn() && !isActivated && data.status === "playing") {
-                        let funcName = "";
-                        // 各役職の発動関数マッピング
-                        if (myRole === "ANGLER") funcName = "activateAngler()";
-                        else if (myRole === "FORTUNE TELLER") funcName = "activateFortuneTeller()";
-                        else if (myRole === "THIEF") funcName = "activateThief(1)";
-                        else if (myRole === "HUNTER") funcName = "activateHunter()";
-                        else if (myRole === "GAMBLER") funcName = "activateGambler()";
-                        else if (myRole === "CROWN") funcName = "activateMagician()";
-                        else if (myRole === "MILLIONAIRE") funcName = "activateMillionaire()";
-                        else if (myRole === "EMPEROR") funcName = "activateEmperor()";
-                        else if (myRole === "POLITICIAN") funcName = "activatePolitician()";
-                        else if (myRole === "POLICE OFFICER") funcName = "activatePoliceOfficer()";
-                        else if (myRole === "HACKER") funcName = "activateHacker()";
-                        else if (myRole === "ALCHEMIST") funcName = "activateAlchemist()";
-                        else if (myRole === "ASTRONOMER") funcName = "activateAstronomer()";
-                        else if (myRole === "NECROMANCER") funcName = "activateNecromancer()";
-                        else if (myRole === "AGENT") funcName = "activateAgent()";
+                if (renderCache.rolePanelSig !== rolePanelSignature) {
+                    if (roleArea && myRole && rInfo) {
+                        const myRoleAttrClass = getRoleAttrClass(myRole);
+                        let actBtnHtml = "";
+                        let isActivated = currentAct[myId];
+                        let isPoliticianShielded = isPoliticianShieldActive(myId, data);
 
-                        if (funcName) {
-                            actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini role-activate-btn ${myRoleAttrClass}">ACTIVATE</button>`;
+                        if (isMyTurn() && !isActivated && data.status === "playing") {
+                            let funcName = "";
+                            // 各役職の発動関数マッピング
+                            if (myRole === "ANGLER") funcName = "activateAngler()";
+                            else if (myRole === "FORTUNE TELLER") funcName = "activateFortuneTeller()";
+                            else if (myRole === "THIEF") funcName = "activateThief(1)";
+                            else if (myRole === "HUNTER") funcName = "activateHunter()";
+                            else if (myRole === "GAMBLER") funcName = "activateGambler()";
+                            else if (myRole === "CROWN") funcName = "activateMagician()";
+                            else if (myRole === "MILLIONAIRE") funcName = "activateMillionaire()";
+                            else if (myRole === "EMPEROR") funcName = "activateEmperor()";
+                            else if (myRole === "POLITICIAN") funcName = "activatePolitician()";
+                            else if (myRole === "POLICE OFFICER") funcName = "activatePoliceOfficer()";
+                            else if (myRole === "HACKER") funcName = "activateHacker()";
+                            else if (myRole === "ALCHEMIST") funcName = "activateAlchemist()";
+                            else if (myRole === "ASTRONOMER") funcName = "activateAstronomer()";
+                            else if (myRole === "NECROMANCER") funcName = "activateNecromancer()";
+                            else if (myRole === "AGENT") funcName = "activateAgent()";
+
+                            if (funcName) {
+                                actBtnHtml = `<button onclick="${funcName}" class="seki-btn seki-btn-mini role-activate-btn ${myRoleAttrClass}">ACTIVATE</button>`;
+                            }
+                        } else if (isActivated) {
+                            let statusText = "ACTIVATED";
+                            if (myRole === "POLITICIAN") statusText = isPoliticianShielded ? "PROTECTING" : "EXPIRED";
+                            else if (myRole === "EMPEROR") statusText = "ACTIVATED";
+                            else if (myRole === "ASTRONOMER") statusText = getAstronomerRoleSubText(data) || "ACTIVATED";
+
+                            // ▼▼▼ 修正: ピエロの場合、中身を表示 ▼▼▼
+                            if (myRole === "CROWN" && typeof isActivated === 'string') {
+                                // 役職IDなら日本語に変換、そうでなければそのまま表示(REVERSE等)
+                                let val = isActivated;
+                                if (ROLE_INFO[val]) val = ROLE_INFO[val].jp;
+
+                                statusText = `USED: ${val}`;
+                            }
+                            // ▲▲▲ 修正ここまで ▲▲▲
+
+                            actBtnHtml = `<div class="role-status-badge">${statusText}</div>`;
                         }
-                    } else if (isActivated) {
-                        let statusText = "ACTIVATED";
-                        if (myRole === "POLITICIAN") statusText = isPoliticianShielded ? "PROTECTING" : "EXPIRED";
-                        else if (myRole === "EMPEROR") statusText = "ACTIVATED";
-                        else if (myRole === "ASTRONOMER") statusText = getAstronomerRoleSubText(data) || "ACTIVATED";
-                        
-                        // ▼▼▼ 修正: ピエロの場合、中身を表示 ▼▼▼
-                        if (myRole === "CROWN" && typeof isActivated === 'string') {
-                            // 役職IDなら日本語に変換、そうでなければそのまま表示(REVERSE等)
-                            let val = isActivated;
-                            if (ROLE_INFO[val]) val = ROLE_INFO[val].jp;
-                            
-                            statusText = `USED: ${val}`;
+
+                        // 背景スタイル
+                        let roleCardClass = `role-card ${myRoleAttrClass}`.trim();
+                        if (isActivated) roleCardClass += " is-used";
+                        const bgUrl = (typeof ROLE_IMAGES !== 'undefined') ? ROLE_IMAGES[myRole] : null;
+                        let bgStyle = "";
+
+                        if (bgUrl) {
+                            bgStyle = `background: linear-gradient(135deg, rgba(var(--role-accent-rgb, 0, 216, 255), 0.28), rgba(0,0,0,0.78)), url('${bgUrl}'); background-size: cover; background-position: center 12%;`;
+                        } else {
+                            bgStyle = `background: linear-gradient(135deg, rgba(var(--role-accent-rgb, 0, 216, 255), 0.36), rgba(4,11,23,0.92));`;
                         }
-                        // ▲▲▲ 修正ここまで ▲▲▲
-                        
-                        actBtnHtml = `<div class="role-status-badge">${statusText}</div>`;
-                    }
 
-                    // 背景スタイル
-                    let roleCardClass = `role-card ${myRoleAttrClass}`.trim();
-                    if (isActivated) roleCardClass += " is-used";
-                    const bgUrl = (typeof ROLE_IMAGES !== 'undefined') ? ROLE_IMAGES[myRole] : null;
-                    let bgStyle = "";
-                    
-                    if (bgUrl) {
-                        bgStyle = `background: linear-gradient(135deg, rgba(var(--role-accent-rgb, 0, 216, 255), 0.28), rgba(0,0,0,0.78)), url('${bgUrl}'); background-size: cover; background-position: center 12%;`;
-                    } else {
-                        bgStyle = `background: linear-gradient(135deg, rgba(var(--role-accent-rgb, 0, 216, 255), 0.36), rgba(4,11,23,0.92));`;
+                        roleArea.innerHTML = `
+                            <div class="${roleCardClass}" style="${bgStyle}">
+                                <div class="role-name">${getRoleDisplayCode(myRole)}</div>
+                                <div class="role-jp">${rInfo.jp}</div>
+                                <div class="role-desc">${rInfo.summary}</div>
+                                ${actBtnHtml}
+                            </div>
+                        `;
+                    } else if (roleArea) {
+                        roleArea.innerHTML = "";
                     }
-
-                    roleArea.innerHTML = `
-                        <div class="${roleCardClass}" style="${bgStyle}">
-                            <div class="role-name">${getRoleDisplayCode(myRole)}</div>
-                            <div class="role-jp">${rInfo.jp}</div>
-                            <div class="role-desc">${rInfo.summary}</div>
-                            ${actBtnHtml}
-                        </div>
-                    `;
-                } else if (roleArea) {
-                    roleArea.innerHTML = "";
+                    renderCache.rolePanelSig = rolePanelSignature;
                 }
 
                 // --- 4. 演出・音・カットイン ---
@@ -7560,72 +7686,83 @@ class Core {
                 const areaTop = document.getElementById("area-top");
                 const areaLeft = document.getElementById("area-left");
                 const areaRight = document.getElementById("area-right");
-                if(areaTop) areaTop.innerHTML = "";
-                if(areaLeft) areaLeft.innerHTML = "";
-                if(areaRight) areaRight.innerHTML = "";
 
-                let pIds = getSortedPlayerIds(players); 
+                let pIds = getSortedPlayerIds(players);
                 if(data.playerOrder) pIds = data.playerOrder;
-                
-                // 自分エリアの演出処理
-                const myAreaEl = document.getElementById("my-area");
-                if (myAreaEl) {
-                    let myHand = hands[myId] || [];
-                    let myLocked = hackedHands[myId] || [];
-                    let myCount = myHand.length + myLocked.length;
-                    myAreaEl.classList.remove("current-turn", "warning-1", "warning-2");
-                    const roleDraftActivePid = getRoleDraftActivePlayerId(data);
-                    if ((data.status === "role_selecting" && roleDraftActivePid === myId) || (data.status !== "role_selecting" && pIds[data.turnIdx] === myId)) {
-                        myAreaEl.classList.add("current-turn");
+                const roleDraftActivePid = getRoleDraftActivePlayerId(data);
+                const opponentSignature = buildRenderSignature({
+                    status: data.status,
+                    turnIdx: Number(data.turnIdx) || 0,
+                    playerOrder: pIds,
+                    rankings: data.rankings || {},
+                    effectiveResetHolder: effectiveResetHolder || null,
+                    effectiveHostId: effectiveHostId || null,
+                    roleDraftActivePid: roleDraftActivePid || null,
+                    hands,
+                    hackedHands,
+                    roles,
+                    currentAct,
+                    currentRev,
+                    selectedGroupMap,
+                    revealedCards: data.revealedCards || {}
+                });
+
+                if (renderCache.opponentsSig !== opponentSignature) {
+                    // 自分エリアの演出処理
+                    const myAreaEl = document.getElementById("my-area");
+                    if (myAreaEl) {
+                        myAreaEl.classList.remove("current-turn", "warning-1", "warning-2");
+                        if ((data.status === "role_selecting" && roleDraftActivePid === myId) || (data.status !== "role_selecting" && pIds[data.turnIdx] === myId)) {
+                            myAreaEl.classList.add("current-turn");
+                        }
                     }
-                }
 
-                // 配置計算
-                let relativeOrder = [];
-                let myIndex = pIds.indexOf(myId);
-                if (myIndex !== -1) {
-                    for (let i = 1; i < pIds.length; i++) {
-                        let idx = (myIndex + i) % pIds.length;
-                        relativeOrder.push(pIds[idx]);
-                    }
-                } else {
-                    relativeOrder = pIds; // 観戦用
-                }
-
-                let layoutMap = [];
-                let total = relativeOrder.length; 
-                if (total === 2) { 
-                    layoutMap = [{ pid: relativeOrder[0], area: areaLeft }, { pid: relativeOrder[1], area: areaRight }];
-                } else if (total === 3) {
-                    layoutMap = [{ pid: relativeOrder[0], area: areaLeft }, { pid: relativeOrder[1], area: areaTop }, { pid: relativeOrder[2], area: areaRight }];
-                } else if (total === 4) {
-                    layoutMap = [{ pid: relativeOrder[0], area: areaLeft }, { pid: relativeOrder[1], area: areaTop }, { pid: relativeOrder[2], area: areaTop }, { pid: relativeOrder[3], area: areaRight }];
-                } else {
-                    relativeOrder.forEach(pid => layoutMap.push({pid: pid, area: areaTop}));
-                }
-
-                // ■■■ 描画ループ (3段固定レイアウト版) ■■■
-                layoutMap.forEach(item => {
-                    let pid = item.pid;
-                    let area = item.area;
-                    if (!area) return;
-
-                    // ▼▼▼ 追加: エリアに応じた吹き出し位置クラスを決定 ▼▼▼
-                    let bubbleClass = "bubble-pos-top"; // デフォルト（上）
-                    if (area.id === "area-left") bubbleClass = "bubble-pos-left";
-                    else if (area.id === "area-right") bubbleClass = "bubble-pos-right";
-                    // ▲▲▲ 追加ここまで ▲▲▲
-
-                    let isTurn = false;
-                    if (data.status === "role_selecting") {
-                        isTurn = (getRoleDraftActivePlayerId(data) === pid);
+                    // 配置計算
+                    let relativeOrder = [];
+                    let myIndex = pIds.indexOf(myId);
+                    if (myIndex !== -1) {
+                        for (let i = 1; i < pIds.length; i++) {
+                            let idx = (myIndex + i) % pIds.length;
+                            relativeOrder.push(pIds[idx]);
+                        }
                     } else {
-                        isTurn = (pIds[data.turnIdx] === pid);
+                        relativeOrder = pIds; // 観戦用
                     }
-                    let isRanked = (data.rankings && data.rankings[pid]);
-                    let pHand = hands[pid] || [];
-                    let lockedHand = hackedHands[pid] || []; 
-                    let handCount = pHand.length + lockedHand.length;
+
+                    let layoutMap = [];
+                    let total = relativeOrder.length;
+                    if (total === 2) {
+                        layoutMap = [{ pid: relativeOrder[0], areaKey: "left" }, { pid: relativeOrder[1], areaKey: "right" }];
+                    } else if (total === 3) {
+                        layoutMap = [{ pid: relativeOrder[0], areaKey: "left" }, { pid: relativeOrder[1], areaKey: "top" }, { pid: relativeOrder[2], areaKey: "right" }];
+                    } else if (total === 4) {
+                        layoutMap = [{ pid: relativeOrder[0], areaKey: "left" }, { pid: relativeOrder[1], areaKey: "top" }, { pid: relativeOrder[2], areaKey: "top" }, { pid: relativeOrder[3], areaKey: "right" }];
+                    } else {
+                        relativeOrder.forEach(pid => layoutMap.push({pid: pid, areaKey: "top"}));
+                    }
+                    const areaHtml = { top: "", left: "", right: "" };
+
+                    // ■■■ 描画ループ (3段固定レイアウト版) ■■■
+                    layoutMap.forEach(item => {
+                        let pid = item.pid;
+                        if (!pid) return;
+
+                        // ▼▼▼ 追加: エリアに応じた吹き出し位置クラスを決定 ▼▼▼
+                        let bubbleClass = "bubble-pos-top"; // デフォルト（上）
+                        if (item.areaKey === "left") bubbleClass = "bubble-pos-left";
+                        else if (item.areaKey === "right") bubbleClass = "bubble-pos-right";
+                        // ▲▲▲ 追加ここまで ▲▲▲
+
+                        let isTurn = false;
+                        if (data.status === "role_selecting") {
+                            isTurn = (roleDraftActivePid === pid);
+                        } else {
+                            isTurn = (pIds[data.turnIdx] === pid);
+                        }
+                        let isRanked = (data.rankings && data.rankings[pid]);
+                        let pHand = hands[pid] || [];
+                        let lockedHand = hackedHands[pid] || [];
+                        let handCount = pHand.length + lockedHand.length;
 
                     // クラス設定
                     let boxClass = "p-box-new";
@@ -7771,105 +7908,159 @@ class Core {
                         </div>
                     `;
                     
-                    let wrapper = document.createElement("div");
-                    wrapper.className = "p-box-wrap";
-                    wrapper.innerHTML = html;
-                    area.appendChild(wrapper);
-                });
+                        areaHtml[item.areaKey] += `<div class="p-box-wrap">${html}</div>`;
+                    });
 
-                // ▼▼▼ 追加: 3人対戦などで上エリアが空なら非表示にして詰める ▼▼▼
-                if (areaTop.children.length === 0) {
-                    areaTop.style.display = "none";
-                } else {
-                    areaTop.style.display = "flex";
+                    if (areaTop) {
+                        areaTop.innerHTML = areaHtml.top;
+                        areaTop.style.display = areaHtml.top ? "flex" : "none";
+                    }
+                    if (areaLeft) areaLeft.innerHTML = areaHtml.left;
+                    if (areaRight) areaRight.innerHTML = areaHtml.right;
+                    renderCache.opponentsSig = opponentSignature;
+                    didPatchOpponentArea = true;
                 }
-                // ▲▲▲ 追加ここまで ▲▲▲
 
                 // --- 6. 場の情報更新 ---
-                if (els.indicator) {
-                    let targetSrc = data.isReverse ? "./images/reverse_red.jpg" : "./images/reverse_blue.jpg";
-                    if (els.indicator.getAttribute('src') !== targetSrc) els.indicator.src = targetSrc;
+                const boardSignature = buildRenderSignature({
+                    status: data.status,
+                    isReverse: !!data.isReverse,
+                    graveNum: data.graveNum || [],
+                    graveSym: data.graveSym || [],
+                    exclusionCount: (data.exclusion || []).length,
+                    astronomerObservation: data.astronomerObservation || null,
+                    activatedList: data.activatedList || {},
+                    roles
+                });
+                if (renderCache.boardSig !== boardSignature) {
+                    if (els.indicator) {
+                        let targetSrc = data.isReverse ? "./images/reverse_red.jpg" : "./images/reverse_blue.jpg";
+                        if (els.indicator.getAttribute('src') !== targetSrc) els.indicator.src = targetSrc;
+                    }
+                    updateAstronomerIndicator(data);
+                    if (els.graveNum) els.graveNum.innerHTML = renderPile(data.graveNum);
+                    if (els.graveSym) els.graveSym.innerHTML = renderPile(data.graveSym);
+                    if (document.getElementById("exclusion-count")) document.getElementById("exclusion-count").innerText = (data.exclusion || []).length;
+                    renderCache.boardSig = boardSignature;
                 }
-                updateAstronomerIndicator(data);
-                if (els.graveNum) els.graveNum.innerHTML = renderPile(data.graveNum);
-                if (els.graveSym) els.graveSym.innerHTML = renderPile(data.graveSym);
-                if (document.getElementById("exclusion-count")) document.getElementById("exclusion-count").innerText = (data.exclusion || []).length;
 
                 // メッセージ
-                let isMyTurnNow = (pIds[data.turnIdx] === myId);
-                if (data.status === "role_selecting") {
-                    const rd = data.roleDraft || {};
-                    const activePid = getRoleDraftActivePlayerId(data);
-                    const activeName = (activePid && players[activePid]) ? players[activePid].name : "プレイヤー";
-                    const phase = rd.phase || "booting";
-                    if (phase === "booting") {
-                        els.msg.innerText = "役職選択システム起動中...";
-                    } else if (phase === "selecting") {
-                        els.msg.innerText = activePid === myId
-                            ? "役職を選択して決定してください"
-                            : `${activeName} が役職を選択中...`;
-                    } else if (phase === "resolving") {
-                        els.msg.innerText = "役職を確定中...";
-                    } else if (phase === "reveal_unused") {
-                        els.msg.innerText = "未選択役職を公開中...";
-                    } else if (phase === "system_online") {
-                        els.msg.innerText = "ALL ROLES AUTHENTICATED. SYSTEM ONLINE...";
-                    } else {
-                        els.msg.innerText = "ゲーム開始準備中...";
-                    }
-                    document.getElementById("btn-play").disabled = true;
-                    document.getElementById("btn-pass").disabled = true;
-                    lastCleanupTurnIdx = -1;
-                    wasMyTurn = false;
-                } else if (data.status === "finished") {
-                     els.msg.innerText = `ゲーム終了！`;
-                     document.getElementById("btn-play").disabled = true;
-                     document.getElementById("btn-pass").disabled = true;
-                     wasMyTurn = false;
-                } else if (data.rankings && data.rankings[myId]) {
-                    els.msg.innerText = `あなたは ${data.rankings[myId]}位 であがりました！`;
-                    document.getElementById("btn-play").disabled = true;
-                    document.getElementById("btn-pass").disabled = true;
-                    wasMyTurn = false;
-                
-                } else {
-                    // ここでの activeCount, isInheritedReset は冒頭で計算したものを使用
-                    let isOwnerReset = (resetHolder === myId);
-                    let canReset = isOwnerReset || isInheritedReset;
-
-                    if (isMyTurnNow) {
-                        if (!wasMyTurn) playSoundEffect('turn');
-                        if (data.turnIdx !== lastCleanupTurnIdx) {
-                            lastCleanupTurnIdx = data.turnIdx;
-                            if (typeof checkHackerCleanup === 'function') checkHackerCleanup();
+                const messageSignature = buildRenderSignature({
+                    status: data.status,
+                    turnIdx: Number(data.turnIdx) || 0,
+                    rankings: data.rankings || {},
+                    roleDraftPhase: roleDraft ? roleDraft.phase : "",
+                    roleDraftActivePid: roleDraftActivePid || null,
+                    resetHolder: resetHolder || null,
+                    isInheritedReset: !!isInheritedReset,
+                    effectiveResetHolder: effectiveResetHolder || null,
+                    playerOrder: pIds,
+                    players: Object.keys(players).map(pid => [pid, players[pid] ? players[pid].name : ""])
+                });
+                if (renderCache.messageSig !== messageSignature) {
+                    let isMyTurnNow = (pIds[data.turnIdx] === myId);
+                    if (data.status === "role_selecting") {
+                        const rd = data.roleDraft || {};
+                        const activePid = getRoleDraftActivePlayerId(data);
+                        const activeName = (activePid && players[activePid]) ? players[activePid].name : "プレイヤー";
+                        const phase = rd.phase || "booting";
+                        if (phase === "booting") {
+                            els.msg.innerText = "役職選択システム起動中...";
+                        } else if (phase === "selecting") {
+                            els.msg.innerText = activePid === myId
+                                ? "役職を選択して決定してください"
+                                : `${activeName} が役職を選択中...`;
+                        } else if (phase === "resolving") {
+                            els.msg.innerText = "役職を確定中...";
+                        } else if (phase === "reveal_unused") {
+                            els.msg.innerText = "未選択役職を公開中...";
+                        } else if (phase === "system_online") {
+                            els.msg.innerText = "ALL ROLES AUTHENTICATED. SYSTEM ONLINE...";
+                        } else {
+                            els.msg.innerText = "ゲーム開始準備中...";
                         }
-                        els.msg.innerText = canReset ? "リセット可能（パスで発動）" : "あなたの番です";
-                        document.getElementById("btn-play").disabled = false;
-                        document.getElementById("btn-pass").disabled = false;
-                    } else {
-                        lastCleanupTurnIdx = -1;
-                        let curP = players[pIds[data.turnIdx]];
-                        els.msg.innerText = `${curP ? curP.name : '相手'} のターン`;
                         document.getElementById("btn-play").disabled = true;
                         document.getElementById("btn-pass").disabled = true;
+                        lastCleanupTurnIdx = -1;
+                        wasMyTurn = false;
+                    } else if (data.status === "finished") {
+                        els.msg.innerText = `ゲーム終了！`;
+                        document.getElementById("btn-play").disabled = true;
+                        document.getElementById("btn-pass").disabled = true;
+                        wasMyTurn = false;
+                    } else if (data.rankings && data.rankings[myId]) {
+                        els.msg.innerText = `あなたは ${data.rankings[myId]}位 であがりました！`;
+                        document.getElementById("btn-play").disabled = true;
+                        document.getElementById("btn-pass").disabled = true;
+                        wasMyTurn = false;
+
+                    } else {
+                        // ここでの activeCount, isInheritedReset は冒頭で計算したものを使用
+                        let isOwnerReset = (resetHolder === myId);
+                        let canReset = isOwnerReset || isInheritedReset;
+
+                        if (isMyTurnNow) {
+                            if (!wasMyTurn) playSoundEffect('turn');
+                            if (data.turnIdx !== lastCleanupTurnIdx) {
+                                lastCleanupTurnIdx = data.turnIdx;
+                                if (typeof checkHackerCleanup === 'function') checkHackerCleanup();
+                            }
+                            els.msg.innerText = canReset ? "リセット可能（パスで発動）" : "あなたの番です";
+                            document.getElementById("btn-play").disabled = false;
+                            document.getElementById("btn-pass").disabled = false;
+                        } else {
+                            lastCleanupTurnIdx = -1;
+                            let curP = players[pIds[data.turnIdx]];
+                            els.msg.innerText = `${curP ? curP.name : '相手'} のターン`;
+                            document.getElementById("btn-play").disabled = true;
+                            document.getElementById("btn-pass").disabled = true;
+                        }
+                        wasMyTurn = isMyTurnNow;
                     }
-                    wasMyTurn = isMyTurnNow;
+                    renderCache.messageSig = messageSignature;
                 }
 
             } else {
                 // 待機中 (Lobby)
-                els.msg.innerText = `待機中... ${Object.keys(players).length}人が参加`;
+                const lobbyMessageSignature = buildRenderSignature({
+                    status: data.status,
+                    playerCount: Object.keys(players).length
+                });
+                if (renderCache.messageSig !== lobbyMessageSignature) {
+                    els.msg.innerText = `待機中... ${Object.keys(players).length}人が参加`;
+                    renderCache.messageSig = lobbyMessageSignature;
+                }
                 playBgm('BGM_LOBBY');
                 prevActivatedList = {};
                 prevRevealedRoles = {};
-                if(handContainer) handContainer.innerHTML = "";
-                if(document.getElementById("my-role-panel")) document.getElementById("my-role-panel").innerHTML = "";
-                updateAstronomerIndicator(null);
+                if (renderCache.handSig !== "lobby") {
+                    if (handContainer) handContainer.innerHTML = "";
+                    if (hackedContainer) hackedContainer.innerHTML = "";
+                    renderCache.handSig = "lobby";
+                }
+                if (renderCache.rolePanelSig !== "lobby") {
+                    if (document.getElementById("my-role-panel")) document.getElementById("my-role-panel").innerHTML = "";
+                    renderCache.rolePanelSig = "lobby";
+                }
+                if (renderCache.opponentsSig !== "lobby") {
+                    const areaTop = document.getElementById("area-top");
+                    const areaLeft = document.getElementById("area-left");
+                    const areaRight = document.getElementById("area-right");
+                    if (areaTop) {
+                        areaTop.innerHTML = "";
+                        areaTop.style.display = "none";
+                    }
+                    if (areaLeft) areaLeft.innerHTML = "";
+                    if (areaRight) areaRight.innerHTML = "";
+                    renderCache.opponentsSig = "lobby";
+                    didPatchOpponentArea = true;
+                }
+                if (renderCache.boardSig !== "lobby") {
+                    updateAstronomerIndicator(null);
+                    renderCache.boardSig = "lobby";
+                }
                 renderRoleDraftMonitor(null);
             }
-
-            // 共通: ログ更新
-            renderLogs(data.logs);
 
             // ホストコントロール (★変更点: effectiveHostIdを使用)
             // ↓↓↓ render関数内の「ホストコントロール」部分を書き換え ↓↓↓
@@ -7912,47 +8103,66 @@ class Core {
             // ■■■ 自分エリア（名前・役職・順位）の表示処理 ■■■
             const nameBar = document.getElementById("my-name-bar");
             if (nameBar && players[myId]) {
+                const nameBarSignature = buildRenderSignature({
+                    status: data.status,
+                    myName: players[myId].name,
+                    myRole: roles[myId] || "",
+                    myAct: currentAct[myId] || "",
+                    myRank: (data.rankings && data.rankings[myId]) ? data.rankings[myId] : 0,
+                    effectiveResetHolder: effectiveResetHolder || null,
+                    effectiveHostId: effectiveHostId || null
+                });
+                if (renderCache.nameBarSig !== nameBarSignature) {
+                    // ▼▼▼ 追加: 自分用の吹き出しを nameBar の近くに追加 ▼▼▼
+                    // nameBar は position: relative がないので、親の my-area に依存させるか、
+                    // nameBar自体に relative をつける手もありますが、
+                    // ここでは nameBar の中に absolute で配置します。
+                    // nameBar に style="position:relative" を付与しておくと安全です
+                    let myPName = players[myId].name;
 
-                // ▼▼▼ 追加: 自分用の吹き出しを nameBar の近くに追加 ▼▼▼
-                // nameBar は position: relative がないので、親の my-area に依存させるか、
-                // nameBar自体に relative をつける手もありますが、
-                // ここでは nameBar の中に absolute で配置します。
-                // nameBar に style="position:relative" を付与しておくと安全です
-                let myPName = players[myId].name;
-                
-                // 1. 役職のHTML生成
-                let myRoleHtml = "";
-                if (roles[myId]) {
-                    const rKey = roles[myId];
-                    const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
-                    const jpName = rInfo ? rInfo.jp : rKey;
-                    const roleAttrClass = getRoleAttrClass(rKey);
-                    
-                    // 使用済みは色を残しつつ減衰表示
-                    const isUsed = currentAct[myId];
-                    const usedClass = isUsed ? " used" : "";
-                    myRoleHtml = `<span class="my-role-chip ${roleAttrClass}${usedClass}">【役職】${jpName}</span>`;
+                    // 1. 役職のHTML生成
+                    let myRoleHtml = "";
+                    if (roles[myId]) {
+                        const rKey = roles[myId];
+                        const rInfo = (typeof ROLE_INFO !== 'undefined') ? ROLE_INFO[rKey] : null;
+                        const jpName = rInfo ? rInfo.jp : rKey;
+                        const roleAttrClass = getRoleAttrClass(rKey);
+
+                        // 使用済みは色を残しつつ減衰表示
+                        const isUsed = currentAct[myId];
+                        const usedClass = isUsed ? " used" : "";
+                        myRoleHtml = `<span class="my-role-chip ${roleAttrClass}${usedClass}">【役職】${jpName}</span>`;
+                    }
+
+                    // ★修正: resetHolder ではなく effectiveResetHolder を使用して判定
+                    let resetBadge = "";
+                    if (effectiveResetHolder === myId) {
+                        // status-resetクラスをそのまま利用（位置調整のためstyleを追加）
+                        resetBadge = `<span class="status-reset my-reset-badge">RESET</span>`;
+                    }
+
+                    // 2. ホストなら★を表示
+                    let hostIcon = (effectiveHostId === myId) ? "<span class='my-host-icon'>★</span>" : "";
+
+                    // 3. 順位がついているなら表示
+                    let rankText = (data.rankings && data.rankings[myId]) ? `<span class="my-rank-badge">🏆${data.rankings[myId]}位</span>` : "";
+
+                    let bubbleHtml = `<div id="bubble-${myId}" class="chat-bubble bubble-pos-bottom"></div>`;
+
+                    // ★全部まとめてセット！ (先頭に bubbleHtml を追加)
+                    // ★変更: 自分の名前もクリックして履歴を見れるようにする
+                    nameBar.innerHTML = `${bubbleHtml}${hostIcon}<span onclick="showPlayerLogs('${myId}')" class="my-name-link">${myPName}</span>${myRoleHtml}${resetBadge}${rankText}`;
+                    renderCache.nameBarSig = nameBarSignature;
+                    didPatchNameBar = true;
                 }
-
-                // ★修正: resetHolder ではなく effectiveResetHolder を使用して判定
-                let resetBadge = "";
-                if (effectiveResetHolder === myId) {
-                    // status-resetクラスをそのまま利用（位置調整のためstyleを追加）
-                    resetBadge = `<span class="status-reset my-reset-badge">RESET</span>`;
-                }
-
-                // 2. ホストなら★を表示
-                let hostIcon = (effectiveHostId === myId) ? "<span class='my-host-icon'>★</span>" : "";
-
-                // 3. 順位がついているなら表示
-                let rankText = (data.rankings && data.rankings[myId]) ? `<span class="my-rank-badge">🏆${data.rankings[myId]}位</span>` : "";
-
-                let bubbleHtml = `<div id="bubble-${myId}" class="chat-bubble bubble-pos-bottom"></div>`;
-                
-                // ★全部まとめてセット！ (先頭に bubbleHtml を追加)
-                // ★変更: 自分の名前もクリックして履歴を見れるようにする
-                nameBar.innerHTML = `${bubbleHtml}${hostIcon}<span onclick="showPlayerLogs('${myId}')" class="my-name-link">${myPName}</span>${myRoleHtml}${resetBadge}${rankText}`;
+            } else if (nameBar && renderCache.nameBarSig !== "") {
+                nameBar.innerHTML = "";
+                renderCache.nameBarSig = "";
+                didPatchNameBar = true;
             }
+
+            // 共通: ログ更新
+            renderLogs(data.logs, { forceBubbleRefresh: didPatchOpponentArea || didPatchNameBar });
 
             // 音再生
             const soundData = data.lastSound;
@@ -7964,6 +8174,7 @@ class Core {
                 }
                 prevSoundId = soundData.id;
             }
+            updateCounterHUD();
         }
 
         function getTotalHandCount(pid) {
@@ -13038,6 +13249,10 @@ function setupEffectListener() {
         // gameStateがない、または myId がない場合は非表示にして終了
         if (typeof gameState === 'undefined' || !gameState || typeof myId === 'undefined' || !myId) {
             if(wrapper) wrapper.classList.add("hidden");
+            counterHudCache.signature = "";
+            counterHudCache.numHtml = "";
+            counterHudCache.symHtml = "";
+            counterHudCache.roleHtml = "";
             return;
         }
 
@@ -13054,6 +13269,24 @@ function setupEffectListener() {
         if (typeof myId !== 'undefined' && gameState.hands && gameState.hands[myId]) {
             myHandRef = gameState.hands[myId];
         }
+        const hudSignature = buildRenderSignature({
+            myId,
+            status: gameState.status || "",
+            myHandRef,
+            graveNum: gameState.graveNum || [],
+            graveSym: gameState.graveSym || [],
+            exclusion: gameState.exclusion || [],
+            removed: gameState.removed || [],
+            roleDraft: gameState.roleDraft || null,
+            roles: gameState.roles || {},
+            publicRoleInfo: gameState.publicRoleInfo || {},
+            activatedList: gameState.activatedList || {},
+            revealedRoles: gameState.revealedRoles || {},
+            rankings: gameState.rankings || {},
+            playerOrder: gameState.playerOrder || []
+        });
+        if (counterHudCache.signature === hudSignature) return;
+        counterHudCache.signature = hudSignature;
 
         // 1. カウント用オブジェクトを初期化（コピー）
         let remaining = Object.assign({}, INITIAL_COUNTS);
@@ -13102,16 +13335,19 @@ function setupEffectListener() {
                     </div>
                 `;
             }
-            gridNum.innerHTML = html;
+            if (counterHudCache.numHtml !== html) {
+                gridNum.innerHTML = html;
+                counterHudCache.numHtml = html;
+            }
         }
 
         // 5. HTMLへの描画（記号）
         const gridSym = document.getElementById("hud-grid-sym");
         if(gridSym) {
             const syms = [
-                {k: "REVERSE", l:"REV", c:"sym-rev"}, 
-                {k: "TRADE",   l:"TRA", c:"sym-tra"}, 
-                {k: "DIG UP",  l:"DIG", c:"sym-dig"}, 
+                {k: "REVERSE", l:"REV", c:"sym-rev"},
+                {k: "TRADE",   l:"TRA", c:"sym-tra"},
+                {k: "DIG UP",  l:"DIG", c:"sym-dig"},
                 {k: "DISCARD", l:"DIS", c:"sym-dis"}
             ];
             let html = "";
@@ -13126,7 +13362,10 @@ function setupEffectListener() {
                     </div>
                 `;
             });
-            gridSym.innerHTML = html;
+            if (counterHudCache.symHtml !== html) {
+                gridSym.innerHTML = html;
+                counterHudCache.symHtml = html;
+            }
         }
 
         const gridRole = document.getElementById("hud-grid-role");
@@ -13192,7 +13431,11 @@ function setupEffectListener() {
             );
 
             if (roleCandidates.length === 0) {
-                gridRole.innerHTML = `<div class="hud-loading">No Candidate Roles</div>`;
+                const roleHtml = `<div class="hud-loading">No Candidate Roles</div>`;
+                if (counterHudCache.roleHtml !== roleHtml) {
+                    gridRole.innerHTML = roleHtml;
+                    counterHudCache.roleHtml = roleHtml;
+                }
             } else {
                 const roleHtml = roleCandidates.map(roleKey => {
                     const roleInfo = ROLE_INFO[roleKey];
@@ -13200,7 +13443,10 @@ function setupEffectListener() {
                     const attrClass = getRoleAttrClass(roleKey);
                     return `<div class="hud-role-pill ${attrClass}">${label}</div>`;
                 }).join("");
-                gridRole.innerHTML = roleHtml;
+                if (counterHudCache.roleHtml !== roleHtml) {
+                    gridRole.innerHTML = roleHtml;
+                    counterHudCache.roleHtml = roleHtml;
+                }
             }
         }
     }
@@ -13212,16 +13458,6 @@ function setupEffectListener() {
         if (n === 2) return "#ffeb3b"; // 黄
         return "#69f0ae"; // 緑
     }
-
-    // 6. 定期実行（0.5秒ごとに更新）
-    // ゲーム開始前などでエラーが出ないよう try-catch で囲む
-    setInterval(() => {
-        try {
-            updateCounterHUD();
-        } catch(e) {
-            // エラーは無視（コンソールを汚さない）
-        }
-    }, 500);
 
 </script>
 <div id="sub-modal-overlay" class="hidden" onclick="closeSubModal()">
