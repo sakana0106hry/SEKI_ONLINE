@@ -5073,7 +5073,7 @@ class Core {
                 desc: `<ol>
 <li>順行なら「9より強い数字」を、逆行なら「1より強い数字」を、<strong>2〜8</strong>から1つ選び、観測する。</li>
 <li>観測中の数字は、全プレイヤーにとって、その時点の強弱階層（順行 or 逆行）で<strong>最強</strong>として扱われる。</li>
-<li>自分のターンを行う。</li>
+<li>観測後、この時点でターン終了。</li>
 </ol>
 <ul>
 <li style="list-style-type: none;">
@@ -9179,6 +9179,9 @@ async function execAstronomerObserve(observedVal) {
         activatedBy: myId,
         timestamp: Date.now()
     };
+    updates[`rooms/${currentRoom}/passCount`] = 0;
+    let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
+    updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
 
     const strongerThan = gameState.isReverse ? 1 : 9;
     await pushLog(`${myName}が[天文学者]を発動し、[${val}] を観測して [${strongerThan}] より強くしました。`, 'public');
