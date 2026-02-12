@@ -6782,6 +6782,21 @@ class Core {
             return true;
         }
 
+        function clearPoliticianShieldInState(state, playerId, ctx, reasonText = "") {
+            const shieldMap = {...((state && state.politicianShield) || {})};
+            if (!shieldMap[playerId]) return false;
+
+            delete shieldMap[playerId];
+            state.politicianShield = shieldMap;
+
+            const pName = (state && state.players && state.players[playerId]) ? state.players[playerId].name : "Player";
+            const suffix = reasonText ? ` (${reasonText})` : "";
+            if (ctx && typeof ctx.appendLog === "function") {
+                ctx.appendLog(`${pName} の[政治家]保護が解除されました${suffix}`, "public");
+            }
+            return true;
+        }
+
         function stringToColor(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -8201,122 +8216,113 @@ class Core {
         }
 
         async function playCard() {
-            if (!gameState || gameState.status !== "playing") {
-                return showInfoModal("待機中", "まだゲームは開始していません。");
-            }
-            if (selectedIdx === -1) return;
-            if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません");
-
-            let currentHand = sortCards(deepCopy(gameState.hands[myId]));
-            const card = currentHand[selectedIdx];
-            
-            if (card.type === 'num') {
-                if (Number(card.val) === 0 && currentHand.length === 1) {
-                    return showInfoModal("禁止あがり", "最後の一枚が「0」であがることはできません。");
+            return runGuardedAction("playCard", async () => {
+                if (!gameState || gameState.status !== "playing") {
+                    return showInfoModal("待機中", "まだゲームは開始していません。");
                 }
+                if (selectedIdx === -1) return;
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません");
 
-                const top = getTop(gameState.graveNum);
+                let currentHand = sortCards(deepCopy(gameState.hands[myId]));
+                const card = currentHand[selectedIdx];
+                if (!card) return;
                 
-                if (!canPlay(card, top, gameState.isReverse)) {
-                    return showInfoModal("エラー", "そのカードは出せません");
-                }
-                
-                let updates = {};
-                let newHand = [...currentHand];
-                newHand.splice(selectedIdx, 1);
-                updates[`rooms/${currentRoom}/hands/${myId}`] = newHand;
+                if (card.type === 'num') {
+                    if (Number(card.val) === 0 && currentHand.length === 1) {
+                        return showInfoModal("禁止あがり", "最後の一枚が「0」であがることはできません。");
+                    }
 
-                // ★残り枚数を計算して、鳴らす音を決定する
-                // ★音のセットを作成（基本はPUT）
-                let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
-                let nextTotal = newHand.length + myHackedCount;
-                
-                let soundList = ['PUT']; 
-                if (nextTotal === 1) soundList.push('UNO');
-                else if (nextTotal === 2) soundList.push('DOS');
+                    const top = getTop(gameState.graveNum);
+                    if (!canPlay(card, top, gameState.isReverse, gameState)) {
+                        return showInfoModal("エラー", "そのカードは出せません");
+                    }
 
-                // セットで送信
-                updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
+                    const txResult = await runTurnTransaction("playCard", (state, ctx) => {
+                        let txHand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+                        if (selectedIdx < 0 || selectedIdx >= txHand.length) return false;
 
-                let newGraveNum = [...(gameState.graveNum || [])];
-                
-        
-                
-                let playCardData = { ...card, owner: myId };
-                newGraveNum.push(playCardData);
+                        const txCard = txHand[selectedIdx];
+                        if (!txCard || txCard.type !== "num") return false;
+                        if (Number(txCard.val) === 0 && txHand.length === 1) return false;
 
-                updates[`rooms/${currentRoom}/graveNum`] = newGraveNum;
-                updates[`rooms/${currentRoom}/passCount`] = 0;
-                
-                await pushLog(`${myName}が [${card.val}] を出しました`, 'public');
+                        const txTop = getTop(state.graveNum || []);
+                        if (!canPlay(txCard, txTop, state.isReverse, state)) return false;
 
-                /* --- playCard 関数内の修正 (推奨版) --- */
+                        txHand.splice(selectedIdx, 1);
+                        state.hands = state.hands || {};
+                        state.hands[myId] = txHand;
 
-                // 手札(newHand)が0枚、かつ、隔離エリア(hackedHands)も0枚ならあがり
-                // ★ここを書き換え
-                if (newHand.length === 0 && myHackedCount === 0) {
-                    let currentRank = Object.keys(gameState.rankings || {}).length + 1;
-                    // ... (以下、あがり処理はそのまま)
-                    updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
-                    await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+                        let myHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+                        let nextTotal = txHand.length + myHackedCount;
+                        let soundList = ['PUT'];
+                        if (nextTotal === 1) soundList.push('UNO');
+                        else if (nextTotal === 2) soundList.push('DOS');
 
-                    // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
-                    updates[`rooms/${currentRoom}/lastWinnerId`] = myId;
-                    updates[`rooms/${currentRoom}/lastWinnerTime`] = Date.now();
-                    // ▲▲▲ 追加ここまで ▲▲▲
+                        state.lastSound = { type: soundList, id: ctx.now };
+                        let newGraveNum = [...(state.graveNum || [])];
+                        newGraveNum.push({ ...txCard, owner: myId });
+                        state.graveNum = newGraveNum;
+                        state.passCount = 0;
+                        ctx.appendLog(`${myName}が [${txCard.val}] を出しました`, 'public');
 
-                    let totalPlayers = gameState.playerOrder.length;
-                    appendRankSound(soundList, currentRank, totalPlayers);
+                        let tempRankings = {...(state.rankings || {})};
+                        if (txHand.length === 0 && myHackedCount === 0) {
+                            let currentRank = Object.keys(state.rankings || {}).length + 1;
+                            state.rankings = { ...(state.rankings || {}), [myId]: currentRank };
+                            ctx.appendLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
 
-                    if (currentRank >= totalPlayers - 1) {
-                         updates[`rooms/${currentRoom}/status`] = "finished";
+                            state.lastWinnerId = myId;
+                            state.lastWinnerTime = ctx.now;
 
-                        // 敗者（最後の一人）を特定
-                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
-                     
-                        if(loserId) {
-                            // 敗者の順位を確定
-                            updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
-                            appendRankSound(soundList, totalPlayers, totalPlayers);
-                            
-                            // 敗者の手札（通常手札 + ハッキング中の手札）を取得
-                            let lHand = gameState.hands[loserId] || [];
-                            let lHacked = (gameState.hackedHands && gameState.hackedHands[loserId]) ? gameState.hackedHands[loserId] : [];
-                            let allL = [...lHand, ...lHacked];
-                            
-                            // カード名を文字列化
-                            let lText = allL.map(c => c.val).join(", ") || "なし";
-                            let lName = gameState.players[loserId].name;
-                            
-                            // 全員に見えるログとして送信
-                            await pushLog(`全順位確定！！最下位 ${lName} の残り手札: [${lText}]`, 'public');
-                        } else {
-                            await pushLog(`全順位が確定しました！！`, 'public');
+                            let totalPlayers = state.playerOrder.length;
+                            appendRankSound(soundList, currentRank, totalPlayers);
+
+                            if (currentRank >= totalPlayers - 1) {
+                                state.status = "finished";
+                                let loserId = state.playerOrder.find(pid => !(state.rankings && state.rankings[pid]) && pid !== myId);
+                                if (loserId) {
+                                    state.rankings = { ...(state.rankings || {}), [loserId]: totalPlayers };
+                                    appendRankSound(soundList, totalPlayers, totalPlayers);
+
+                                    let lHand = (state.hands && state.hands[loserId]) ? state.hands[loserId] : [];
+                                    let lHacked = (state.hackedHands && state.hackedHands[loserId]) ? state.hackedHands[loserId] : [];
+                                    let allL = [...lHand, ...lHacked];
+                                    let lText = allL.map(c => c.val).join(", ") || "なし";
+                                    let lName = (state.players && state.players[loserId]) ? state.players[loserId].name : "Player";
+                                    ctx.appendLog(`全順位確定！！最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                                } else {
+                                    ctx.appendLog(`全順位が確定しました！！`, 'public');
+                                }
+                            }
+                            tempRankings[myId] = 99;
                         }
 
-                        // スコア更新を実行 (finalRankingsを組み立てて渡す)
-                        let finalRankings = {...(gameState.rankings || {})};
-                        finalRankings[myId] = currentRank; // 自分の順位
-                        loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
-                        if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
-                        
-                        updateFinalScores(finalRankings, gameState.playerOrder);
+                        state.turnIdx = ctx.getNextTurnIdx(tempRankings);
+                        return true;
+                    });
+
+                    if (!txResult.committed) {
+                        showTurnActionError(txResult.reason);
+                        return;
                     }
+
+                    selectedIdx = -1;
+                    if (
+                        txResult.snapshot &&
+                        txResult.snapshot.status === "finished" &&
+                        txResult.snapshot.rankings &&
+                        txResult.snapshot.playerOrder
+                    ) {
+                        updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder);
+                    }
+                } else {
+                    await handleSymbol(card, selectedIdx, currentHand);
                 }
-                
-                let tempRankings = {...(gameState.rankings || {})};
-                if(newHand.length === 0) tempRankings[myId] = 99;
-
-                let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, tempRankings);
-                updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-
-                await db.ref().update(updates);
-                selectedIdx = -1;
-
-            } else { handleSymbol(card, selectedIdx, currentHand); }
+            });
         }
 
         async function handleSymbol(card, idx, currentHand) {
+            if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
             // ▼▼▼ 修正箇所: ロック中のカードも考慮して「あがり」かどうか判定する ▼▼▼
             let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
             
@@ -8424,86 +8430,102 @@ class Core {
             // ---------------------------------------------------------
             // ★修正: REVERSEなどの即時発動カード処理
             // ---------------------------------------------------------
-            // 1. まず手札から出したカードを取り除く (ここで newHand を定義！)
-            let updates = {};
-            let newHand = [...currentHand];
-            newHand.splice(idx, 1);
+            const txResult = await runTurnTransaction("handleSymbol", (state, ctx) => {
+                let txHand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+                if (!Number.isInteger(idx) || idx < 0 || idx >= txHand.length) return false;
 
-            // 2. 残り枚数を計算して、音のセットを作成
-            let nextTotal = newHand.length + myHackedCount;
+                const txCard = txHand[idx];
+                if (!txCard || txCard.type !== "sym") return false;
+                if (txCard.val === "DIG UP" || txCard.val === "TRADE" || txCard.val === "DISCARD") return false;
 
-            let soundList = [card.val]; // 例: ['REVERSE']
-            if (nextTotal === 1) soundList.push('UNO');
-            else if (nextTotal === 2) soundList.push('DOS');
+                txHand.splice(idx, 1);
+                let myTxHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+                let nextTotal = txHand.length + myTxHackedCount;
 
-            updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
+                let soundList = [txCard.val];
+                if (nextTotal === 1) soundList.push('UNO');
+                else if (nextTotal === 2) soundList.push('DOS');
 
-            // 3. データを更新
-            updates[`rooms/${currentRoom}/hands/${myId}`] = newHand;
-            let newGraveSym = [...(gameState.graveSym || [])];
-            newGraveSym.push(card);
-            updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
-            await clearPoliticianShieldIfNeeded(myId, updates, `${card.val}使用`);
+                state.lastSound = { type: soundList, id: ctx.now };
+                state.hands = state.hands || {};
+                state.hands[myId] = txHand;
 
-            let logMsg = `${myName}が [${card.val}] を使用して`;
-            if (card.val === "REVERSE") {
-                updates[`rooms/${currentRoom}/isReverse`] = !gameState.isReverse;
-                logMsg += "強弱を逆転させました";
+                let newGraveSym = [...(state.graveSym || [])];
+                newGraveSym.push(txCard);
+                state.graveSym = newGraveSym;
+                clearPoliticianShieldInState(state, myId, ctx, `${txCard.val}使用`);
+
+                let logMsg = `${myName}が [${txCard.val}] を使用して`;
+                if (txCard.val === "REVERSE") {
+                    state.isReverse = !state.isReverse;
+                    logMsg += "強弱を逆転させました";
+                }
+                ctx.appendLog(logMsg, 'public');
+
+                state.passCount = 0;
+                state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+                return true;
+            });
+
+            if (!txResult.committed) {
+                showTurnActionError(txResult.reason);
+                return;
             }
-
-            await pushLog(logMsg, 'public');
-
-            updates[`rooms/${currentRoom}/passCount`] = 0;
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-
-            await db.ref().update(updates);
             selectedIdx = -1;
         }
 
         // ↓↓↓ execDigUp関数を丸ごとこれに置き換えてください ↓↓↓
         async function execDigUp(digUpIdx, returnIdx) {
-            closeModal();
-            let updates = {};
-            let newHand = sortCards(deepCopy(gameState.hands[myId]));
-            let gn = [...gameState.graveNum];
-            
-            // 処理
-            let top = gn.pop(); 
-            let usedDigUp = newHand.splice(digUpIdx, 1)[0]; 
-            let newGraveSym = [...(gameState.graveSym || []), usedDigUp];
-            
-            // インデックス調整
-            let actualReturnIdx = (returnIdx > digUpIdx) ? returnIdx - 1 : returnIdx;
-            let retCard = newHand.splice(actualReturnIdx, 1)[0];
-            newHand.push(top);
-            
-            gn.push({ ...retCard, owner: myId }); 
-            newHand = sortCards(newHand);
-            
-            updates[`rooms/${currentRoom}/hands/${myId}`] = newHand;
-            
-            // ★修正: UNO/DOS音の追加
-            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
-            let nextTotal = newHand.length + myHackedCount;
+            return runGuardedAction("execDigUp", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
 
-            let soundList = ['DIG UP'];
-            if (nextTotal === 1) soundList.push('UNO');
-            else if (nextTotal === 2) soundList.push('DOS');
+                const txResult = await runTurnTransaction("execDigUp", (state, ctx) => {
+                    let newHand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+                    let gn = [...(state.graveNum || [])];
+                    if (gn.length === 0) return false;
+                    if (!Number.isInteger(digUpIdx) || digUpIdx < 0 || digUpIdx >= newHand.length) return false;
 
-            updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
+                    let top = gn.pop();
+                    let usedDigUp = newHand.splice(digUpIdx, 1)[0];
+                    if (!usedDigUp || usedDigUp.val !== "DIG UP") return false;
 
-            updates[`rooms/${currentRoom}/graveNum`] = gn;
-            updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
-            await clearPoliticianShieldIfNeeded(myId, updates, "DIG UP使用");
-            updates[`rooms/${currentRoom}/passCount`] = 0;
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-            
-            await pushLog(`${myName}が [DIG UP] を使用して [${top.val}] を回収し、[${retCard.val}] を埋めました。`, 'public');
-            
-            await db.ref().update(updates);
-            selectedIdx = -1;
+                    let actualReturnIdx = (returnIdx > digUpIdx) ? returnIdx - 1 : returnIdx;
+                    if (!Number.isInteger(actualReturnIdx) || actualReturnIdx < 0 || actualReturnIdx >= newHand.length) return false;
+                    let retCard = newHand.splice(actualReturnIdx, 1)[0];
+                    if (!retCard || retCard.type !== "num") return false;
+
+                    newHand.push(top);
+                    gn.push({ ...retCard, owner: myId });
+                    newHand = sortCards(newHand);
+
+                    let newGraveSym = [...(state.graveSym || []), usedDigUp];
+                    let myHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+                    let nextTotal = newHand.length + myHackedCount;
+
+                    let soundList = ['DIG UP'];
+                    if (nextTotal === 1) soundList.push('UNO');
+                    else if (nextTotal === 2) soundList.push('DOS');
+
+                    state.lastSound = { type: soundList, id: ctx.now };
+                    state.hands = state.hands || {};
+                    state.hands[myId] = newHand;
+                    state.graveNum = gn;
+                    state.graveSym = newGraveSym;
+                    clearPoliticianShieldInState(state, myId, ctx, "DIG UP使用");
+                    state.passCount = 0;
+                    state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+
+                    ctx.appendLog(`${myName}が [DIG UP] を使用して [${top.val}] を回収し、[${retCard.val}] を埋めました。`, 'public');
+                    return true;
+                });
+
+                if (!txResult.committed) {
+                    showTurnActionError(txResult.reason);
+                    return;
+                }
+                selectedIdx = -1;
+            });
         }
 
         /* --- 通常のTRADE改修 (狙い撃ち対応) --- */
@@ -8580,210 +8602,212 @@ class Core {
 
         // 2人終盤かつ相手が政治家保護中のときだけ使えるTRADE空振り消費
         async function execTradeWhiff(tradeCardIdx, blockedPid) {
-            closeModal();
-            let updates = {};
-            let myHand = sortCards(deepCopy(gameState.hands[myId] || []));
+            return runGuardedAction("execTradeWhiff", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
 
-            if (tradeCardIdx < 0 || tradeCardIdx >= myHand.length) {
-                return showInfoModal("エラー", "TRADEカードの位置が不正です。");
-            }
-            if (myHand[tradeCardIdx].val !== "TRADE") {
-                return showInfoModal("エラー", "TRADEカードが見つかりません。");
-            }
+                const txResult = await runTurnTransaction("execTradeWhiff", (state, ctx) => {
+                    let myHand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+                    if (!Number.isInteger(tradeCardIdx) || tradeCardIdx < 0 || tradeCardIdx >= myHand.length) return false;
+                    if (!myHand[tradeCardIdx] || myHand[tradeCardIdx].val !== "TRADE") return false;
 
-            const activePids = (gameState.playerOrder || []).filter(pid => !(gameState.rankings && gameState.rankings[pid]));
-            const onlyOtherPid = (activePids.length === 2) ? activePids.find(pid => pid !== myId) : null;
-            if (!(onlyOtherPid && onlyOtherPid === blockedPid && isPoliticianShieldActive(onlyOtherPid))) {
-                return showInfoModal("使用不可", "この空振り消費は、プレイヤーが2人で相手が政治家保護中のときのみ使用できます。");
-            }
+                    const activePids = (state.playerOrder || []).filter(pid => !(state.rankings && state.rankings[pid]));
+                    const onlyOtherPid = (activePids.length === 2) ? activePids.find(pid => pid !== myId) : null;
+                    const isBlocked = !!(onlyOtherPid && onlyOtherPid === blockedPid && isPoliticianShieldActive(onlyOtherPid, state));
+                    if (!isBlocked) return false;
 
-            let usedTrade = myHand.splice(tradeCardIdx, 1)[0];
-            let newGraveSym = [...(gameState.graveSym || []), usedTrade];
+                    let usedTrade = myHand.splice(tradeCardIdx, 1)[0];
+                    let newGraveSym = [...(state.graveSym || []), usedTrade];
 
-            updates[`rooms/${currentRoom}/hands/${myId}`] = myHand;
-            updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
-            await clearPoliticianShieldIfNeeded(myId, updates, "TRADE空振り使用");
+                    let myHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+                    let nextTotal = myHand.length + myHackedCount;
+                    let soundList = ['TRADE'];
+                    if (nextTotal === 1) soundList.push('UNO');
+                    else if (nextTotal === 2) soundList.push('DOS');
 
-            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
-            let nextTotal = myHand.length + myHackedCount;
-            let soundList = ['TRADE'];
-            if (nextTotal === 1) soundList.push('UNO');
-            else if (nextTotal === 2) soundList.push('DOS');
-            updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
+                    state.hands = state.hands || {};
+                    state.hands[myId] = myHand;
+                    state.graveSym = newGraveSym;
+                    clearPoliticianShieldInState(state, myId, ctx, "TRADE空振り使用");
+                    state.lastSound = { type: soundList, id: ctx.now };
+                    state.passCount = 0;
+                    state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
 
-            updates[`rooms/${currentRoom}/passCount`] = 0;
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
+                    const blockedName = (state.players && state.players[blockedPid]) ? state.players[blockedPid].name : "相手";
+                    ctx.appendLog(`${myName}が [TRADE] を使用しましたが、${blockedName} は[政治家]保護中のため空振りになりました。`, 'public');
+                    return true;
+                });
 
-            const blockedName = (gameState.players && gameState.players[blockedPid]) ? gameState.players[blockedPid].name : "相手";
-            await pushLog(`${myName}が [TRADE] を使用しましたが、${blockedName} は[政治家]保護中のため空振りになりました。`, 'public');
-
-            await db.ref().update(updates);
-            selectedIdx = -1;
+                if (!txResult.committed) {
+                    showTurnActionError(txResult.reason);
+                    return;
+                }
+                selectedIdx = -1;
+            });
         }
 
         // 実行処理 (引数 takeIdx を追加)
         // ↓↓↓ execTrade関数を丸ごとこれに置き換えてください ↓↓↓
         async function execTrade(targetId, tradeCardIdx, giveCardIdx, takeIdx) {
-            closeModal();
-            if (!canTargetByHandInterference(targetId)) return;
-            let updates = {};
-            let myHand = sortCards(deepCopy(gameState.hands[myId]));
-            let targetHand = sortCards(deepCopy(gameState.hands[targetId]));
-            
-            // コスト支払い
-            let usedTrade = myHand.splice(tradeCardIdx, 1)[0];
-            let newGraveSym = [...(gameState.graveSym || []), usedTrade];
-            
-            // インデックス調整
-            let actualGiveIdx = (giveCardIdx > tradeCardIdx) ? giveCardIdx - 1 : giveCardIdx;
-            
-            // 交換実行
-            let giveCard = myHand.splice(actualGiveIdx, 1)[0];
-            let receiveCard = targetHand.splice(takeIdx, 1)[0];
-            
-            myHand.push(receiveCard);
-            targetHand.push(giveCard);
-            myHand = sortCards(myHand);
-            targetHand = sortCards(targetHand);
-            
-            updates[`rooms/${currentRoom}/hands/${myId}`] = myHand;
-            updates[`rooms/${currentRoom}/hands/${targetId}`] = targetHand;
-            updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
-            await clearPoliticianShieldIfNeeded(myId, updates, "TRADE使用");
-            
-            await pushLog(`${myName}が [TRADE] を使用して${gameState.players[targetId].name} とカードを交換しました`, 'public');
-            await pushLog(`${gameState.players[targetId].name}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
-            await pushLog(`${gameState.players[myId].name}に [${receiveCard.val}] を奪われ、 [${giveCard.val}] を渡されました。`, 'private', targetId);
+            return runGuardedAction("execTrade", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
 
-            updates[`rooms/${currentRoom}/passCount`] = 0;
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
+                const txResult = await runTurnTransaction("execTrade", (state, ctx) => {
+                    if (!targetId || targetId === myId) return false;
+                    if (isPoliticianShieldActive(targetId, state)) return false;
 
-            updates[`rooms/${currentRoom}/players/${targetId}/notification`] = {
-                fromName: myName + "(TRADE)",
-                lostVal: receiveCard.val,
-                gotVal: giveCard.val
-            };
+                    let myHand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+                    let targetHand = sortCards(deepCopy((state.hands && state.hands[targetId]) || []));
+                    if (!Number.isInteger(tradeCardIdx) || tradeCardIdx < 0 || tradeCardIdx >= myHand.length) return false;
+                    if (!Number.isInteger(giveCardIdx) || giveCardIdx < 0 || giveCardIdx >= myHand.length) return false;
+                    if (!Number.isInteger(takeIdx) || takeIdx < 0 || takeIdx >= targetHand.length) return false;
 
-            // ★修正: UNO/DOS音の追加
-            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
-            let nextTotal = myHand.length + myHackedCount;
+                    let usedTrade = myHand.splice(tradeCardIdx, 1)[0];
+                    if (!usedTrade || usedTrade.val !== "TRADE") return false;
+                    let newGraveSym = [...(state.graveSym || []), usedTrade];
 
-            let soundList = ['TRADE'];
-            if (nextTotal === 1) soundList.push('UNO');
-            else if (nextTotal === 2) soundList.push('DOS');
+                    let actualGiveIdx = (giveCardIdx > tradeCardIdx) ? giveCardIdx - 1 : giveCardIdx;
+                    if (actualGiveIdx < 0 || actualGiveIdx >= myHand.length) return false;
 
-            updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
-            
-            await db.ref().update(updates);
-            selectedIdx = -1;
+                    let giveCard = myHand.splice(actualGiveIdx, 1)[0];
+                    let receiveCard = targetHand.splice(takeIdx, 1)[0];
+                    if (!giveCard || !receiveCard) return false;
+
+                    myHand.push(receiveCard);
+                    targetHand.push(giveCard);
+                    myHand = sortCards(myHand);
+                    targetHand = sortCards(targetHand);
+
+                    state.hands = state.hands || {};
+                    state.hands[myId] = myHand;
+                    state.hands[targetId] = targetHand;
+                    state.graveSym = newGraveSym;
+                    clearPoliticianShieldInState(state, myId, ctx, "TRADE使用");
+
+                    let targetName = (state.players && state.players[targetId]) ? state.players[targetId].name : "Player";
+                    let myDisplayName = (state.players && state.players[myId]) ? state.players[myId].name : myName;
+                    ctx.appendLog(`${myName}が [TRADE] を使用して${targetName} とカードを交換しました`, 'public');
+                    ctx.appendLog(`${targetName}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, 'private', myId);
+                    ctx.appendLog(`${myDisplayName}に [${receiveCard.val}] を奪われ、 [${giveCard.val}] を渡されました。`, 'private', targetId);
+
+                    state.passCount = 0;
+                    state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+                    state.players = state.players || {};
+                    if (!state.players[targetId]) state.players[targetId] = { name: targetName };
+                    state.players[targetId].notification = {
+                        fromName: myName + "(TRADE)",
+                        lostVal: receiveCard.val,
+                        gotVal: giveCard.val
+                    };
+
+                    let myHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+                    let nextTotal = myHand.length + myHackedCount;
+                    let soundList = ['TRADE'];
+                    if (nextTotal === 1) soundList.push('UNO');
+                    else if (nextTotal === 2) soundList.push('DOS');
+                    state.lastSound = { type: soundList, id: ctx.now };
+                    return true;
+                });
+
+                if (!txResult.committed) {
+                    showTurnActionError(txResult.reason);
+                    return;
+                }
+                selectedIdx = -1;
+            });
         }
 
         // ↓↓↓ execDiscard関数を丸ごとこれに置き換えてください ↓↓↓
 
         async function execDiscard(useCardIdx, targetIdx) {
-            closeModal();
-            let updates = {};
-            let currentHand = sortCards(deepCopy(gameState.hands[myId]));
+            return runGuardedAction("execDiscard", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
 
-            // 1. コストとして使う「DISCARD」カード自体
-            let usedCard = currentHand.splice(useCardIdx, 1)[0];
-            let newGraveSym = [...(gameState.graveSym || []), usedCard];
+                const txResult = await runTurnTransaction("execDiscard", (state, ctx) => {
+                    let currentHand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+                    if (!Number.isInteger(useCardIdx) || useCardIdx < 0 || useCardIdx >= currentHand.length) return false;
 
-            // 2. 捨てられるカード
-            // (UIの仕組み上、splice後のインデックスが渡ってくるのでそのまま使えます)
-            let discardCard = currentHand.splice(targetIdx, 1)[0];
+                    let usedCard = currentHand.splice(useCardIdx, 1)[0];
+                    if (!usedCard || usedCard.val !== "DISCARD") return false;
+                    let newGraveSym = [...(state.graveSym || []), usedCard];
 
-            // ★ここが修正ポイント：種類によって送り先を変える
-            let newGraveNum = [...(gameState.graveNum || [])];
+                    if (!Number.isInteger(targetIdx) || targetIdx < 0 || targetIdx >= currentHand.length) return false;
+                    let discardCard = currentHand.splice(targetIdx, 1)[0];
+                    if (!discardCard) return false;
 
-            if (discardCard.type === 'num') {
-                // 数字なら「数字墓地」へ（これで場のトップが更新され、バグが直る！）
-                // ownerを自分にすることで、責任の所在を明確にする
-                newGraveNum.push({ ...discardCard, owner: myId });
-            } else {
-                // 記号なら「記号墓地」へ
-                newGraveSym.push(discardCard);
-            }
-            currentHand = sortCards(currentHand);
-            
-            // 音のセットを作成
-            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
-            let nextTotal = currentHand.length + myHackedCount;
+                    let newGraveNum = [...(state.graveNum || [])];
+                    if (discardCard.type === 'num') newGraveNum.push({ ...discardCard, owner: myId });
+                    else newGraveSym.push(discardCard);
+                    currentHand = sortCards(currentHand);
 
-            let soundList = ['DISCARD'];
-            if (nextTotal === 1) soundList.push('UNO');
-            else if (nextTotal === 2) soundList.push('DOS');
+                    let myHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+                    let nextTotal = currentHand.length + myHackedCount;
 
-            updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
-            
-            // 墓地情報を更新（除外場 exclusion への追加は削除）
-            updates[`rooms/${currentRoom}/graveNum`] = newGraveNum;
-            updates[`rooms/${currentRoom}/graveSym`] = newGraveSym;
-            updates[`rooms/${currentRoom}/hands/${myId}`] = currentHand;
-            await clearPoliticianShieldIfNeeded(myId, updates, "DISCARD使用");
-        
-            await pushLog(`${myName}が [DISCARD] で [${discardCard.val}] を捨てました！！`, 'public');
+                    let soundList = ['DISCARD'];
+                    if (nextTotal === 1) soundList.push('UNO');
+                    else if (nextTotal === 2) soundList.push('DOS');
 
-            updates[`rooms/${currentRoom}/passCount`] = 0;
+                    state.lastSound = { type: soundList, id: ctx.now };
+                    state.graveNum = newGraveNum;
+                    state.graveSym = newGraveSym;
+                    state.hands = state.hands || {};
+                    state.hands[myId] = currentHand;
+                    clearPoliticianShieldInState(state, myId, ctx, "DISCARD使用");
 
-            // あがり判定
-            if (currentHand.length === 0 && myHackedCount === 0) {
-                let currentRank = Object.keys(gameState.rankings || {}).length + 1;
-                updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
-                await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+                    ctx.appendLog(`${myName}が [DISCARD] で [${discardCard.val}] を捨てました！！`, 'public');
+                    state.passCount = 0;
 
-                // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
-                updates[`rooms/${currentRoom}/lastWinnerId`] = myId;
-                updates[`rooms/${currentRoom}/lastWinnerTime`] = Date.now();
-                // ▲▲▲ 追加ここまで ▲▲▲
+                    let tempRankings = {...(state.rankings || {})};
+                    if (currentHand.length === 0 && myHackedCount === 0) {
+                        let currentRank = Object.keys(state.rankings || {}).length + 1;
+                        state.rankings = { ...(state.rankings || {}), [myId]: currentRank };
+                        ctx.appendLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+                        state.lastWinnerId = myId;
+                        state.lastWinnerTime = ctx.now;
 
-                let totalPlayers = gameState.playerOrder.length;
-                appendRankSound(soundList, currentRank, totalPlayers);
-                if (currentRank >= totalPlayers - 1) {
-                         updates[`rooms/${currentRoom}/status`] = "finished";
+                        let totalPlayers = state.playerOrder.length;
+                        appendRankSound(soundList, currentRank, totalPlayers);
+                        if (currentRank >= totalPlayers - 1) {
+                            state.status = "finished";
+                            let loserId = state.playerOrder.find(pid => !(state.rankings && state.rankings[pid]) && pid !== myId);
+                            if (loserId) {
+                                state.rankings = { ...(state.rankings || {}), [loserId]: totalPlayers };
+                                appendRankSound(soundList, totalPlayers, totalPlayers);
 
-                        // 敗者（最後の一人）を特定
-                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
-                     
-                        if(loserId) {
-                            // 敗者の順位を確定
-                            updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
-                            appendRankSound(soundList, totalPlayers, totalPlayers);
-                            
-                            // 敗者の手札（通常手札 + ハッキング中の手札）を取得
-                            let lHand = gameState.hands[loserId] || [];
-                            let lHacked = (gameState.hackedHands && gameState.hackedHands[loserId]) ? gameState.hackedHands[loserId] : [];
-                            let allL = [...lHand, ...lHacked];
-                            
-                            // カード名を文字列化
-                            let lText = allL.map(c => c.val).join(", ") || "なし";
-                            let lName = gameState.players[loserId].name;
-                            
-                            // 全員に見えるログとして送信
-                            await pushLog(`全順位確定！　最下位 ${lName} の残り手札: [${lText}]`, 'public');
-                        } else {
-                            await pushLog(`全順位が確定しました！`, 'public');
+                                let lHand = (state.hands && state.hands[loserId]) ? state.hands[loserId] : [];
+                                let lHacked = (state.hackedHands && state.hackedHands[loserId]) ? state.hackedHands[loserId] : [];
+                                let allL = [...lHand, ...lHacked];
+                                let lText = allL.map(c => c.val).join(", ") || "なし";
+                                let lName = (state.players && state.players[loserId]) ? state.players[loserId].name : "Player";
+                                ctx.appendLog(`全順位確定！　最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                            } else {
+                                ctx.appendLog(`全順位が確定しました！`, 'public');
+                            }
                         }
-                        // スコア更新を実行 (finalRankingsを組み立てて渡す)
-                        let finalRankings = {...(gameState.rankings || {})};
-                        finalRankings[myId] = currentRank; // 自分の順位
-                        loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
-                        if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
-                        
-                        updateFinalScores(finalRankings, gameState.playerOrder);
+                        tempRankings[myId] = 99;
+                    }
+
+                    state.turnIdx = ctx.getNextTurnIdx(tempRankings);
+                    return true;
+                });
+
+                if (!txResult.committed) {
+                    showTurnActionError(txResult.reason);
+                    return;
                 }
-            }
 
-            let tempRankings = {...(gameState.rankings || {})};
-            if(currentHand.length === 0) tempRankings[myId] = 99;
-
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, tempRankings);
-            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-
-            await db.ref().update(updates);
-            selectedIdx = -1;
+                selectedIdx = -1;
+                if (
+                    txResult.snapshot &&
+                    txResult.snapshot.status === "finished" &&
+                    txResult.snapshot.rankings &&
+                    txResult.snapshot.playerOrder
+                ) {
+                    updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder);
+                }
+            });
         }
 
         function isMyTurn() {
@@ -13302,6 +13326,103 @@ function setupEffectListener() {
     if (!window._origCloseModal) window._origCloseModal = window.closeModal;
 
     let mainModalBoardMode = false;
+    const TURN_GUARD_ACTIONS = new Set([
+        "playCard",
+        "execPassDraw",
+        "execPassNoDraw",
+        "execPassPlay",
+        "execPassKeep",
+        "handleSymbol",
+        "execDigUp",
+        "execTradeWhiff",
+        "execTrade",
+        "execDiscard",
+        "execAngler",
+        "endThiefTurn",
+        "execHunterSwap",
+        "execGamblerGuess",
+        "execGamblerDiscard",
+        "execMagicianReverse",
+        "execMagicianTrade",
+        "execMagicianDigUp",
+        "execEmperorSelect",
+        "endPoliceTurn",
+        "execPoliceTrade",
+        "execHacker",
+        "execAlchemist",
+        "execAlchemistKeep",
+        "activateAngler",
+        "activateFortuneTeller",
+        "activateThief",
+        "activateHunter",
+        "activateGambler",
+        "activateMagician",
+        "activateMillionaire",
+        "activateEmperor",
+        "activatePoliceOfficer",
+        "activateHacker",
+        "activateAlchemist",
+        "activateNecromancer",
+        "activateAgent"
+    ]);
+    const LOCK_GUARD_ACTIONS = new Set([
+        "execAngler",
+        "endThiefTurn",
+        "execHunterSwap",
+        "execGamblerGuess",
+        "execGamblerDiscard",
+        "execMagicianReverse",
+        "execMagicianTrade",
+        "execMagicianDigUp",
+        "execEmperorSelect",
+        "endPoliceTurn",
+        "execPoliceTrade",
+        "execHacker",
+        "execAlchemist",
+        "execAlchemistKeep",
+        "activateAngler",
+        "activateFortuneTeller",
+        "activateThief",
+        "activateHunter",
+        "activateGambler",
+        "activateMagician",
+        "activateMillionaire",
+        "activateEmperor",
+        "activatePoliceOfficer",
+        "activateHacker",
+        "activateAlchemist",
+        "activateNecromancer",
+        "activateAgent"
+    ]);
+
+    function installActionGuardWrappers() {
+        if (window.__sekiActionGuardInstalled) return;
+        window.__sekiActionGuardInstalled = true;
+
+        const allNames = Array.from(new Set([...TURN_GUARD_ACTIONS, ...LOCK_GUARD_ACTIONS]));
+        allNames.forEach((name) => {
+            const original = window[name];
+            if (typeof original !== "function") return;
+            if (original.__sekiGuardWrapped) return;
+
+            const wrapped = async function(...args) {
+                const runOriginal = () => original.apply(this, args);
+                if (TURN_GUARD_ACTIONS.has(name) && typeof isMyTurn === "function" && !isMyTurn()) {
+                    return showInfoModal("エラー", "あなたの番ではありません。");
+                }
+                if (LOCK_GUARD_ACTIONS.has(name) && typeof runGuardedAction === "function") {
+                    return runGuardedAction(name, runOriginal);
+                }
+                return runOriginal();
+            };
+
+            wrapped.__sekiGuardWrapped = true;
+            wrapped.__sekiGuardOriginal = original;
+            window[name] = wrapped;
+        });
+    }
+
+    installActionGuardWrappers();
 
     function setMainModalBoardMode(enabled) {
         mainModalBoardMode = !!enabled;
