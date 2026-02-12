@@ -5451,6 +5451,8 @@ class Core {
             failedCount: 0,
             currentLabel: "準備中..."
         };
+        let actionInFlight = false;
+        let actionInFlightName = "";
         
 
         const els = {
@@ -6634,6 +6636,112 @@ class Core {
             applyModalPresentation({ size: "default", tone: "default" });
         }
 
+        function setActionUiDisabled(disabled) {
+            const targets = [];
+            const btnPlay = document.getElementById("btn-play");
+            const btnPass = document.getElementById("btn-pass");
+            if (btnPlay) targets.push(btnPlay);
+            if (btnPass) targets.push(btnPass);
+            document.querySelectorAll("#modal-content button, #modal-footer button").forEach(btn => {
+                if (btn && !targets.includes(btn)) targets.push(btn);
+            });
+
+            targets.forEach(btn => {
+                if (!btn) return;
+                if (disabled) {
+                    if (!btn.dataset.sekiPrevDisabled) {
+                        btn.dataset.sekiPrevDisabled = btn.disabled ? "1" : "0";
+                    }
+                    btn.disabled = true;
+                    btn.classList.add("is-disabled");
+                } else {
+                    const prev = btn.dataset.sekiPrevDisabled;
+                    if (prev === "0") btn.disabled = false;
+                    delete btn.dataset.sekiPrevDisabled;
+                    btn.classList.remove("is-disabled");
+                }
+            });
+        }
+
+        async function runGuardedAction(actionName, fn) {
+            if (actionInFlight) return false;
+            actionInFlight = true;
+            actionInFlightName = actionName || "";
+            setActionUiDisabled(true);
+            try {
+                await fn();
+                return true;
+            } finally {
+                actionInFlight = false;
+                actionInFlightName = "";
+                setActionUiDisabled(false);
+            }
+        }
+
+        function showTurnActionError(reason) {
+            if (reason === "not-my-turn") {
+                showInfoModal("エラー", "あなたの番ではありません。");
+                return;
+            }
+            if (reason === "not-playing") {
+                showInfoModal("待機中", "まだゲームは開始していません。");
+                return;
+            }
+            if (reason === "guard-failed") {
+                showInfoModal("エラー", "処理条件を満たしていません。最新状態で再試行してください。");
+                return;
+            }
+            showInfoModal("エラー", "処理に失敗しました。最新状態で再試行してください。");
+        }
+
+        async function runTurnTransaction(actionName, mutateFn) {
+            if (!currentRoom) return { committed: false, reason: "no-room", snapshot: null };
+
+            const roomRef = db.ref(`rooms/${currentRoom}`);
+            let rejectReason = null;
+            const result = await roomRef.transaction((state) => {
+                if (!state || state.status !== "playing") {
+                    rejectReason = "not-playing";
+                    return;
+                }
+                if (!Array.isArray(state.playerOrder) || typeof state.turnIdx !== "number") {
+                    rejectReason = "invalid-state";
+                    return;
+                }
+                const activePid = state.playerOrder[state.turnIdx];
+                if (activePid !== myId) {
+                    rejectReason = "not-my-turn";
+                    return;
+                }
+
+                const ctx = {
+                    actionName,
+                    now: Date.now(),
+                    myId,
+                    myName,
+                    appendLog: (text, type = "public", targetId = null) => {
+                        appendLogEntryToState(state, text, type, targetId);
+                    },
+                    getNextTurnIdx: (rankings = state.rankings || {}) => {
+                        return getNextActivePlayerIndex(state.turnIdx, state.playerOrder, rankings);
+                    }
+                };
+
+                const shouldCommit = mutateFn(state, ctx);
+                if (shouldCommit === false) {
+                    rejectReason = "guard-failed";
+                    return;
+                }
+                return state;
+            });
+
+            return {
+                committed: !!result.committed,
+                reason: rejectReason,
+                snapshot: result.snapshot ? result.snapshot.val() : null
+            };
+        }
+
         function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
         function sortCards(hand) {
             if(!hand) return [];
@@ -6683,11 +6791,14 @@ class Core {
 
         async function pushLog(text, type='public', targetId=null) {
             if(!currentRoom) return;
-            const logEntry = { text: text, type: type, targetId: targetId, timestamp: Date.now() };
-            let logs = (gameState && gameState.logs) ? [...gameState.logs] : [];
-            logs.push(logEntry);
-            if(logs.length > 50) logs.shift(); 
-            await db.ref(`rooms/${currentRoom}/logs`).set(logs);
+            const now = Date.now();
+            const logEntry = { text: text, type: type, targetId: targetId, timestamp: now };
+            await db.ref(`rooms/${currentRoom}/logs`).transaction((currentLogs) => {
+                const logs = Array.isArray(currentLogs) ? [...currentLogs] : [];
+                logs.push(logEntry);
+                if (logs.length > 50) logs.splice(0, logs.length - 50);
+                return logs;
+            });
         }
 
         function renderLogs(logs) {
@@ -7551,7 +7662,7 @@ class Core {
                         if (rName === "CROWN" && typeof currentAct[pid] === 'string') {
                             roleSub = currentAct[pid];
                         } else if (rName === "POLITICIAN" && currentAct[pid]) {
-                            roleSub = isPoliticianShieldActive(pid, data) ? "保護中" : "使用済み";
+                            roleSub = isPoliticianShieldActive(pid, data) ? "保護中" : "保護解除";
                         } else if (rName === "ASTRONOMER" && currentAct[pid]) {
                             roleSub = getAstronomerRoleSubText(data) || "使用済み";
                         } else if (rName === "EMPEROR" && currentAct[pid]) {
@@ -7895,134 +8006,198 @@ class Core {
         }
 
         async function execPassNoDraw(isReset) {
-            closeModal();
-            let updates = {};
-            
-            if(isReset) {
-                let excl = [...(gameState.exclusion || []), ...(gameState.graveNum || [])];
-                updates[`rooms/${currentRoom}/exclusion`] = excl;
-                updates[`rooms/${currentRoom}/graveNum`] = [];
-                updates[`rooms/${currentRoom}/passCount`] = 0;
-                updates[`rooms/${currentRoom}/lastSound`] = { type: 'RESET', id: Date.now() };
-                await pushLog(`${myName}がドローせずリセットしました`, 'public');
-            } else {
-                updates[`rooms/${currentRoom}/passCount`] = (gameState.passCount || 0) + 1;
-                await pushLog(`${myName}がドローせずパスしました`, 'public');
-                let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-                updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-            }
-            
-            await db.ref().update(updates);
+            return runGuardedAction("execPassNoDraw", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
+
+                const txResult = await runTurnTransaction("execPassNoDraw", (state, ctx) => {
+                    if (isReset) {
+                        const excl = [...(state.exclusion || []), ...(state.graveNum || [])];
+                        state.exclusion = excl;
+                        state.graveNum = [];
+                        state.passCount = 0;
+                        state.lastSound = { type: "RESET", id: ctx.now };
+                        ctx.appendLog(`${myName}がドローせずリセットしました`, "public");
+                    } else {
+                        state.passCount = (state.passCount || 0) + 1;
+                        ctx.appendLog(`${myName}がドローせずパスしました`, "public");
+                        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+                    }
+                    return true;
+                });
+
+                if (!txResult.committed) showTurnActionError(txResult.reason);
+            });
         }
 
         // ↓↓↓ execPassDraw関数を丸ごとこれに置き換えてください ↓↓↓
         async function execPassDraw(isReset) {
-            closeModal();
-            let updates = {};
-            let deck = [...(gameState.deckNum || [])];
-            
-            // 山札が空の場合の補充処理
-            if (deck.length === 0) {
-                let excl = [...(gameState.exclusion || [])];
-                let newDeck = excl.filter(c => c.type === 'num');
-                let remainingExcl = excl.filter(c => c.type !== 'num');
+            return runGuardedAction("execPassDraw", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
 
-                if (newDeck.length > 0) {
-                    shuffle(newDeck);
-                    deck = newDeck;
-                    updates[`rooms/${currentRoom}/exclusion`] = remainingExcl;
-                    await pushLog("除外場から数字山札を補充しました", 'public');
-                } else {
-                    showInfoModal("通知", "山札も除外場もありません。ドローなしでパスします。");
-                    execPassNoDraw(isReset);
+                let drawResult = null;
+                const txResult = await runTurnTransaction("execPassDraw", (state, ctx) => {
+                    let deck = [...(state.deckNum || [])];
+
+                    if (deck.length === 0) {
+                        const excl = [...(state.exclusion || [])];
+                        let refillDeck = excl.filter(c => c && c.type === "num");
+                        const remainingExcl = excl.filter(c => !c || c.type !== "num");
+
+                        if (refillDeck.length > 0) {
+                            shuffle(refillDeck);
+                            deck = refillDeck;
+                            state.exclusion = remainingExcl;
+                            ctx.appendLog("除外場から数字山札を補充しました", "public");
+                        } else {
+                            if (isReset) {
+                                const resetExcl = [...(state.exclusion || []), ...(state.graveNum || [])];
+                                state.exclusion = resetExcl;
+                                state.graveNum = [];
+                                state.passCount = 0;
+                                state.lastSound = { type: "RESET", id: ctx.now };
+                                ctx.appendLog(`${myName}がドローせずリセットしました`, "public");
+                            } else {
+                                state.passCount = (state.passCount || 0) + 1;
+                                ctx.appendLog(`${myName}がドローせずパスしました`, "public");
+                                state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+                            }
+                            drawResult = { mode: "no-draw" };
+                            return true;
+                        }
+                    }
+
+                    const card = deck.pop();
+                    if (!card) return false;
+
+                    state.deckNum = deck;
+
+                    const top = getTop(state.graveNum || []);
+                    const playable = !isReset && (card.type === "num" && canPlay(card, top, state.isReverse, state));
+
+                    if (playable) {
+                        drawResult = { mode: "choice", card: { ...card } };
+                        return true;
+                    }
+
+                    let hand = [...((state.hands && state.hands[myId]) || [])];
+                    hand.push(card);
+                    hand = sortCards(hand);
+                    state.hands = state.hands || {};
+                    state.hands[myId] = hand;
+
+                    const msg = isReset ? "(リセットのため手札に入れます)" : "(出せないので手札に入れます)";
+                    ctx.appendLog(`[${card.val}] を引きました ${msg}`, "private", myId);
+
+                    if (isReset) {
+                        const resetExcl = [...(state.exclusion || []), ...(state.graveNum || [])];
+                        state.exclusion = resetExcl;
+                        state.graveNum = [];
+                        state.passCount = 0;
+                        state.lastSound = { type: "RESET", id: ctx.now };
+                        ctx.appendLog(`${myName}がリセットして1枚引きました`, "public");
+                    } else {
+                        state.passCount = (state.passCount || 0) + 1;
+                        ctx.appendLog(`${myName}がパスして1枚引きました`, "public");
+                        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+                    }
+
+                    drawResult = { mode: "auto-keep" };
+                    return true;
+                });
+
+                if (!txResult.committed) {
+                    showTurnActionError(txResult.reason);
                     return;
                 }
-            }
-            
-            // カードを引く
-            let card = deck.pop();
-            const top = getTop(gameState.graveNum);
-            // リセット時でなければ、出せるかどうか判定する
-            const playable = !isReset && (card.type === 'num' && canPlay(card, top, gameState.isReverse));
-            
-            drawnCardTemp = card;
-            updates[`rooms/${currentRoom}/deckNum`] = deck;
-            await db.ref().update(updates);
 
-            if (playable) {
-                // 出せる場合：選択肢を表示
-                let imgUrl = CARD_IMAGES[card.val];
+                if (!drawResult || drawResult.mode === "auto-keep") {
+                    drawnCardTemp = null;
+                    return;
+                }
+
+                if (drawResult.mode === "no-draw") {
+                    drawnCardTemp = null;
+                    showInfoModal("通知", "山札も除外場もありません。ドローなしでパスします。");
+                    return;
+                }
+
+                drawnCardTemp = drawResult.card;
+                let imgUrl = CARD_IMAGES[drawResult.card.val];
                 let imgStyle = imgUrl ? `background-image:url('${imgUrl}'); color:transparent; border:2px solid #fff;` : '';
-                let cardHtml = `<div class="card ${card.type}" style="display:inline-flex; ${imgStyle}">${card.val}</div>`;
-                
+                let cardHtml = `<div class="card ${drawResult.card.type}" style="display:inline-flex; ${imgStyle}">${drawResult.card.val}</div>`;
                 let html = `引いたカード: ${cardHtml}<br>これを出しますか？<br><br>
                             <button class='modal-btn primary' onclick='execPassPlay()'>出す</button>
                             <button class='modal-btn' onclick='execPassKeep()'>手札に入れる</button>`;
-                
-                openModal("ドロー結果", html);
 
-                // ★修正: ここでフッター（閉じるボタン）を消去して、キャンセル不可にする
+                openModal("ドロー結果", html);
                 if (document.getElementById("modal-footer")) {
                     document.getElementById("modal-footer").innerHTML = "";
                 }
-
-            } else {
-                // 出せない場合（またはリセット時）：自動的に手札へ
-                let msg = isReset ? "(リセットのため手札に入れます)" : "(出せないので手札に入れます)";
-                await pushLog(`[${card.val}] を引きました ${msg}`, 'private', myId);
-                execPassKeep(isReset);
-            }
+            });
         }
 
         async function execPassPlay() {
-            closeModal();
-            let card = drawnCardTemp;
-            if(!card) return;
-            
-            let updates = {};
-            let gn = [...(gameState.graveNum || [])];
-            gn.push({ ...card, owner: myId });
-            updates[`rooms/${currentRoom}/graveNum`] = gn;
-            updates[`rooms/${currentRoom}/passCount`] = 0;
-            
-            await pushLog(`${myName}がパスドローから [${card.val}] を出しました`, 'public');
-            
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-            
-            await db.ref().update(updates);
-            drawnCardTemp = null;
+            return runGuardedAction("execPassPlay", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
+                let card = drawnCardTemp ? { ...drawnCardTemp } : null;
+                if (!card) return;
+
+                const txResult = await runTurnTransaction("execPassPlay", (state, ctx) => {
+                    const gn = [...(state.graveNum || [])];
+                    gn.push({ ...card, owner: myId });
+                    state.graveNum = gn;
+                    state.passCount = 0;
+                    ctx.appendLog(`${myName}がパスドローから [${card.val}] を出しました`, "public");
+                    state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+                    return true;
+                });
+
+                if (!txResult.committed) {
+                    showTurnActionError(txResult.reason);
+                    return;
+                }
+                drawnCardTemp = null;
+            });
         }
 
         async function execPassKeep(isReset = false) {
-            closeModal(); 
-            let card = drawnCardTemp;
-            if(!card) return;
+            return runGuardedAction("execPassKeep", async () => {
+                if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません。");
+                closeModal();
+                let card = drawnCardTemp ? { ...drawnCardTemp } : null;
+                if (!card) return;
 
-            let updates = {};
-            let hand = [...gameState.hands[myId]];
-            hand.push(card);
-            hand = sortCards(hand);
-            updates[`rooms/${currentRoom}/hands/${myId}`] = hand;
-            
-            if(isReset) {
-                let excl = [...(gameState.exclusion || []), ...(gameState.graveNum || [])];
-                updates[`rooms/${currentRoom}/exclusion`] = excl;
-                updates[`rooms/${currentRoom}/graveNum`] = [];
-                updates[`rooms/${currentRoom}/passCount`] = 0;
-                updates[`rooms/${currentRoom}/lastSound`] = { type: 'RESET', id: Date.now() };
-                await pushLog(`${myName}がリセットして1枚引きました`, 'public');
-            } else {
-                updates[`rooms/${currentRoom}/passCount`] = (gameState.passCount || 0) + 1;
-                if(gameState.lastLog !== `${myName}がドローせずパスしました`) {
-                     await pushLog(`${myName}がパスして1枚引きました`, 'public');
+                const txResult = await runTurnTransaction("execPassKeep", (state, ctx) => {
+                    let hand = [...((state.hands && state.hands[myId]) || [])];
+                    hand.push(card);
+                    hand = sortCards(hand);
+                    state.hands = state.hands || {};
+                    state.hands[myId] = hand;
+
+                    if (isReset) {
+                        const excl = [...(state.exclusion || []), ...(state.graveNum || [])];
+                        state.exclusion = excl;
+                        state.graveNum = [];
+                        state.passCount = 0;
+                        state.lastSound = { type: "RESET", id: ctx.now };
+                        ctx.appendLog(`${myName}がリセットして1枚引きました`, "public");
+                    } else {
+                        state.passCount = (state.passCount || 0) + 1;
+                        ctx.appendLog(`${myName}がパスして1枚引きました`, "public");
+                        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+                    }
+                    return true;
+                });
+
+                if (!txResult.committed) {
+                    showTurnActionError(txResult.reason);
+                    return;
                 }
-                let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-                updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-            }
-
-            await db.ref().update(updates);
-            drawnCardTemp = null;
+                drawnCardTemp = null;
+            });
         }
 
         async function playCard() {
