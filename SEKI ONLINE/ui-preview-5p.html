@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEKI 5P Core UI Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1:wght@400;500;700&family=Orbitron:wght@500;700;800&family=WDXL+Lubrifont+JP+N&display=swap" rel="stylesheet">
+<style id="preview-tokens">
+:root{
+--pv-font-ui:"Orbitron","WDXL Lubrifont JP N","M PLUS 1",sans-serif;
+--pv-font-readable:"M PLUS 1",sans-serif;
+--pv-font-display:"Orbitron","WDXL Lubrifont JP N","M PLUS 1","Impact","Arial Black",sans-serif;
+--pv-preview-desktop-width:960px;--pv-preview-mobile-width:390px;--pv-log-height:35px;
+--pv-bg-body:#020711;--pv-bg-a:rgba(0,216,255,.14);--pv-bg-b:rgba(255,53,94,.1);--pv-bg-c:rgba(52,247,141,.08);
+--pv-panel-bg:rgba(6,16,32,.82);--pv-panel-soft:rgba(4,11,23,.74);--pv-panel-border:rgba(0,216,255,.32);
+--pv-text-main:#eff6ff;--pv-text-sub:#d9ebff;--pv-text-muted:#9cb3c9;--pv-warning:#ffeb3b;
+--pv-seki-s:#00d8ff;--pv-seki-e:#34f78d;--pv-seki-k:#ff355e;--pv-card-bg:#f5fbff;--pv-card-border:#a3b9d6;
+--pv-shadow-panel:0 18px 40px rgba(0,0,0,.52);--pv-shadow-soft:0 8px 20px rgba(0,0,0,.36);--pv-shadow-glow:0 0 20px rgba(0,216,255,.18);
+--pv-opponent-width:140px;--pv-opponent-height:110px;
+}
+</style>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--pv-bg-body)}
+body{font-family:var(--pv-font-ui);color:var(--pv-text-main);padding:14px;background:
+radial-gradient(circle at 18% 14%,var(--pv-bg-a),transparent 36%),
+radial-gradient(circle at 82% 24%,var(--pv-bg-b),transparent 34%),
+radial-gradient(circle at 70% 78%,var(--pv-bg-c),transparent 36%),
+radial-gradient(circle at 50% 110%,#0e2342 0%,#050d19 48%,#02060e 100%);background-attachment:fixed}
+#preview-root{display:grid;gap:12px}
+.preview-toolbar,.token-map{background:linear-gradient(155deg,rgba(6,16,32,.92),rgba(4,11,23,.88));border:1px solid var(--pv-panel-border);border-radius:12px;box-shadow:var(--pv-shadow-soft),var(--pv-shadow-glow);padding:10px}
+.preview-toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.toolbar-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.toolbar-label{font-size:12px;color:var(--pv-text-muted)}
+.toolbar-btn,.toolbar-select{font-family:var(--pv-font-ui);font-size:12px;color:var(--pv-text-main);background:linear-gradient(135deg,rgba(9,27,52,.9),rgba(6,18,35,.88));border:1px solid rgba(126,173,224,.45);border-radius:14px;padding:5px 10px}
+.toolbar-btn{cursor:pointer}.toolbar-btn.active{border-color:rgba(0,216,255,.72);box-shadow:0 0 10px rgba(0,216,255,.25)}
+.preview-frame{margin:0 auto;border-radius:18px;overflow:hidden;border:1px solid rgba(0,216,255,.2);box-shadow:var(--pv-shadow-panel),var(--pv-shadow-glow)}
+#preview-root[data-viewport="desktop"] .preview-frame{width:min(100%,var(--pv-preview-desktop-width))}
+#preview-root[data-viewport="mobile"] .preview-frame{width:min(100%,var(--pv-preview-mobile-width))}
+#game-screen{position:relative;width:100%;min-height:760px;display:flex;flex-direction:column;background:linear-gradient(155deg,rgba(6,16,32,.5),rgba(2,8,18,.35));border-left:1px solid rgba(0,216,255,.11);border-right:1px solid rgba(0,216,255,.11)}
+.seki-topbar{display:flex;justify-content:space-between;align-items:center;min-height:42px;padding:0 10px;border-bottom:1px solid rgba(0,216,255,.22);background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.12));font-size:12px}
+.seki-topbar-actions{display:flex;gap:8px;align-items:center}
+.seki-btn{border:1px solid rgba(165,205,255,.35);border-radius:16px;background:linear-gradient(135deg,rgba(4,14,30,.95),rgba(8,22,44,.92));color:var(--pv-text-main);font-family:var(--pv-font-ui);font-size:12px;padding:4px 9px}
+.seki-btn-gold{background:linear-gradient(135deg,#bd8b14,#fbc02d 52%,#ffe082);color:#2f2214}.seki-btn-accent{background:linear-gradient(135deg,#0f314d,#166d98 46%,#00d8ff)}.seki-btn-soft{background:linear-gradient(135deg,#2c3b54,#546e7a)}.seki-btn-danger{background:linear-gradient(135deg,#7c132a,#c21e44 46%,#ff355e);color:#fff5f8}
+#game-table{flex:1;display:flex;flex-direction:column;width:100%;padding:0 10px 80px}
+#area-top{min-height:130px;display:flex;justify-content:center;align-items:flex-end;gap:12px;padding-bottom:5px}
+#area-middle{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;width:100%}
+.player-zone.col{width:150px;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px}
+#field-center{flex:1;min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5px;margin:0 5px;background:linear-gradient(155deg,rgba(6,16,32,.62),rgba(3,9,20,.54));border:1px solid rgba(0,216,255,.18);border-radius:20px;box-shadow:inset 0 0 22px rgba(0,216,255,.11),0 6px 16px rgba(0,0,0,.28)}
+#flow-indicator-row{width:100%;display:flex;align-items:stretch;justify-content:center;gap:8px;margin-bottom:10px}
+#indicator{width:88px;height:60px;border-radius:8px;border:1px solid rgba(220,238,255,.55);display:flex;align-items:center;justify-content:center;font-family:var(--pv-font-display);font-size:11px;letter-spacing:.08em}
+#indicator.state-normal{background:linear-gradient(145deg,#0e2f63,#1f5aa8)}#indicator.state-reverse{background:linear-gradient(145deg,#8a1824,#d43445)}
+#astronomer-indicator{width:78px;height:60px;padding:4px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:linear-gradient(150deg,#0d1631,#1c2f66);display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#astronomer-indicator.state-strongest{border-color:rgba(255,214,102,.85)}#astronomer-indicator.state-weakest{border-color:rgba(144,202,249,.7);filter:saturate(.78)}
+#astronomer-indicator-state{font-size:10px;font-weight:700}#astronomer-indicator-value{width:30px;height:40px;border-radius:6px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(160deg,#fefefe,#dfe9ff);color:#1a237e;font-size:24px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.field-zone-container{width:100%;flex:1;display:flex;justify-content:center;gap:8px}.field-zone{flex:1;border-radius:12px;padding:5px 2px;display:flex;flex-direction:column;align-items:center;border:1px solid rgba(255,255,255,.15)}.zone-num{background:rgba(33,150,243,.14);border-color:rgba(0,216,255,.42)}.zone-sym{background:rgba(244,67,54,.12);border-color:rgba(255,53,94,.4)}.zone-label{font-size:12px;font-weight:700;opacity:.66}.grave-slot{transform:scale(.9);margin-bottom:auto}.pile{width:60px;height:90px;border:2px dashed rgba(173,214,255,.62);border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,rgba(6,16,32,.7),rgba(3,10,20,.56))}
+.deck-slot{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:5px;padding:4px 10px;border-radius:15px;border:1px solid rgba(0,216,255,.2);background:rgba(0,0,0,.34)}.deck-icon{width:12px;height:18px;border-radius:2px;border:1px solid #fff}.deck-icon.num{background:repeating-linear-gradient(45deg,#1565c0,#1565c0 2px,#0d47a1 2px,#0d47a1 4px)}.deck-icon.sym{background:repeating-linear-gradient(45deg,#c62828,#c62828 2px,#b71c1c 2px,#b71c1c 4px)}.deck-count{font-size:12px;font-weight:700}
+#exclusion-area{margin-top:2px;font-size:11px;background:rgba(3,12,24,.62);padding:3px 12px;border-radius:12px;border:1px solid rgba(255,53,94,.3);display:flex;align-items:center;gap:5px}
+#msg{margin-top:2px;height:18px;line-height:18px;white-space:nowrap;font-size:13px;color:var(--pv-warning)}
+.p-box-wrap{display:flex;flex-direction:column;align-items:center}.p-box-new{width:var(--pv-opponent-width);height:var(--pv-opponent-height);display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(150deg,rgba(6,16,32,.9),rgba(4,11,23,.84));border:1px solid rgba(0,216,255,.32);border-radius:10px;box-shadow:0 6px 14px rgba(0,0,0,.6);position:relative}.p-box-new.current{border:2px solid var(--pv-warning);transform:scale(1.05)}.p-box-new.passed{opacity:.84}.p-box-new.warning-1 .p-hand-count{color:#ff1744;animation:blink-text .6s infinite}.p-box-new.warning-2 .p-hand-count{color:var(--pv-warning);animation:blink-text 1.2s infinite}
+.p-header{height:26px;line-height:26px;padding:0 4px;background:rgba(8,26,48,.64);border-bottom:1px solid rgba(0,216,255,.24);border-radius:9px 9px 0 0;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline}.p-host-mark{color:#ffd700;margin-right:4px}
+.p-body{flex:1;display:flex;justify-content:space-between;align-items:center;padding:0 8px;border-bottom:1px solid rgba(0,216,255,.2)}.p-hand-count{white-space:nowrap;font-size:24px;font-weight:800;display:flex;align-items:center;gap:2px}.p-hand-count.count-passed{color:#78909c;animation:none}.p-hand-icon{font-size:16px;opacity:.8}.p-status-area{display:flex;flex-direction:column;align-items:flex-end}.status-text{font-size:11px;letter-spacing:1px}.status-normal{color:#8aa0b8}.status-reset{color:var(--pv-warning);border:1px solid var(--pv-warning);border-radius:4px;background:rgba(0,0,0,.3);padding:0 4px}.status-rank{color:#ffd700;font-size:14px}.p-revealed-info{font-size:11px;margin-top:5px;white-space:nowrap}.revealed-none{color:#9cb3c9;font-weight:700}.revealed-active{color:var(--pv-warning);font-weight:700}
+.p-role-row{height:30px;display:flex;justify-content:center;align-items:center;background:rgba(4,12,24,.5);padding:0 4px;border-radius:0 0 9px 9px}
+.role-attr-strategy{--role-accent:var(--pv-seki-s);--role-accent-rgb:0,216,255}.role-attr-efficiency{--role-accent:var(--pv-seki-e);--role-accent-rgb:52,247,141}.role-attr-killer{--role-accent:var(--pv-seki-k);--role-accent-rgb:255,53,94}
+.role-badge-pill{width:95%;border-radius:12px;border:1px solid rgba(var(--role-accent-rgb,0,216,255),.86);background:linear-gradient(135deg,rgba(9,24,40,.92),rgba(var(--role-accent-rgb,0,216,255),.72) 52%,rgba(var(--role-accent-rgb,0,216,255),.95));display:flex;justify-content:center;gap:4px;font-size:14px}.role-sub{font-size:13px}.role-unknown{font-size:11px;color:rgba(255,255,255,.6);font-weight:700;letter-spacing:2px}
+.chat-bubble{position:absolute;background:#fff;color:#000;font-size:11px;font-weight:700;padding:6px 10px;border-radius:12px;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none}.chat-bubble.active{opacity:1}.bubble-pos-bottom{bottom:110%;left:50%;transform:translateX(-50%)}.bubble-pos-top{top:100%;left:0;margin-top:10px}.bubble-pos-left{bottom:100%;left:0;margin-bottom:10px}.bubble-pos-right{top:100%;right:0;margin-top:10px}
+#my-area{margin-top:10px;background:linear-gradient(155deg,var(--pv-panel-bg),var(--pv-panel-soft));border-radius:18px;border:1px solid var(--pv-panel-border);box-shadow:var(--pv-shadow-panel),inset 0 0 18px rgba(0,216,255,.08);padding:15px}#my-area.current-turn{border:2px solid var(--pv-warning);background:linear-gradient(155deg,rgba(42,38,8,.88),rgba(18,25,38,.78))}
+.my-name-plate{position:relative;overflow:visible;margin:-15px -15px 10px;padding:8px 15px;border-radius:18px 18px 0 0;border-bottom:1px solid rgba(0,216,255,.28);background:linear-gradient(155deg,rgba(6,18,35,.82),rgba(4,11,23,.74));display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700}.my-host-icon{color:#ffd700}.my-name-link{text-decoration:underline}.my-role-chip{margin-left:10px;color:var(--role-accent,#8fefff)}.my-role-chip.used{opacity:.6}.my-reset-badge{margin-left:10px;font-size:12px}.my-rank-badge{margin-left:10px;color:#ffd700}
+#my-hand{width:100%;min-height:94px;display:flex;flex-wrap:nowrap;justify-content:center;align-items:flex-end;white-space:nowrap}
+.card{width:54px;height:86px;margin:3px;border-radius:6px;border:1px solid var(--pv-card-border);background-color:var(--pv-card-bg);color:#1f2a3a;box-shadow:2px 2px 8px rgba(0,0,0,.38);display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}.card.num{color:#1565c0;font-family:var(--pv-font-display)}.card.sym{color:#c62828;font-size:11px;line-height:1.1;padding:6px}.card.selected{transform:translateY(-20px) scale(1.1);border:2px solid var(--pv-warning)}.card.locked{filter:grayscale(.9) brightness(.6);border:2px dashed #ff1744}.card.revealed{border:3px solid #fdd835}.card.placeholder-symbol{background:linear-gradient(135deg,rgba(255,255,255,.84),rgba(240,244,255,.96)),repeating-linear-gradient(45deg,rgba(198,40,40,.25),rgba(198,40,40,.25) 3px,transparent 3px,transparent 6px)}
+.seki-controls{margin-top:5px;display:flex;justify-content:center;gap:8px}.seki-controls .seki-btn{min-width:84px;padding:5px 12px}
+#my-role-panel{margin:10px 0;display:flex;justify-content:center}.role-card{width:100%;max-width:300px;border-radius:8px;border:1px solid rgba(var(--role-accent-rgb,0,216,255),.42);box-shadow:0 4px 12px rgba(0,0,0,.45);padding:10px 20px;text-align:center;position:relative;overflow:hidden}.role-card::before{content:"ROLE";position:absolute;top:-10px;right:-10px;font-size:50px;color:rgba(255,255,255,.05)}.role-name{font-family:var(--pv-font-display);font-size:16px;letter-spacing:1px;color:var(--role-accent,#8fefff)}.role-jp{margin:2px 0;font-size:20px;font-weight:700}.role-desc{margin-top:5px;padding-top:4px;border-top:1px solid rgba(var(--role-accent-rgb,179,223,255),.4);font-family:var(--pv-font-readable);font-size:11px}.role-activate-btn{margin-top:8px;min-width:112px;min-height:32px;border-radius:16px;border:1px solid rgba(var(--role-accent-rgb,0,216,255),.72);background:linear-gradient(135deg,rgba(8,22,40,.96),rgba(var(--role-accent-rgb,0,216,255),.72) 56%,rgba(var(--role-accent-rgb,0,216,255),.92));color:#effbff;font-family:var(--pv-font-ui);font-size:12px;padding:6px 12px}.role-status-badge{margin-top:6px;font-size:11px;color:var(--pv-warning);font-weight:700}
+#game-log-bar{position:absolute;left:0;right:0;bottom:0;height:var(--pv-log-height);line-height:var(--pv-log-height);background:linear-gradient(135deg,rgba(6,16,32,.96),rgba(4,11,23,.96));border-top:1px solid rgba(0,216,255,.34);color:var(--pv-text-main);text-align:left;padding-left:15px;font-size:13px;overflow:hidden;white-space:nowrap}
+.token-map summary{cursor:pointer;color:#9ce8ff;font-size:13px;font-weight:700}.token-map-note{margin:8px 0;font-size:12px;color:var(--pv-text-muted);line-height:1.4}
+.token-table{width:100%;border-collapse:collapse;font-size:12px;color:var(--pv-text-sub)}.token-table th,.token-table td{border-bottom:1px solid rgba(143,176,214,.26);padding:6px;text-align:left;vertical-align:top}.token-table th{color:#9ce8ff;background:rgba(8,26,48,.42)}.token-name{font-family:Consolas,"Courier New",monospace;color:#dff6ff;white-space:nowrap}
+@media (max-width:600px){body{padding:8px}.player-zone.col{width:105px}.player-zone.col .p-box-new{width:100px;height:auto;min-height:180px;padding-bottom:5px}.player-zone.col .p-box-new .p-body{flex-direction:column;justify-content:center;gap:8px;padding:5px 0}.player-zone.col .p-box-new .p-status-area{align-items:center;width:100%}.player-zone.col .p-box-new .p-role-row{height:auto;min-height:40px;padding:5px 0}.player-zone.col .p-box-new .role-badge-pill{width:96%;flex-direction:column;border-radius:8px;padding:4px 0}.chat-bubble{max-width:90px;font-size:10px}}
+@keyframes blink-text{0%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div id="preview-root" data-viewport="desktop">
+<div class="preview-toolbar" aria-label="プレビュー操作パネル">
+<div class="toolbar-group"><span class="toolbar-label">状態:</span><button type="button" class="toolbar-btn" data-state-btn="normal">normal</button><button type="button" class="toolbar-btn" data-state-btn="my_turn_reset">my_turn_reset</button><button type="button" class="toolbar-btn" data-state-btn="danger_revealed">danger_revealed</button><button type="button" class="toolbar-btn" data-state-btn="finished_ranked">finished_ranked</button><select id="state-select" class="toolbar-select" aria-label="状態セレクト"></select></div>
+<div class="toolbar-group"><span class="toolbar-label">viewport:</span><button type="button" class="toolbar-btn" data-viewport-btn="desktop">desktop</button><button type="button" class="toolbar-btn" data-viewport-btn="mobile">mobile</button></div>
+</div>
+<div class="preview-frame">
+<div id="game-screen">
+<div id="header-info" class="seki-topbar"><div id="room-display">ROOM: ui-preview-5p</div><div class="seki-topbar-actions"><button class="seki-btn seki-btn-accent" type="button">⚙️</button><button class="seki-btn seki-btn-gold" type="button">🏆</button><button class="seki-btn seki-btn-accent" type="button">役職</button><button class="seki-btn" type="button">ルール</button><button class="seki-btn" type="button">🔊</button><button class="seki-btn seki-btn-danger" type="button">🚪</button></div></div>
+<div id="game-table">
+<div id="area-top" class="player-zone row"></div>
+<div id="area-middle">
+<div id="area-left" class="player-zone col"></div>
+<div id="field-center">
+<div id="flow-indicator-row"><div id="indicator" class="state-normal" aria-live="polite">NORMAL</div><div id="astronomer-indicator" aria-live="polite"><div id="astronomer-indicator-state">観測待機</div><div id="astronomer-indicator-value">-</div></div></div>
+<div class="field-zone-container">
+<div class="field-zone zone-num"><div class="zone-label">数字墓地</div><div class="grave-slot"><div id="graveNum" class="pile"></div></div><div class="deck-slot"><div class="deck-icon num"></div><div id="deckNumCount" class="deck-count">-</div></div></div>
+<div class="field-zone zone-sym"><div class="zone-label">記号墓地</div><div class="grave-slot"><div id="graveSym" class="pile"></div></div><div class="deck-slot"><div class="deck-icon sym"></div><div id="deckSymCount" class="deck-count">-</div></div></div>
+</div>
+<div id="exclusion-area"><span>🗑️除外：</span><span id="exclusion-count">0</span></div>
+<div id="msg">待機中...</div>
+</div>
+<div id="area-right" class="player-zone col"></div>
+</div>
+<div id="my-area"><div id="my-name-bar" class="my-name-plate"></div><div id="my-hand"></div><div id="controls" class="seki-controls"><button id="btn-play" class="seki-btn seki-btn-accent" type="button">PLAY</button><button id="btn-pass" class="seki-btn seki-btn-soft" type="button">PASS</button></div><div id="my-role-panel"></div></div>
+</div>
+<div id="game-log-bar">ログを読み込み中...</div>
+</div>
+</div>
+<details class="token-map">
+<summary>--pv-* トークン対応表（外部調整はここだけ編集）</summary>
+<p class="token-map-note">外部UI調整サイトでは <code>#preview-tokens</code> 内の <code>--pv-*</code> のみ編集してください。</p>
+<table class="token-table"><thead><tr><th>Token</th><th>主用途</th><th>反映先</th></tr></thead><tbody>
+<tr><td class="token-name">--pv-bg-body</td><td>全体背景</td><td><code>styles/app/00-theme-base.css</code></td></tr>
+<tr><td class="token-name">--pv-text-main</td><td>主要文字色</td><td><code>styles/app/00-theme-base.css</code></td></tr>
+<tr><td class="token-name">--pv-panel-border</td><td>パネル枠線</td><td><code>styles/app/00-theme-base.css</code>, <code>styles/app/40-components-board-modal.css</code></td></tr>
+<tr><td class="token-name">--pv-seki-s/e/k</td><td>属性カラー</td><td><code>styles/app/00-theme-base.css</code>, <code>styles/app/30-layout-board.css</code></td></tr>
+<tr><td class="token-name">--pv-card-bg</td><td>カード背景</td><td><code>styles/app/20-screen-login.css</code></td></tr>
+<tr><td class="token-name">--pv-card-border</td><td>カード枠</td><td><code>styles/app/20-screen-login.css</code></td></tr>
+<tr><td class="token-name">--pv-warning</td><td>警告表示</td><td><code>styles/app/30-layout-board.css</code>, <code>styles/app/60-chat-mobile-public-info.css</code></td></tr>
+<tr><td class="token-name">--pv-opponent-width/height</td><td>相手ボックス</td><td><code>styles/app/30-layout-board.css</code></td></tr>
+<tr><td class="token-name">--pv-log-height</td><td>ログバー高</td><td><code>styles/app/40-components-board-modal.css</code></td></tr>
+<tr><td class="token-name">--pv-font-ui/readable</td><td>フォント統制</td><td><code>styles/fonts.css</code></td></tr>
+</tbody></table>
+</details>
+
+</div>
+<script id="preview-script">
+(() => {
+const slots=["left","top1","top2","right"];
+const slotMeta={left:{areaKey:"left",bubbleClass:"bubble-pos-left"},top1:{areaKey:"top",bubbleClass:"bubble-pos-top"},top2:{areaKey:"top",bubbleClass:"bubble-pos-top"},right:{areaKey:"right",bubbleClass:"bubble-pos-right"}};
+const baseOppNames={left:{id:"p-left",name:"KAI"},top1:{id:"p-top1",name:"NOVA"},top2:{id:"p-top2",name:"MIO"},right:{id:"p-right",name:"REX"}};
+const baseMy={name:"YOU",host:false,reset:false,rank:null,bubble:"",roleChip:{group:"EFFICIENCY",text:"【役職】錬金術師",used:false},hand:[{type:"num",val:"4"},{type:"num",val:"7"},{type:"sym",val:"REVERSE"},{type:"num",val:"9"}],locked:[{type:"num",val:"2",locked:true}],rolePanel:{code:"ALCHEMIST",jp:"錬金術師",summary:"数字山札を引き、手札と四則演算して出す",group:"EFFICIENCY",actionType:"button",actionLabel:"ACTIVATE"}};
+const baseState={roomName:"ROOM: ui-preview-5p",isReverse:false,decks:{num:23,sym:11},exclusionCount:2,graveNum:{type:"num",val:"6"},graveSym:{type:"sym",val:"TRADE"},astronomer:{visible:true,mode:"strongest",stateText:"最強",value:"8"},message:"NOVA のターン",logBar:"[12:06] NOVA が 6 をプレイしました。",controlsDisabled:true,myTurn:false,my:baseMy};
+function makeOpp(overrides={}){
+  const out={};
+  slots.forEach((k)=>{const b=baseOppNames[k];const o=overrides[k]||{};out[k]={id:b.id,name:b.name,host:false,turn:false,rank:null,handCount:3,warning:"none",statusType:"normal",statusText:"NORMAL",revealedText:"NONE",role:{mode:"unknown"},bubble:"",...o,role:{mode:"unknown",...(o.role||{})}};});
+  return out;
+}
+function makeState(overrides={}){
+  const myOv=overrides.my||{};
+  const st={...baseState,...overrides};
+  st.decks={...baseState.decks,...(overrides.decks||{})};
+  st.astronomer={...baseState.astronomer,...(overrides.astronomer||{})};
+  st.my={...baseMy,...myOv,rolePanel:{...baseMy.rolePanel,...((myOv.rolePanel)||{})}};
+  st.my.hand=myOv.hand||baseMy.hand;
+  st.my.locked=myOv.locked||baseMy.locked;
+  st.my.roleChip=myOv.roleChip===null?null:{...baseMy.roleChip,...(myOv.roleChip||{})};
+  st.opponents=makeOpp(overrides.opponents||{});
+  return st;
+}
+const PREVIEW_STATES={
+normal:makeState({opponents:{left:{host:true,handCount:4,role:{mode:"group",group:"STRATEGY",text:"STRATEGY"}},top1:{turn:true,bubble:"今のところ様子見"},top2:{handCount:5},right:{handCount:2,warning:"warning",role:{mode:"group",group:"KILLER",text:"KILLER"}}}}),
+my_turn_reset:makeState({decks:{num:19,sym:9},exclusionCount:3,graveNum:{type:"num",val:"8"},graveSym:{type:"sym",val:"DIG UP"},astronomer:{value:"3"},message:"リセット可能（パスで発動）",logBar:"[12:21] YOU が手番です。RESET 権限あり。",controlsDisabled:false,myTurn:true,my:{reset:true,bubble:"RESET する？",hand:[{type:"num",val:"1"},{type:"num",val:"5",selected:true},{type:"sym",val:"TRADE"},{type:"num",val:"8"}],locked:[]},opponents:{left:{host:true},top1:{handCount:4,role:{mode:"group",group:"STRATEGY",text:"STRATEGY"}},top2:{handCount:2,warning:"warning"},right:{handCount:5,role:{mode:"group",group:"KILLER",text:"KILLER"}}}}),
+danger_revealed:makeState({isReverse:true,decks:{num:9,sym:4},exclusionCount:6,graveNum:{type:"num",val:"0"},graveSym:{type:"sym",val:"REVERSE"},astronomer:{mode:"weakest",stateText:"最弱",value:"7"},message:"REX のターン",logBar:"[12:44] 警察官効果: 公開カードを更新しました。",my:{roleChip:{used:true},hand:[{type:"num",val:"2",revealed:true},{type:"sym",val:"DISCARD"},{type:"num",val:"9"}],locked:[{type:"sym",val:"TRADE",locked:true}],rolePanel:{actionType:"status",actionLabel:"ACTIVATED"}},opponents:{left:{host:true,handCount:1,warning:"danger",statusType:"reset",statusText:"RESET",revealedText:"3, REV",role:{mode:"revealed",group:"KILLER",text:"警察官",subText:"使用済み"},bubble:"次で上がる！"},top1:{handCount:2,warning:"warning",revealedText:"DIG",role:{mode:"revealed",group:"STRATEGY",text:"天文学者",subText:"観測中"}},top2:{handCount:3},right:{turn:true,handCount:2,warning:"warning",revealedText:"TRD",role:{mode:"group",group:"KILLER",text:"KILLER"},bubble:"どれを出すか..."}}}),
+finished_ranked:makeState({decks:{num:0,sym:0},exclusionCount:11,graveNum:{type:"num",val:"9"},graveSym:{type:"sym",val:"DISCARD"},astronomer:{visible:false,stateText:"",value:"-"},message:"ゲーム終了！",logBar:"[13:02] 結果確定: 1st NOVA / 2nd KAI / 3rd REX / 4th YOU / 5th MIO",my:{rank:4,roleChip:{used:true},hand:[{type:"num",val:"5"}],locked:[],rolePanel:{actionType:"status",actionLabel:"RESULT LOCKED"}},opponents:{left:{rank:2,handCount:0,statusType:"rank",statusText:"2nd",role:{mode:"revealed",group:"STRATEGY",text:"ハッカー",subText:"公開済み"}},top1:{rank:1,handCount:0,statusType:"rank",statusText:"1st",role:{mode:"revealed",group:"KILLER",text:"皇帝",subText:"公開済み"}},top2:{host:true,rank:5,handCount:0,statusType:"rank",statusText:"5th",role:{mode:"revealed",group:"EFFICIENCY",text:"狩人",subText:"公開済み"}},right:{rank:3,handCount:0,statusType:"rank",statusText:"3rd",role:{mode:"revealed",group:"KILLER",text:"警察官",subText:"公開済み"}}}})
+};
+const viewportModes=["desktop","mobile"];
+let currentStateKey="normal";
+const e=(v)=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");
+function sym(v){const u=String(v||"").toUpperCase();if(u.includes("REVERSE"))return"REV";if(u.includes("TRADE"))return"TRD";if(u.includes("DIG"))return"DIG";if(u.includes("DISCARD"))return"DIS";return u||"?";}
+function roleClass(g){if(g==="STRATEGY")return"role-attr-strategy";if(g==="EFFICIENCY")return"role-attr-efficiency";if(g==="KILLER")return"role-attr-killer";return"";}
+function rankSuffix(r){if(r===1)return"st";if(r===2)return"nd";if(r===3)return"rd";return"th";}
+function card(c){if(!c)return"";const cl=["card",c.type==="sym"?"sym":"num"];if(c.selected)cl.push("selected");if(c.revealed)cl.push("revealed");if(c.locked)cl.push("locked");if(c.type==="sym")cl.push("placeholder-symbol");return'<div class="'+cl.join(" ")+'">'+(c.type==="sym"?sym(c.val):e(c.val))+"</div>";}
+function statusHtml(o){if(Number.isInteger(o.rank))return'<span class="status-text status-rank">🏆 '+o.rank+rankSuffix(o.rank)+"</span>";if(o.statusType==="reset")return'<span class="status-text status-reset">'+e(o.statusText||"RESET")+"</span>";return'<span class="status-text status-normal">'+e(o.statusText||"NORMAL")+"</span>";}
+function roleHtml(r){if(!r||r.mode==="unknown")return'<span class="role-unknown">ROLE: ???</span>';if(r.mode==="group")return'<div class="role-badge-pill role-badge-group-mask '+roleClass(r.group)+'">'+e(r.text||r.group||"GROUP")+"</div>";return'<div class="role-badge-pill '+roleClass(r.group)+'">'+e(r.text||"ROLE")+(r.subText?'<span class="role-sub">'+e(r.subText)+"</span>":"")+"</div>";}
+function renderOpponents(st){
+  const area={top:"",left:"",right:""};
+  slots.forEach((k)=>{const m=slotMeta[k],o=st.opponents[k];if(!o)return;const box=["p-box-new"];if(o.turn)box.push("current");if(Number.isInteger(o.rank))box.push("passed");if(!Number.isInteger(o.rank)&&o.warning==="danger")box.push("warning-1");if(!Number.isInteger(o.rank)&&o.warning==="warning")box.push("warning-2");const cCls=Number.isInteger(o.rank)?" count-passed":"";
+    const reveal=o.revealedText&&o.revealedText!=="NONE"?'公開: <span class="revealed-active">'+e(o.revealedText)+'</span>':'<span class="revealed-none">公開: NONE</span>';
+    area[m.areaKey]+='<div class="p-box-wrap"><div class="'+box.join(" ")+' with-bubble"><div class="chat-bubble '+m.bubbleClass+" "+(o.bubble?"active":"")+'">'+e(o.bubble||"")+'</div><div class="p-header clickable">'+(o.host?"<span class=\"p-host-mark\">★</span>":"")+e(o.name)+'</div><div class="p-body"><div class="p-hand-count'+cCls+'"><span class="p-hand-icon">🃏×</span>'+e(o.handCount)+'</div><div class="p-status-area">'+statusHtml(o)+'<div class="p-revealed-info">'+reveal+"</div></div></div><div class=\"p-role-row\">"+roleHtml(o.role)+"</div></div></div>";
+  });
+  document.getElementById("area-top").innerHTML=area.top;document.getElementById("area-left").innerHTML=area.left;document.getElementById("area-right").innerHTML=area.right;
+}
+function renderBoard(st){
+  const ind=document.getElementById("indicator");ind.className=st.isReverse?"state-reverse":"state-normal";ind.textContent=st.isReverse?"REVERSE":"NORMAL";
+  const a=st.astronomer||{},ae=document.getElementById("astronomer-indicator");if(a.visible){ae.style.display="flex";ae.classList.remove("state-strongest","state-weakest");ae.classList.add(a.mode==="weakest"?"state-weakest":"state-strongest");document.getElementById("astronomer-indicator-state").textContent=a.stateText||"-";document.getElementById("astronomer-indicator-value").textContent=a.value||"-";}else{ae.style.display="none";}
+  document.getElementById("graveNum").innerHTML=card(st.graveNum);document.getElementById("graveSym").innerHTML=card(st.graveSym);document.getElementById("deckNumCount").textContent=String(st.decks.num);document.getElementById("deckSymCount").textContent=String(st.decks.sym);document.getElementById("exclusion-count").textContent=String(st.exclusionCount);document.getElementById("msg").textContent=st.message;document.getElementById("game-log-bar").textContent=st.logBar;document.getElementById("room-display").textContent=st.roomName;
+}
+function renderMy(st){
+  const my=st.my,area=document.getElementById("my-area");area.classList.toggle("current-turn",!!st.myTurn);
+  const rc=my.roleChip?roleClass(my.roleChip.group):"",rUsed=my.roleChip&&my.roleChip.used?" used":"",roleChip=my.roleChip?'<span class="my-role-chip '+rc+rUsed+'">'+e(my.roleChip.text)+"</span>":"";
+  document.getElementById("my-name-bar").innerHTML='<div class="chat-bubble bubble-pos-bottom '+(my.bubble?"active":"")+'">'+e(my.bubble||"")+'</div>'+(my.host?"<span class=\"my-host-icon\">★</span>":"")+'<span class="my-name-link">'+e(my.name)+'</span>'+roleChip+(my.reset?'<span class="status-reset my-reset-badge">RESET</span>':"")+(Number.isInteger(my.rank)?'<span class="my-rank-badge">🏆'+my.rank+"位</span>":"");
+  const hand=[...(my.hand||[]),...((my.locked||[]).map((c)=>({...c,locked:true})))];document.getElementById("my-hand").innerHTML=hand.map(card).join("");
+  const p=my.rolePanel||{},pc=roleClass(p.group),act=p.actionType==="button"?'<button type="button" class="role-activate-btn '+pc+'">'+e(p.actionLabel||"ACTIVATE")+'</button>':'<div class="role-status-badge">'+e(p.actionLabel||"ACTIVATED")+"</div>";
+  document.getElementById("my-role-panel").innerHTML='<div class="role-card '+pc+'"><div class="role-name">'+e(p.code||"ROLE")+'</div><div class="role-jp">'+e(p.jp||"役職")+'</div><div class="role-desc">'+e(p.summary||"")+"</div>"+act+"</div>";
+  document.getElementById("btn-play").disabled=!!st.controlsDisabled;document.getElementById("btn-pass").disabled=!!st.controlsDisabled;
+}
+function syncToolbar(sk,vp){document.querySelectorAll("[data-state-btn]").forEach((b)=>b.classList.toggle("active",b.dataset.stateBtn===sk));const ss=document.getElementById("state-select");if(ss.value!==sk)ss.value=sk;document.querySelectorAll("[data-viewport-btn]").forEach((b)=>b.classList.toggle("active",b.dataset.viewportBtn===vp));}
+function applyPreviewState(key){if(!Object.prototype.hasOwnProperty.call(PREVIEW_STATES,key)){console.error("[ui-preview-5p] unknown state:",key);return;}currentStateKey=key;const st=PREVIEW_STATES[key];renderOpponents(st);renderBoard(st);renderMy(st);syncToolbar(key,document.getElementById("preview-root").dataset.viewport);}
+function applyViewport(mode){if(!viewportModes.includes(mode)){console.error("[ui-preview-5p] unknown viewport:",mode);return;}document.getElementById("preview-root").dataset.viewport=mode;syncToolbar(currentStateKey,mode);}
+function initToolbar(){const keys=Object.keys(PREVIEW_STATES),ss=document.getElementById("state-select");ss.innerHTML=keys.map((k)=>'<option value="'+e(k)+'">'+e(k)+"</option>").join("");document.querySelectorAll("[data-state-btn]").forEach((b)=>b.addEventListener("click",()=>applyPreviewState(b.dataset.stateBtn)));ss.addEventListener("change",(ev)=>applyPreviewState(ev.target.value));document.querySelectorAll("[data-viewport-btn]").forEach((b)=>b.addEventListener("click",()=>applyViewport(b.dataset.viewportBtn)));}
+initToolbar();applyViewport("desktop");applyPreviewState("normal");
+window.PREVIEW_STATES=PREVIEW_STATES;window.applyPreviewState=applyPreviewState;window.applyViewport=applyViewport;
+})();
+</script>
+</body>
+</html>
