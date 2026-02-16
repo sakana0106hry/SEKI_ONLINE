@@ -220,7 +220,7 @@
         height: calc(var(--app-height, 100dvh) - 72px);
         display: none;
         flex-direction: column;
-        border-radius: 12px;
+        /* border-radius: 12px; */
         border: 1px solid rgba(0, 216, 255, 0.32);
         background: linear-gradient(155deg, rgba(6, 16, 32, 0.92), rgba(4, 11, 23, 0.88));
         box-shadow: 0 8px 26px rgba(0,0,0,0.58), 0 0 18px rgba(0, 216, 255, 0.14);
@@ -267,9 +267,8 @@
     #desktop-chat-send-btn {
         background: linear-gradient(135deg, #157a53, #34b583);
         color: #fff;
-        border-radius: 18px;
-        padding: 0 10px;
-        min-width: 56px;
+        border-radius: 20px;
+        padding: 0 20px;
         flex: 0 0 auto;
         white-space: nowrap;
         border: 1px solid rgba(93, 255, 192, 0.45);
