@@ -229,6 +229,16 @@
     }
     body.desktop-side-mode #desktop-chatlog-panel:not(.hidden) {
         display: flex;
+        grid-column: 3;
+        grid-row: 2;
+        position: relative;
+        top: 0;
+        right: auto;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        max-height: none;
+        z-index: 20;
     }
     #desktop-chatlog-header {
         font-family: var(--font-ui);

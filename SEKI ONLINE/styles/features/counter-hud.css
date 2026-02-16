@@ -71,19 +71,32 @@
     body.desktop-side-mode #counter-panel .close-btn {
         display: none !important;
     }
+    body.desktop-side-mode #counter-hud-wrapper {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        min-width: 0;
+        height: 100%;
+        position: relative;
+        z-index: 20;
+    }
     body.desktop-side-mode #counter-panel {
-        top: 58px;
+        position: relative;
+        top: 0;
         left: 0;
         right: auto;
-        width: var(--seki-side-panel-width);
-        max-width: var(--seki-side-panel-width);
-        max-height: calc(var(--app-height, 100dvh) - 72px);
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        max-height: none;
         overflow-y: auto;
+        box-sizing: border-box;
+        margin: 0;
         transform-origin: top left;
         transform: none !important;
         opacity: 1 !important;
         pointer-events: auto !important;
-        z-index: 120;
+        z-index: 20;
         border-radius: 0;
     }
 

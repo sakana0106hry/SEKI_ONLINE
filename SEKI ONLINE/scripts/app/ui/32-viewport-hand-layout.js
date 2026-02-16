@@ -17,12 +17,9 @@
             const innerWidthSafe = Number(window.innerWidth) || 0;
             const safeWidth = Math.max(0, visualWidth, innerWidthSafe);
             const gameMaxWidth = readCssPxVar("--seki-game-max-width", 860);
-            const sideGap = readCssPxVar("--seki-side-gap", 12);
-            const edgePadding = 12;
-            const sideSpace = (safeWidth - gameMaxWidth) / 2;
-            const sideUsableWidth = sideSpace - sideGap - edgePadding;
+            const sidePanelWidth = (safeWidth - gameMaxWidth) / 2;
 
-            const canUseDesktopSidePanels = sideUsableWidth >= 220;
+            const canUseDesktopSidePanels = sidePanelWidth >= 220;
 
             document.body.classList.toggle("desktop-side-mode", canUseDesktopSidePanels);
         }

@@ -74,6 +74,38 @@
             </div>
         </div>
 
+        <div id="counter-hud-wrapper" class="hidden">
+            <div id="counter-toggle-btn" onclick="toggleCounterHUD()">
+                📊
+            </div>
+
+            <div id="counter-panel">
+                <div class="hud-header">
+                    <span>CARD COUNTER</span>
+                    <span class="close-btn" onclick="toggleCounterHUD()">×</span>
+                </div>
+                
+                <div class="hud-section-title">NUMBER (残/全4)</div>
+                <div class="hud-grid" id="hud-grid-num">
+                    <div class="hud-loading">Loading...</div>
+                </div>
+
+                <div class="hud-section-title">SYMBOL</div>
+                <div class="hud-grid-sym" id="hud-grid-sym">
+                    <div class="hud-loading">Loading...</div>
+                </div>
+
+                <div class="hud-section-title">ROLE CANDIDATES</div>
+                <div class="hud-grid-role" id="hud-grid-role">
+                    <div class="hud-loading">No Data</div>
+                </div>
+                
+                <div class="hud-footnote">
+                    ※山札 + 相手の手札にある数 ＆ 可能性がある役職を表示
+                </div>
+            </div>
+        </div>
+
         <div id="game-table">
             
             <div id="area-top" class="player-zone row"></div>
@@ -145,23 +177,23 @@
 
             </div>
         </div>
+
+        <div id="desktop-chatlog-panel" class="hidden">
+            <div id="desktop-chatlog-header">CHAT &amp; LOG</div>
+            <div id="desktop-chat-input-wrap">
+                <input
+                    type="text"
+                    id="desktop-chat-input"
+                    placeholder="// ENTER MESSAGE..."
+                    onkeydown="if(event.key==='Enter' && !event.isComposing){sendDesktopChat();}"
+                >
+                <button id="desktop-chat-send-btn" onclick="sendDesktopChat()">SEND</button>
+            </div>
+            <div id="desktop-log-list"></div>
+        </div>
     </div>
 
     <div id="game-log-bar" onclick="showLogHistory()">ログを読み込み中...</div>
-
-    <div id="desktop-chatlog-panel" class="hidden">
-        <div id="desktop-chatlog-header">CHAT &amp; LOG</div>
-        <div id="desktop-chat-input-wrap">
-            <input
-                type="text"
-                id="desktop-chat-input"
-                placeholder="// ENTER MESSAGE..."
-                onkeydown="if(event.key==='Enter' && !event.isComposing){sendDesktopChat();}"
-            >
-            <button id="desktop-chat-send-btn" onclick="sendDesktopChat()">SEND</button>
-        </div>
-        <div id="desktop-log-list"></div>
-    </div>
 
     <div id="modal-overlay" class="hidden">
         <div id="modal-box">
@@ -376,37 +408,6 @@ class Core {
     <script src="scripts/app/effects/30-cutin-effects.js"></script>
     <script src="scripts/app/ui/31-effect-listener-guides-score.js"></script>
     <script src="scripts/app/public/99-window-exports.js"></script>
-    <div id="counter-hud-wrapper" class="hidden">
-    <div id="counter-toggle-btn" onclick="toggleCounterHUD()">
-        📊
-    </div>
-
-    <div id="counter-panel">
-        <div class="hud-header">
-            <span>CARD COUNTER</span>
-            <span class="close-btn" onclick="toggleCounterHUD()">×</span>
-        </div>
-        
-        <div class="hud-section-title">NUMBER (残/全4)</div>
-        <div class="hud-grid" id="hud-grid-num">
-            <div class="hud-loading">Loading...</div>
-        </div>
-
-        <div class="hud-section-title">SYMBOL</div>
-        <div class="hud-grid-sym" id="hud-grid-sym">
-            <div class="hud-loading">Loading...</div>
-        </div>
-
-        <div class="hud-section-title">ROLE CANDIDATES</div>
-        <div class="hud-grid-role" id="hud-grid-role">
-            <div class="hud-loading">No Data</div>
-        </div>
-        
-        <div class="hud-footnote">
-            ※山札 + 相手の手札にある数 ＆ 可能性がある役職を表示
-        </div>
-    </div>
-</div>
 
     <link rel="stylesheet" href="styles/features/counter-hud.css">
 

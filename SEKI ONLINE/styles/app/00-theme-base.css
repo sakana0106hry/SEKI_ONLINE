@@ -60,7 +60,7 @@
         flex-direction: column;
     }
     body.desktop-side-mode {
-        --seki-side-panel-width: calc((100vw - var(--seki-game-max-width, 860px)) / 2 - var(--seki-side-gap, 12px));
+        --seki-side-panel-width: calc((100vw - var(--seki-game-max-width, 860px)) / 2);
     }
 
     /* 共通レイアウト */
@@ -82,6 +82,20 @@
         border-left: 1px solid rgba(0, 216, 255, 0.11);
         border-right: 1px solid rgba(0, 216, 255, 0.11);
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+    body.desktop-side-mode #game-screen {
+        width: 100vw;
+        max-width: 100vw;
+        margin: 0;
+        display: grid;
+        grid-template-columns:
+            var(--seki-side-panel-width)
+            minmax(0, var(--seki-game-max-width, 860px))
+            var(--seki-side-panel-width);
+        grid-template-rows: 42px minmax(0, 1fr);
+        align-content: stretch;
+        border-left: none;
+        border-right: none;
     }
     #game-screen::before,
     #game-screen::after {
@@ -114,14 +128,21 @@
         padding: 8px 10px;
     }
     body.desktop-side-mode #header-info.seki-topbar {
-        width: 100vw;
-        max-width: 100vw;
+        grid-column: 1 / -1;
+        grid-row: 1;
+        width: 100%;
+        max-width: none;
         box-sizing: border-box;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
+        margin: 0;
         padding-left: 16px;
         padding-right: 16px;
         z-index: 130;
+    }
+    body.desktop-side-mode #game-table {
+        grid-column: 2;
+        grid-row: 2;
+        width: 100%;
+        min-width: 0;
     }
     .hidden { display: none !important; }
     .seki-topbar {
