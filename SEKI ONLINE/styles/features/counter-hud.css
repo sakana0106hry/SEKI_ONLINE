@@ -115,12 +115,21 @@
         padding-bottom: 5px; margin-bottom: 8px;
     }
     body.desktop-side-mode #counter-panel .hud-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
         font-family: var(--seki-desktop-header-font);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
         color: var(--seki-desktop-header-text);
         border-bottom: var(--seki-desktop-header-border);
         background: var(--seki-desktop-header-bg);
         padding: var(--seki-desktop-header-pad);
-        margin: 0 0 8px;
+        margin: -12px -12px 8px;
+        box-sizing: border-box;
     }
     .close-btn { cursor: pointer; padding: 0 5px; font-size: 16px; color: #fff; }
 

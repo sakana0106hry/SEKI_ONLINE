@@ -257,11 +257,20 @@
         background: rgba(8, 26, 48, 0.42);
     }
     body.desktop-side-mode #desktop-chatlog-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
         font-family: var(--seki-desktop-header-font);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
         color: var(--seki-desktop-header-text);
         border-bottom: var(--seki-desktop-header-border);
         background: var(--seki-desktop-header-bg);
         padding: var(--seki-desktop-header-pad);
+        box-sizing: border-box;
     }
     #desktop-chat-input-wrap {
         display: flex;
