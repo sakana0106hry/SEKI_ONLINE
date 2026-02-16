@@ -262,11 +262,93 @@
             return true;
         }
 
-        function stringToColor(str) {
+        const CHAT_NAME_COLOR_CANDIDATES = [
+            { h: 8, s: 86, l: 62 },
+            { h: 32, s: 88, l: 60 },
+            { h: 54, s: 88, l: 58 },
+            { h: 84, s: 82, l: 58 },
+            { h: 124, s: 78, l: 58 },
+            { h: 158, s: 76, l: 56 },
+            { h: 188, s: 82, l: 60 },
+            { h: 212, s: 84, l: 62 },
+            { h: 236, s: 84, l: 66 },
+            { h: 264, s: 82, l: 66 },
+            { h: 292, s: 80, l: 64 },
+            { h: 320, s: 82, l: 62 },
+            { h: 348, s: 84, l: 64 }
+        ];
+        const chatNameColorIndexMap = {};
+
+        function hashStringToPositiveInt(str) {
             let hash = 0;
-            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            const h = Math.abs(hash) % 360;
-            return `hsl(${h}, 70%, 40%)`;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                hash |= 0;
+            }
+            return Math.abs(hash);
+        }
+
+        function hueDistanceDeg(a, b) {
+            const raw = Math.abs(a - b) % 360;
+            return raw > 180 ? (360 - raw) : raw;
+        }
+
+        function formatChatColor(candidate) {
+            return `hsl(${candidate.h}, ${candidate.s}%, ${candidate.l}%)`;
+        }
+
+        function pickChatColorIndex(name) {
+            const total = CHAT_NAME_COLOR_CANDIDATES.length;
+            if (total <= 0) return 0;
+            const seedIndex = hashStringToPositiveInt(name) % total;
+            const seedHue = CHAT_NAME_COLOR_CANDIDATES[seedIndex].h;
+
+            const usedIndices = new Set(
+                Object.values(chatNameColorIndexMap).filter(idx =>
+                    Number.isInteger(idx) && idx >= 0 && idx < total
+                )
+            );
+
+            if (usedIndices.size === 0) return seedIndex;
+
+            let bestIndex = -1;
+            let bestScore = -Infinity;
+
+            for (let i = 0; i < total; i++) {
+                if (usedIndices.has(i)) continue;
+                const candidate = CHAT_NAME_COLOR_CANDIDATES[i];
+                let minDist = 360;
+
+                usedIndices.forEach(usedIdx => {
+                    const usedHue = CHAT_NAME_COLOR_CANDIDATES[usedIdx].h;
+                    minDist = Math.min(minDist, hueDistanceDeg(candidate.h, usedHue));
+                });
+
+                const seedDist = hueDistanceDeg(candidate.h, seedHue);
+                const score = (minDist * 1000) - seedDist;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIndex = i;
+                }
+            }
+
+            if (bestIndex >= 0) return bestIndex;
+            return seedIndex;
+        }
+
+        function stringToColor(str) {
+            const name = String(str || "").trim();
+            if (!name) return "hsl(0, 0%, 75%)";
+
+            const assignedIdx = chatNameColorIndexMap[name];
+            if (Number.isInteger(assignedIdx) && CHAT_NAME_COLOR_CANDIDATES[assignedIdx]) {
+                return formatChatColor(CHAT_NAME_COLOR_CANDIDATES[assignedIdx]);
+            }
+
+            const pickedIdx = pickChatColorIndex(name);
+            chatNameColorIndexMap[name] = pickedIdx;
+            return formatChatColor(CHAT_NAME_COLOR_CANDIDATES[pickedIdx]);
         }
 
         async function pushLog(text, type='public', targetId=null) {
