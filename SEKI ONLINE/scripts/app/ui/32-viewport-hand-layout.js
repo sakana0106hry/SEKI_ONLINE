@@ -13,18 +13,16 @@
         function syncDesktopSideMode() {
             if (!document.body) return;
 
-            const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-            const safeWidth = Math.max(0, Number(viewportWidth) || 0);
+            const visualWidth = (window.visualViewport && Number(window.visualViewport.width)) ? Number(window.visualViewport.width) : 0;
+            const innerWidthSafe = Number(window.innerWidth) || 0;
+            const safeWidth = Math.max(0, visualWidth, innerWidthSafe);
             const gameMaxWidth = readCssPxVar("--seki-game-max-width", 860);
             const sideGap = readCssPxVar("--seki-side-gap", 12);
-            const leftPanelWidth = readCssPxVar("--seki-side-left-width", 260);
-            const rightPanelWidth = readCssPxVar("--seki-side-right-width", 320);
             const edgePadding = 12;
             const sideSpace = (safeWidth - gameMaxWidth) / 2;
+            const sideUsableWidth = sideSpace - sideGap - edgePadding;
 
-            const canUseDesktopSidePanels =
-                sideSpace >= (leftPanelWidth + sideGap + edgePadding) &&
-                sideSpace >= (rightPanelWidth + sideGap + edgePadding);
+            const canUseDesktopSidePanels = sideUsableWidth >= 220;
 
             document.body.classList.toggle("desktop-side-mode", canUseDesktopSidePanels);
         }

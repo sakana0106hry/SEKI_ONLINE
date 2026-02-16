@@ -212,15 +212,11 @@
     #desktop-chatlog-panel {
         position: fixed;
         top: 58px;
-        right: max(
-            12px,
-            calc(
-                (100vw - var(--seki-game-max-width, 860px)) / 2
-                - var(--seki-side-right-width, 320px)
-                - var(--seki-side-gap, 12px)
-            )
+        right: 12px;
+        width: min(
+            var(--seki-side-right-width, 320px),
+            calc((100vw - var(--seki-game-max-width, 860px)) / 2 - var(--seki-side-gap, 12px) - 12px)
         );
-        width: var(--seki-side-right-width, 320px);
         height: calc(var(--app-height, 100dvh) - 72px);
         display: none;
         flex-direction: column;
