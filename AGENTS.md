@@ -1,17 +1,18 @@
 # AGENTS.md
 
 ## Scope
-- このファイルの指示は `C:\Users\sakan\SEK_Interface\SEKI_ONLINE` 配下全体に適用する。
-- より深い階層に別の `AGENTS.md` がある場合は、そちらを優先する。
+- The instructions in this file apply to everything under `C:\Users\sakan\SEK_Interface\SEKI_ONLINE`.
+- If another `AGENTS.md` exists in a deeper directory, that one takes precedence.
 
 ## Language
-- ユーザーへの説明・報告は日本語で行う。
-- コード内コメントは既存スタイルに合わせる。
+- Provide explanations and reports to the user in Japanese.
+- Match existing style for comments in code.
 
 ## Workflow
-- 変更前に対象箇所を読み、既存仕様（特に役職処理・ターン進行・ログ）を確認する。
-- 変更は必要最小限にし、無関係なリファクタや整形を混ぜない。
-- 既存の未コミット変更は巻き戻さない。
+- Before making changes, read the target area and confirm existing behavior (especially role handling, turn progression, and logs).
+- Keep changes minimal and do not mix in unrelated refactors or formatting.
+- Do not roll back existing uncommitted changes.
+- Do not create fallback behavior; instead, output logs and stop processing.
 
 ## Shell
 - Use PowerShell
@@ -19,29 +20,30 @@
 - Prefer `npm.cmd` / `npx.cmd` over `npm` / `npx` in PowerShell (ExecutionPolicy-safe)
 
 ## Validation
-- JavaScript を編集したら、最低限の構文チェックを実行する。
-- PowerShell 上で npm / npx 系コマンドを使う場合は `npm.cmd` / `npx.cmd` を使う。
-- 構文チェック手順は作業報告に実行コマンドを明記する（失敗時は理由と代替手段も明記）。
-- public/private ログの追加時は、送信タイミングと対象種別を確認する。
+- If you edit JavaScript, run at least a minimal syntax check.
+- When running npm/npx commands in PowerShell, use `npm.cmd` / `npx.cmd`.
+- In the work report, explicitly list syntax-check commands run (if one fails, also report the reason and whether processing was stopped).
+- When adding public/private logs, verify send timing and target types.
 
 ## Game-Specific Rules
-- 新役職・効果追加時は次を必ず確認する。
-- 対象外案内は原則 `disabled` ボタンと注記で表現し、対象外クリック時に別モーダルを開かない。
-1. 発動条件（自ターン/使用済み判定）
-2. 対象選択UI（対象外表示・押下時の案内）
-3. 実行時ガード（UIすり抜け防止）
-4. ターン進行（終了するか、継続するか）
-5. 効果解除条件（解除ログ含む）
+- When adding a new role or effect, always verify the following.
+- For out-of-target guidance, use a `disabled` button and a note by default; do not open a separate modal when an out-of-target item is clicked.
+1. Activation conditions (own turn / already-used checks)
+2. Target selection UI (out-of-target display and guidance on press)
+3. Execution guard (prevent bypassing UI restrictions)
+4. Turn progression (whether the turn ends or continues)
+5. Effect removal conditions (including removal logs)
 
 ## User Interface
-- 白の背景に黄色の文字など、見ずらい配色は使わない。
+- Do not use hard-to-read color combinations such as yellow text on a white background.
 
 ## Font Rules
-- UIの基本フォントは、英語を `Orbitron`、日本語を `WDXL Lubrifont JP N` とする。
-- ルール説明・役職一覧・モーダル内は可読性優先とし、`M PLUS 1` を使用する。
-- フォント名の直書きは最小限にし、原則としてCSS変数や共通クラス経由で指定する。
-- `font-family` のインライン指定（`style=""` 内）は原則禁止とする（例外は一時デバッグのみ）。
-- フォント追加・変更時は、読み込み定義を一箇所に集約し、既存画面への影響（可読性/崩れ）を確認する。
+- Set the base UI fonts to `Orbitron` for English and `WDXL Lubrifont JP N` for Japanese.
+- Prioritize readability in rules, role lists, and modal content, and use `M PLUS 1`.
+- For modal titles only, use `Orbitron` for English and `WDXL Lubrifont JP N` for Japanese.
+- Keep direct font-name literals to a minimum; use CSS variables or shared classes by default.
+- Inline `font-family` declarations (inside `style=""`) are prohibited in principle (temporary debugging only is an exception).
+- When adding or changing fonts, centralize loading definitions in one place and verify impact on existing screens (readability/layout breaks).
 
 ## Out of Scope Defaults
-- 明示依頼がない限り、ファイル構成変更・依存追加・大規模デザイン変更は行わない。
+- Unless explicitly requested, do not change file structure, add dependencies, or make large-scale design changes.
