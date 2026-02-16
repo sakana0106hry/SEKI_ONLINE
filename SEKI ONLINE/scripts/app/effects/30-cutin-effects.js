@@ -4,7 +4,7 @@ const CUT_IN_GROUP_TO_ATTR = {
     EFFICIENCY: "e",
     KILLER: "k"
 };
-const CUT_IN_DURATION_MS = 5000;
+const CUT_IN_DURATION_MS = 4500;
 const CUT_IN_ATTR_SOUND_KEYS = {
     s: "CUTIN_STRATEGY",
     e: "CUTIN_EFFICIENCY",

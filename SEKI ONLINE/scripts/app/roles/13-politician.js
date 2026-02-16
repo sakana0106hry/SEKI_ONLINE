@@ -37,12 +37,12 @@ function activateThief(count = 1) {
 
         if (isPoliticianShieldActive(pid)) {
             hasBlockedTarget = true;
-            html += `<button class="modal-btn is-disabled" disabled style="display:block; width:100%; margin:5px 0;">
+            html += `<button class="modal-btn is-disabled" disabled style="display:block; width:100%; margin:4px 0; padding:8px 12px; box-sizing:border-box; line-height:1.3;">
                 ${pName} (政治家で対象外)
             </button>`;
         } else {
             canUseTarget = true;
-            html += `<button class="modal-btn" onclick="thiefSelectTake('${pid}', ${count})" style="display:block; width:100%; margin:5px 0;">
+            html += `<button class="modal-btn" onclick="thiefSelectTake('${pid}', ${count})" style="display:block; width:100%; margin:4px 0; padding:8px 12px; box-sizing:border-box; line-height:1.3;">
                 ${pName} (手札${handLen}枚)${revealedInfo}
             </button>`;
         }

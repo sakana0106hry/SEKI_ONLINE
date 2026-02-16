@@ -154,10 +154,10 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
             <strong>奪ったカード: ${receiveVal}</strong><br>
             続けて2回目のトレードを行いますか？
             </p>
-            <button class="modal-btn danger" onclick="activateThief(2)" style="width:100%; margin-bottom:10px;">
+            <button class="modal-btn danger" onclick="activateThief(2)" style="width:100%; margin:0 0 8px 0; padding:8px 12px; box-sizing:border-box; line-height:1.3;">
                 はい (もう一度盗む)
             </button>
-            <button class="modal-btn ghost" onclick="endThiefTurn()" style="width:100%;">
+            <button class="modal-btn ghost" onclick="endThiefTurn()" style="width:100%; margin:0; padding:8px 12px; box-sizing:border-box; line-height:1.3;">
                 いいえ (ターンを終了する)
             </button>
         `;
