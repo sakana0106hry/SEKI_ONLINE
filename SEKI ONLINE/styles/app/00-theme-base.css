@@ -25,6 +25,10 @@
         --seki-shadow-glow: 0 0 26px rgba(0, 216, 255, 0.22);
         --seki-transition-fast: 0.2s ease;
         --seki-transition-mid: 0.3s ease;
+        --seki-game-max-width: 860px;
+        --seki-side-gap: 12px;
+        --seki-side-left-width: 260px;
+        --seki-side-right-width: 320px;
     }
 
     html {
@@ -63,7 +67,7 @@
         padding: 0;
         margin: 0 auto;
         width: 100%;
-        max-width: 860px;
+        max-width: var(--seki-game-max-width, 860px);
         height: auto;
         min-height: 100vh;
         min-height: 100dvh;

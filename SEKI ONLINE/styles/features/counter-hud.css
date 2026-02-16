@@ -3,8 +3,20 @@
         font-family: var(--font-ui);
         user-select: none;
         z-index: 9999; /* 最前面に */
+        --counter-edge-offset: 12px;
         /* 画面が広いときもゲームテーブル右端に沿う */
-        --counter-right-anchor: max(12px, calc((100vw - 860px) / 2 + 12px));
+        --counter-right-anchor: max(
+            var(--counter-edge-offset),
+            calc((100vw - var(--seki-game-max-width, 860px)) / 2 + var(--counter-edge-offset))
+        );
+        --counter-left-anchor: max(
+            var(--counter-edge-offset),
+            calc(
+                (100vw - var(--seki-game-max-width, 860px)) / 2
+                - var(--seki-side-left-width, 260px)
+                - var(--seki-side-gap, 12px)
+            )
+        );
     }
 
     /* 1. 開閉ボタン（スマホで邪魔にならないサイズ） */
@@ -61,6 +73,24 @@
         transform: scale(1);
         opacity: 1;
         pointer-events: auto;
+    }
+
+    body.desktop-side-mode #counter-toggle-btn,
+    body.desktop-side-mode #counter-panel .close-btn {
+        display: none !important;
+    }
+    body.desktop-side-mode #counter-panel {
+        top: 58px;
+        left: var(--counter-left-anchor);
+        right: auto;
+        width: min(240px, calc(var(--seki-side-left-width, 260px) - 8px));
+        max-height: calc(var(--app-height, 100dvh) - 72px);
+        overflow-y: auto;
+        transform-origin: top left;
+        transform: none !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        z-index: 120;
     }
 
     /* 内部レイアウト */

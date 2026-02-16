@@ -281,6 +281,67 @@
             });
         }
 
+        function buildVisibleLogEntriesHtml(logs) {
+            if (!Array.isArray(logs) || logs.length === 0) {
+                return `<div class="desktop-empty-log">表示できるログがありません。</div>`;
+            }
+
+            let html = "";
+            [...logs].reverse().forEach(l => {
+                if (!l) return;
+                if (l.type === 'private' && l.targetId !== myId) return;
+
+                const time = new Date(l.timestamp).toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                let styleClass = '';
+                let content = l.text;
+
+                if (l.type === 'private') {
+                    styleClass = 'log-private';
+                } else if (l.type === 'chat') {
+                    styleClass = 'log-chat';
+                    const match = content.match(/^\[(.*?)\] (.*)$/);
+                    if (match) {
+                        const name = match[1];
+                        const msg = match[2];
+                        const color = stringToColor(name);
+                        content = `<span style="color:${color}; font-weight:bold;">[${name}]</span> ${msg}`;
+                    }
+                }
+
+                html += `<div class="log-entry ${styleClass}"><span class="log-time">${time}</span><span class="log-text">${content}</span></div>`;
+            });
+
+            if (!html) {
+                return `<div class="desktop-empty-log">表示できるログがありません。</div>`;
+            }
+            return html;
+        }
+
+        function renderDesktopChatLogPanel(logs, signature = "") {
+            const panel = document.getElementById("desktop-chatlog-panel");
+            const list = document.getElementById("desktop-log-list");
+            if (!panel || !list) {
+                console.warn("[desktop-chatlog] 必要な要素が見つからないため描画を停止します。");
+                return;
+            }
+            if (!gameState || !myId) {
+                panel.classList.add("hidden");
+                list.dataset.sekiSig = "";
+                return;
+            }
+
+            panel.classList.remove("hidden");
+
+            const nextSig = signature || buildRenderSignature({
+                length: Array.isArray(logs) ? logs.length : 0,
+                lastTimestamp: Array.isArray(logs) && logs.length > 0 ? Number(logs[logs.length - 1].timestamp) || 0 : 0
+            });
+            if (list.dataset.sekiSig === nextSig) return;
+
+            list.innerHTML = buildVisibleLogEntriesHtml(logs || []);
+            list.dataset.sekiSig = nextSig;
+        }
+
         function renderLogs(logs, options = {}) {
             const forceBubbleRefresh = !!(options && options.forceBubbleRefresh);
 
@@ -290,6 +351,7 @@
                 }
                 logRenderCache.signature = "empty";
                 logRenderCache.recentChats = [];
+                renderDesktopChatLogPanel([], "empty");
                 return;
             }
 
@@ -308,6 +370,7 @@
                         showChatBubble(l.targetId, l.text, l.timestamp);
                     });
                 }
+                renderDesktopChatLogPanel(logs, signature);
                 return;
             }
 
@@ -353,6 +416,8 @@
                     }
                 }
             }
+
+            renderDesktopChatLogPanel(logs, signature);
         }
 
         // ▼▼▼ 新規関数: 吹き出し表示 ▼▼▼
@@ -401,42 +466,38 @@
                     <button id="chat-send-btn" onclick="sendChat()">SEND</button>
                 </div>
                 <div id="log-list-container">
+                    ${buildVisibleLogEntriesHtml(logs)}
+                </div>
             `;
-            
-            [...logs].reverse().forEach(l => {
-                if(l.type === 'private' && l.targetId !== myId) return;
-                let time = new Date(l.timestamp).toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-                let styleClass = '';
-                let content = l.text;
-
-                if(l.type === 'private') {
-                    styleClass = 'log-private';
-                } else if(l.type === 'chat') {
-                    styleClass = 'log-chat';
-                    const match = content.match(/^\[(.*?)\] (.*)$/);
-                    if (match) {
-                        const name = match[1];
-                        const msg = match[2];
-                        const color = stringToColor(name);
-                        content = `<span style="color:${color}; font-weight:bold;">[${name}]</span> ${msg}`;
-                    }
-                }
-                html += `<div class="log-entry ${styleClass}"><span class="log-time">${time}</span><span class="log-text">${content}</span></div>`;
-            });
-            html += `</div>`;
             openModal("チャット & ログ", html);
         }
 
-        async function sendChat() {
-            const input = document.getElementById('chat-input');
+        async function sendChatWithInput(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) {
+                console.warn(`[chat] 入力欄(${inputId})が見つからないため送信を停止します。`);
+                return false;
+            }
             const msg = input.value.trim();
-            if(!msg) return;
+            if(!msg) return false;
 
             await pushLog(`[${myName}] ${msg}`, 'chat', myId);
 
             input.value = "";
             lastReadLogTime = Date.now();
+            return true;
+        }
+
+        async function sendChat() {
+            const sent = await sendChatWithInput('chat-input');
+            if (!sent) return;
             showLogHistory(); 
+        }
+
+        async function sendDesktopChat() {
+            const sent = await sendChatWithInput('desktop-chat-input');
+            if (!sent) return;
+            renderDesktopChatLogPanel((gameState && gameState.logs) ? gameState.logs : [], "");
         }
         
         // プレイヤーを入室順（joinedAtが早い順）に並べる関数

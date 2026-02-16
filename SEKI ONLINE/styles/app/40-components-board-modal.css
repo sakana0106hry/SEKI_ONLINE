@@ -202,6 +202,95 @@
         border-top: 1px solid rgba(0, 216, 255, 0.34);
         box-shadow: 0 -2px 14px rgba(0,0,0,0.55);
     }
+    body.desktop-side-mode #game-log-bar {
+        display: none;
+    }
+    body.desktop-side-mode #game-table {
+        padding-bottom: 48px !important;
+    }
+
+    #desktop-chatlog-panel {
+        position: fixed;
+        top: 58px;
+        right: max(
+            12px,
+            calc(
+                (100vw - var(--seki-game-max-width, 860px)) / 2
+                - var(--seki-side-right-width, 320px)
+                - var(--seki-side-gap, 12px)
+            )
+        );
+        width: var(--seki-side-right-width, 320px);
+        height: calc(var(--app-height, 100dvh) - 72px);
+        display: none;
+        flex-direction: column;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 216, 255, 0.32);
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.92), rgba(4, 11, 23, 0.88));
+        box-shadow: 0 8px 26px rgba(0,0,0,0.58), 0 0 18px rgba(0, 216, 255, 0.14);
+        backdrop-filter: blur(12px);
+        color: var(--seki-text-main);
+        overflow: hidden;
+        z-index: 120;
+    }
+    body.desktop-side-mode #desktop-chatlog-panel:not(.hidden) {
+        display: flex;
+    }
+    #desktop-chatlog-header {
+        font-family: var(--font-ui);
+        font-size: 12px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+        color: #a8e9ff;
+        text-align: left;
+        padding: 10px 12px 8px;
+        border-bottom: 1px solid rgba(0, 216, 255, 0.26);
+        background: rgba(8, 26, 48, 0.42);
+    }
+    #desktop-chat-input-wrap {
+        display: flex;
+        gap: 8px;
+        padding: 10px 10px 8px;
+        border-bottom: 1px solid rgba(143, 176, 214, 0.28);
+    }
+    #desktop-chat-input {
+        color: var(--seki-text-main);
+        flex: 1;
+        padding: 9px 10px;
+        border-radius: 18px;
+        border: 1px solid rgba(126, 173, 224, 0.45);
+        outline: none;
+        background: rgba(6, 16, 32, 0.78);
+        font-family: var(--font-ui);
+    }
+    #desktop-chat-input::placeholder {
+        font-family: var(--font-ui);
+    }
+    #desktop-chat-send-btn {
+        background: linear-gradient(135deg, #157a53, #34b583);
+        color: #fff;
+        border-radius: 18px;
+        padding: 0 14px;
+        border: 1px solid rgba(93, 255, 192, 0.45);
+        font-family: var(--font-ui);
+        cursor: pointer;
+    }
+    #desktop-log-list {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        text-align: left;
+        padding-bottom: 8px;
+    }
+    #desktop-log-list .log-entry {
+        padding: 7px 9px;
+    }
+    .desktop-empty-log {
+        color: var(--seki-text-muted);
+        font-size: 12px;
+        text-align: center;
+        padding: 18px 8px;
+    }
     
     /* 通知アニメーション */
     @keyframes flash-notify {

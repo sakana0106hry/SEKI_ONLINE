@@ -149,6 +149,20 @@
 
     <div id="game-log-bar" onclick="showLogHistory()">ログを読み込み中...</div>
 
+    <div id="desktop-chatlog-panel" class="hidden">
+        <div id="desktop-chatlog-header">CHAT &amp; LOG</div>
+        <div id="desktop-chat-input-wrap">
+            <input
+                type="text"
+                id="desktop-chat-input"
+                placeholder="// ENTER MESSAGE..."
+                onkeydown="if(event.key==='Enter' && !event.isComposing){sendDesktopChat();}"
+            >
+            <button id="desktop-chat-send-btn" onclick="sendDesktopChat()">SEND</button>
+        </div>
+        <div id="desktop-log-list"></div>
+    </div>
+
     <div id="modal-overlay" class="hidden">
         <div id="modal-box">
             <h3 id="modal-title">タイトル</h3>

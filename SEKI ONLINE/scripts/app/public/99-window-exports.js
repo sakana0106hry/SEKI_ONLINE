@@ -39,6 +39,7 @@
         window.execCloseRoom = execCloseRoom;
         window.showLogHistory = showLogHistory;
         window.sendChat = sendChat;
+        window.sendDesktopChat = sendDesktopChat;
         window.playCutInAnimation = playCutInAnimation;
         window.openHostSettings = openHostSettings;
         window.confirmInitGameWithSettings = confirmInitGameWithSettings;

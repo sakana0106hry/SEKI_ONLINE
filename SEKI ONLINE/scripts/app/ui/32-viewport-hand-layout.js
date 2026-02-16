@@ -4,6 +4,31 @@
             document.documentElement.style.setProperty("--app-height", `${safeHeight}px`);
         }
 
+        function readCssPxVar(varName, fallbackValue) {
+            const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+            const parsed = parseFloat(raw);
+            return Number.isFinite(parsed) ? parsed : fallbackValue;
+        }
+
+        function syncDesktopSideMode() {
+            if (!document.body) return;
+
+            const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+            const safeWidth = Math.max(0, Number(viewportWidth) || 0);
+            const gameMaxWidth = readCssPxVar("--seki-game-max-width", 860);
+            const sideGap = readCssPxVar("--seki-side-gap", 12);
+            const leftPanelWidth = readCssPxVar("--seki-side-left-width", 260);
+            const rightPanelWidth = readCssPxVar("--seki-side-right-width", 320);
+            const edgePadding = 12;
+            const sideSpace = (safeWidth - gameMaxWidth) / 2;
+
+            const canUseDesktopSidePanels =
+                sideSpace >= (leftPanelWidth + sideGap + edgePadding) &&
+                sideSpace >= (rightPanelWidth + sideGap + edgePadding);
+
+            document.body.classList.toggle("desktop-side-mode", canUseDesktopSidePanels);
+        }
+
         function resetViewportScrollTop() {
             window.scrollTo(0, 0);
             document.documentElement.scrollTop = 0;
@@ -16,19 +41,28 @@
                 activeEl.blur();
             }
             syncAppViewportHeight();
+            syncDesktopSideMode();
             resetViewportScrollTop();
         }
 
         syncAppViewportHeight();
-        window.addEventListener("resize", syncAppViewportHeight);
+        syncDesktopSideMode();
+        window.addEventListener("resize", () => {
+            syncAppViewportHeight();
+            syncDesktopSideMode();
+        });
         window.addEventListener("orientationchange", () => {
             setTimeout(() => {
                 syncAppViewportHeight();
+                syncDesktopSideMode();
                 resetViewportScrollTop();
             }, 120);
         });
         if (window.visualViewport && typeof window.visualViewport.addEventListener === "function") {
-            window.visualViewport.addEventListener("resize", syncAppViewportHeight);
+            window.visualViewport.addEventListener("resize", () => {
+                syncAppViewportHeight();
+                syncDesktopSideMode();
+            });
         }
 
         function resetMyHandLayout(container = els.hand) {
