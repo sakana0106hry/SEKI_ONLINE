@@ -20,6 +20,7 @@ async function activatePolitician() {
 function activateThief(count = 1) {
     let html = `<p><strong>【盗賊スキル ${count}/2回目】</strong><br>トレードする相手を選んでください。</p>`;
     let canUseTarget = false;
+    let hasBlockedTarget = false;
     
     const pIds = gameState.playerOrder;
     pIds.forEach(pid => {
@@ -35,16 +36,21 @@ function activateThief(count = 1) {
         let revealedInfo = revealed ? `<br><span style="font-size:12px; color:#d9ebff;">(公開: ${revealed})</span>` : "";
 
         if (isPoliticianShieldActive(pid)) {
-            html += `<button disabled style="display:block; width:100%; margin:5px 0; padding:10px; background:#243848; color:#d9ebff; opacity:0.92; border:1px solid #5f7d93; border-radius:6px; cursor:not-allowed;">
+            hasBlockedTarget = true;
+            html += `<button class="modal-btn is-disabled" disabled style="display:block; width:100%; margin:5px 0;">
                 ${pName} (政治家で対象外)
             </button>`;
         } else {
             canUseTarget = true;
-            html += `<button onclick="thiefSelectTake('${pid}', ${count})" style="display:block; width:100%; margin:5px 0; padding:10px;">
+            html += `<button class="modal-btn" onclick="thiefSelectTake('${pid}', ${count})" style="display:block; width:100%; margin:5px 0;">
                 ${pName} (手札${handLen}枚)${revealedInfo}
             </button>`;
         }
     });
+
+    if (hasBlockedTarget) {
+        html += `<p class="seki-disabled-note">※政治家の保護中プレイヤーは対象外です</p>`;
+    }
 
     if (!canUseTarget) {
         html += `<p style="font-size:12px; color:#9cb3c9;">対象にできるプレイヤーがいません。</p>`;
