@@ -285,6 +285,22 @@
     }
     #desktop-log-list .log-entry {
         padding: 7px 9px;
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr);
+        column-gap: 8px;
+        align-items: start;
+    }
+    #desktop-log-list .log-time {
+        margin-right: 0;
+        min-width: 0;
+        line-height: 1.4;
+        white-space: nowrap;
+    }
+    #desktop-log-list .log-text {
+        min-width: 0;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
     }
     .desktop-empty-log {
         color: var(--seki-text-muted);
