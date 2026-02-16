@@ -51,7 +51,7 @@
         z-index: 8;
         opacity: 0.5;
         mix-blend-mode: screen;
-        font-family: var(--font-readable);
+        font-family: var(--font-ui);
         font-size: 10px;
         color: var(--cut-in-theme);
         overflow: hidden;
@@ -297,7 +297,7 @@
         background: var(--cut-in-theme);
         color: #000;
         padding: 5px 30px;
-        font-family: var(--font-display-strong);
+        font-family: var(--font-ui);
         font-size: clamp(24px, 5vw, 40px);
         font-weight: 900;
         text-transform: uppercase;
@@ -309,7 +309,7 @@
     #cut-in-player-name {
         padding-left: 5px;
         font-size: clamp(14px, 3vw, 20px);
-        font-family: var(--font-readable);
+        font-family: var(--font-ui);
         font-weight: bold;
         letter-spacing: 0.06em;
         opacity: 0.9;
@@ -323,7 +323,7 @@
         margin: 0;
         line-height: 0.9;
         white-space: nowrap;
-        font-family: var(--font-display-strong);
+        font-family: var(--font-ui);
         font-size: clamp(40px, 8vw, 70px);
         font-weight: 900;
         letter-spacing: 2px;
@@ -333,7 +333,7 @@
     #cut-in-skill-jp {
         margin: 5px 0 0 5px;
         white-space: nowrap;
-        font-family: var(--font-readable);
+        font-family: var(--font-ui);
         font-size: clamp(18px, 4vw, 30px);
         font-weight: 700;
         letter-spacing: 0.12em;

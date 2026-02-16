@@ -73,12 +73,10 @@
     }
     body.desktop-side-mode #counter-panel {
         top: 58px;
-        left: 12px;
+        left: 0;
         right: auto;
-        width: min(
-            240px,
-            calc((100vw - var(--seki-game-max-width, 860px)) / 2 - var(--seki-side-gap, 12px) - 12px)
-        );
+        width: var(--seki-side-panel-width);
+        max-width: var(--seki-side-panel-width);
         max-height: calc(var(--app-height, 100dvh) - 72px);
         overflow-y: auto;
         transform-origin: top left;
@@ -86,7 +84,7 @@
         opacity: 1 !important;
         pointer-events: auto !important;
         z-index: 120;
-        border-radius: 0%;
+        border-radius: 0;
     }
 
     /* 内部レイアウト */

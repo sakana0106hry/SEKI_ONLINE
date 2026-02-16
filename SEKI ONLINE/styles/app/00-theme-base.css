@@ -59,6 +59,9 @@
         display: flex;
         flex-direction: column;
     }
+    body.desktop-side-mode {
+        --seki-side-panel-width: calc((100vw - var(--seki-game-max-width, 860px)) / 2 - var(--seki-side-gap, 12px));
+    }
 
     /* 共通レイアウト */
     #game-screen {
@@ -109,6 +112,16 @@
     #header-info {
         flex: 0 0 42px;
         padding: 8px 10px;
+    }
+    body.desktop-side-mode #header-info.seki-topbar {
+        width: 100vw;
+        max-width: 100vw;
+        box-sizing: border-box;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding-left: 16px;
+        padding-right: 16px;
+        z-index: 130;
     }
     .hidden { display: none !important; }
     .seki-topbar {
