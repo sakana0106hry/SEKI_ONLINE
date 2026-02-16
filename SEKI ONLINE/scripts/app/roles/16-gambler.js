@@ -52,7 +52,7 @@ async function execGamblerGuess(type) {
         if ([0,5].includes(val)) win = true;
         guessText = "命知らず [0, 5]";
     }
-    const cutInDelayMs = (typeof CUT_IN_DURATION_MS === "number") ? CUT_IN_DURATION_MS : 5000;
+    const cutInDelayMs = (typeof CUT_IN_DURATION_MS === "number") ? CUT_IN_DURATION_MS : 4500;
     const gamblerVisualDurationMs = 6000;
     const gamblerTotalWaitMs = cutInDelayMs + gamblerVisualDurationMs;
 

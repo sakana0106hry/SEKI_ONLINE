@@ -839,10 +839,15 @@
         function getAstronomerObservation(data = gameState) {
             if (!data || !data.astronomerObservation) return null;
             const rawVal = Number(data.astronomerObservation.value);
-            if (!ASTRONOMER_CHOICES.includes(rawVal)) return null;
+            const activatedIsReverse = !!data.astronomerObservation.activatedIsReverse;
+            const isSelectable =
+                ASTRONOMER_CHOICES.includes(rawVal) ||
+                (!activatedIsReverse && rawVal === 1) ||
+                (activatedIsReverse && rawVal === 9);
+            if (!isSelectable) return null;
             return {
                 value: rawVal,
-                activatedIsReverse: !!data.astronomerObservation.activatedIsReverse,
+                activatedIsReverse,
                 activatedBy: data.astronomerObservation.activatedBy || null
             };
         }

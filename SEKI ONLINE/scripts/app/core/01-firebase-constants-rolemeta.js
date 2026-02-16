@@ -40,8 +40,8 @@
         const ROLE_INFO = {
             "ALCHEMIST": { 
                 jp: "錬金術師", 
-                "s-eng": "CON-BERT",
-                "s-jp": "非等価交換",
+                "s-eng": "FOUR-ELEMENTS",
+                "s-jp": "四元素演算",
                 summary: "数字山札を引き、手札と四則演算して出す",
                 desc: `<ol>
 <li>数字山札から、1枚カードを引く。</li>
@@ -63,11 +63,10 @@
                 jp: "天文学者",
                 "s-eng": "RE-ORDER",
                 "s-jp": "軌道観測",
-                summary: "2〜8の1枚を観測し、最強として扱う",
+                summary: "順行は1〜8、逆行は2〜9の1枚を観測し、最強として扱う",
                 desc: `<ol>
-<li>順行なら「9より強い数字」を、逆行なら「1より強い数字」を、<strong>2〜8</strong>から1つ選び、観測する。</li>
+<li>順行なら「9より強い数字」を、逆行なら「1より強い数字」を、<strong>順行時は1〜8／逆行時は2〜9</strong>から1つ選び、観測する。</li>
 <li>観測中の数字は、全プレイヤーにとって、その時点の強弱階層（順行 or 逆行）で<strong>最強</strong>として扱われる。</li>
-<li>観測後、この時点でターン終了。</li>
 </ol>
 <ul>
 <li style="list-style-type: none;">
@@ -81,7 +80,7 @@
             "ANGLER": { 
                 jp: "釣り師",   
                 "s-eng": "PHISH-ING",
-                "s-jp": "偽装釣果",
+                "s-jp": "偽装釣法",
                 summary: "手札1枚を除外、墓地から1枚回収",
                 desc: `<ol>
 <li>自分の手札から好きな<strong>カード</strong>1枚を除外する。</li>
@@ -106,7 +105,7 @@
             },
             "FORTUNE TELLER": { 
                 jp: "占い師",   
-                "s-eng": "LCD-IVINE",
+                "s-eng": "LC-DIVINE",
                 "s-jp": "液晶水晶",
                 summary: "全員の手札と役職を見る",
                 desc: `<ol>

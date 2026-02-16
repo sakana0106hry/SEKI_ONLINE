@@ -1,4 +1,13 @@
 ﻿/* --- ASTRONOMER (天文学者) の実装 --- */
+function isAstronomerSelectableValue(val, isRev) {
+    const numVal = Number(val);
+    return ASTRONOMER_CHOICES.includes(numVal) || (!isRev && numVal === 1) || (isRev && numVal === 9);
+}
+
+function getAstronomerSelectableRangeText(isRev) {
+    return isRev ? "2〜9" : "1〜8";
+}
+
 function activateAstronomer() {
     if (!isMyTurn()) return showInfoModal("エラー", "あなたの番ではありません");
     if (!gameState || !gameState.roles) return showInfoModal("エラー", "ゲーム状態を取得できません。");
@@ -8,6 +17,7 @@ function activateAstronomer() {
 
     const isRev = !!gameState.isReverse;
     const strongerThan = isRev ? 1 : 9;
+    const selectableRangeText = getAstronomerSelectableRangeText(isRev);
 
     let html = `
         <p>観測する数字を選んでください。<br>
@@ -18,27 +28,28 @@ function activateAstronomer() {
         <div class="modal-list">`;
 
     for (let n = 1; n <= 9; n++) {
-        const isSelectable = ASTRONOMER_CHOICES.includes(n);
+        const isSelectable = isAstronomerSelectableValue(n, isRev);
         let style = "";
         if (!isSelectable) {
             style = "opacity:0.35; cursor:not-allowed; border:1px dashed #888; transform:scale(0.95);";
         }
         const onClick = isSelectable
             ? `onclick="execAstronomerObserve(${n})"`
-            : `onclick="showAstronomerInvalidSelection(${n})"`;
+            : `onclick="showAstronomerInvalidSelection(${n}, ${isRev ? "true" : "false"})"`;
         html += `<div class="card num" style="${style}" ${onClick}>${n}</div>`;
     }
 
     html += `</div>
         <p style="font-size:12px; color:#ff0000; margin-top:8px;">
-            ※ 2〜8のみ選択可能です（1と9は対象外）。
+            ※ 現在は ${selectableRangeText} のみ選択可能です。
         </p>`;
 
     openModal("天文学者: 観測", html);
 }
 
-function showAstronomerInvalidSelection(val) {
-    showInfoModal("対象外", `[${val}] は観測対象外です。2〜8から選んでください。`);
+function showAstronomerInvalidSelection(val, isRev = !!(gameState && gameState.isReverse)) {
+    const selectableRangeText = getAstronomerSelectableRangeText(!!isRev);
+    showInfoModal("対象外", `[${val}] は観測対象外です。${selectableRangeText}から選んでください。`);
 }
 
 async function execAstronomerObserve(observedVal) {
@@ -46,8 +57,9 @@ async function execAstronomerObserve(observedVal) {
     if (!gameState || !gameState.roles) return showInfoModal("エラー", "ゲーム状態を取得できません。");
 
     const val = Number(observedVal);
-    if (!ASTRONOMER_CHOICES.includes(val)) {
-        return showInfoModal("対象外", "2〜8から選んでください。");
+    const isRev = !!gameState.isReverse;
+    if (!isAstronomerSelectableValue(val, isRev)) {
+        return showInfoModal("対象外", `${getAstronomerSelectableRangeText(isRev)}から選んでください。`);
     }
 
     let actList = {...(gameState.activatedList || {})};
@@ -72,5 +84,3 @@ async function execAstronomerObserve(observedVal) {
     await pushLog(`${myName}が[天文学者]を発動し、[${val}] を観測して [${strongerThan}] より強くしました。`, 'public');
     await db.ref().update(updates);
 }
-
-
