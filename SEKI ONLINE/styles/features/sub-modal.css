@@ -1,0 +1,88 @@
+﻿    /* メインのモーダルより上に表示 */
+    #sub-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(2, 7, 15, 0.72);
+        z-index: 9999;
+        display: flex; justify-content: center; align-items: center;
+        backdrop-filter: blur(5px);
+        transition: opacity 0.2s;
+    }
+    #sub-modal-overlay.hidden { display: none !important; opacity: 0; }
+
+    #sub-modal-box {
+        background:
+            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
+            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.11), transparent 36%);
+        color: var(--seki-text-main);
+        width: 90%; max-width: 600px;
+        max-height: 80vh;
+        border-radius: 14px;
+        padding: 20px;
+        position: relative;
+        font-family: var(--font-readable);
+        box-shadow: var(--seki-shadow-panel), 0 0 24px rgba(0, 216, 255, 0.18);
+        border: 1px solid rgba(0, 216, 255, 0.36);
+        display: flex; flex-direction: column;
+        animation: subPopIn 0.2s ease-out;
+    }
+    @keyframes subPopIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    #sub-modal-title {
+        margin: 0 0 10px 0;
+        border-bottom: 2px solid rgba(0, 200, 255, 0.58);
+        padding-bottom: 5px;
+        color: #9ce8ff;
+        font-family: var(--font-ui);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+    #sub-modal-body { overflow-y: auto; flex: 1; text-align: left; font-size: 14px; line-height: 1.6; }
+
+    #sub-modal-box .close-btn {
+        position: absolute; top: 10px; right: 15px;
+        font-size: 24px; cursor: pointer; color: #a8c7e4;
+    }
+
+    /* メインモーダルに追加する共通ボタン */
+    #modal-board-toggle {
+        position: absolute; top: 10px; right: 10px;
+        border: 1px solid rgba(122, 168, 218, 0.6);
+        border-radius: 16px;
+        background: rgba(7, 22, 42, 0.92);
+        color: #e6f6ff;
+        padding: 3px 10px; font-size: 12px; cursor: pointer;
+        line-height: 1.2; z-index: 100;
+        transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
+    }
+    #modal-board-toggle:hover {
+        border-color: rgba(0, 216, 255, 0.78);
+        box-shadow: 0 0 10px rgba(0, 216, 255, 0.28);
+        transform: translateY(-1px);
+    }
+    #modal-board-toggle.active {
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+        border-color: rgba(0, 216, 255, 0.88);
+        color: #fff;
+    }
+
+    #modal-help-btns {
+        position: absolute; top: 10px; left: 10px;
+        display: flex; gap: 5px; z-index: 100;
+    }
+    .help-icon-btn {
+        background: none;
+        border: 1px solid rgba(122, 168, 218, 0.6);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 2px 6px;
+        color: #e6f6ff;
+        background: rgba(7, 22, 42, 0.92);
+        transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast);
+    }
+    .help-icon-btn:hover {
+        transform: scale(1.06);
+        border-color: rgba(0, 216, 255, 0.8);
+        box-shadow: 0 2px 9px rgba(0,0,0,0.2), 0 0 10px rgba(0, 216, 255, 0.28);
+    }

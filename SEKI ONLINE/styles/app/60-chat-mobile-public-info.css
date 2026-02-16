@@ -1,0 +1,292 @@
+﻿    /* --- Hacked Corner (旧スタイルは削除または無視) --- */
+    /* 代わりに以下を追加 */
+
+    /* ロックされたカードのデザイン */
+    .card.locked {
+        /* 通常カードと同じサイズ・配置 */
+        filter: grayscale(0.9) brightness(0.6); /* モノクロにして暗くする */
+        border: 2px dashed #ff1744 !important;   /* 赤枠で危険を示す */
+        cursor: not-allowed;
+        position: relative;
+    }
+
+    /* 右下に鍵アイコンを表示（カードの絵柄を隠さない）⇐削除済み
+
+    /* ホバーしても浮き上がらせない */
+    .card.locked:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 警察による公開カードのデザイン */
+    .card.revealed {
+        /* 青色の枠線で「警察」感を出す */
+        border: 3px solid #fdd835 !important;
+        box-shadow: 0 0 10px rgba(246, 246, 41, 0.6); 
+        position: relative; /* 帯の配置用 */
+        overflow: hidden;   /* 帯がはみ出さないように */
+    }
+
+    /* 右上の「OPEN」帯 */
+    .card.revealed::after {
+        content: "OPEN";
+        position: absolute;
+        top: 5px;
+        right: -22px;
+        width: 80px;
+        height: 18px;
+        background: #fdd835; /* 警告色（黄色） */
+        color: #000;
+        font-size: 10px;
+        font-weight: bold;
+        text-align: center;
+        line-height: 18px;
+        transform: rotate(45deg); /* 斜めに配置 */
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        z-index: 20;
+        pointer-events: none; /* クリックの邪魔をしない */
+        font-family: var(--font-display-strong);
+    }
+
+    /* --- スマホ・細い画面用のスリムレイアウト --- */
+    @media (max-width: 600px) {
+        /* 1. 左右のカラム幅を詰める */
+        .player-zone.col {
+            width: 105px !important; /* ボックス幅に合わせて最小限に */
+            z-index: 20;
+        }
+
+        /* 2. ボックスをスリム化 */
+        .player-zone.col .p-box-new {
+            width: 100px !important; /* 140px -> 100px に細くする */
+            height: auto !important;    /* 固定をやめて自動に */
+            min-height: 180px;          /* 最低でもこの高さを確保 */
+            padding-bottom: 5px;        /* 下端の余白 */ 
+        }
+
+        /* 3. 中段（手札数とステータス）を縦積みに */
+        .player-zone.col .p-box-new .p-body {
+            flex-direction: column; /* 縦並び */
+            justify-content: center;
+            gap: 8px; /* 詰める */
+            padding: 5px 0;
+            flex: 1;         /* 余ったスペースを埋める */
+        }
+        
+        /* ステータス表示の位置調整 */
+        .player-zone.col .p-box-new .p-status-area {
+            align-items: center; /* 中央揃え */
+            width: 100%;
+        }
+
+        /* 4. 下段（役職）のエリア高さを自動調整 */
+        .player-zone.col .p-box-new .p-role-row {
+            height: auto !important; /* 固定高さを解除 */
+            min-height: 40px;        /* 最低限の高さ確保 */
+            padding: 5px 0;
+            display: flex;
+            align-items: center;     /* 上下中央寄せ */
+            justify-content: center;
+            margin-top: auto; /* 一番下に押し下げる */
+        }
+
+        /* 役職バッジの中身を折り返し（縦積み）にする */
+        .player-zone.col .p-box-new .role-badge-pill {
+            flex-direction: column; /* 縦並び */
+            width: 96%;             /* 幅いっぱい */
+            padding: 4px 0;
+            line-height: 1.2;
+            border-radius: 8px;     /* 角丸を少し緩める */
+        }
+        
+        /* 役職の補足（REVERSEなど）のデザイン調整 */
+        .player-zone.col .p-box-new {
+            display: block;        /* 改行させる */
+            margin-left: 0;
+            margin-top: 3px;
+            font-size: 9px;        /* 少し小さく */
+            opacity: 0.9;
+        }
+        .role-sub {
+            display: block;        /* 改行させる */
+            margin-left: 0;
+            margin-top: 3px;
+            font-size: 13px;        /* 少し小さく */
+            opacity: 1;
+        }
+
+        /* 公開カード置き場も幅を合わせる */
+        .player-zone.col .p-revealed-container {
+            width: 100px !important;
+        }
+        
+        /* 中央フィールドとの隙間を詰める */
+        #field-center {
+            margin: 0 !important;
+        }
+        #area-middle {
+            gap: 2px !important; /* 左右ボックスとの隙間を最小限に */
+        }
+
+    }
+
+    /* --- 追加: 公開カード情報（テキスト表示用） --- */
+        .p-revealed-info {
+            font-size: 11px;
+            margin-top: 5px;     /* ステータスとの隙間 */
+            white-space: nowrap; /* 折り返しなし */
+            line-height: 1.2;
+            /* ★ここが重要: ゲーム全体のフォントトークンを強制する */
+            font-family: var(--font-ui) !important;
+        }
+
+        /* 何も公開されていない時 (NORMAL表示と同じような色に) */
+        .revealed-none {
+            color: #9cb3c9;
+            font-weight: bold;
+        }
+
+        /* 公開されている時 (目立たせる) */
+        .revealed-active {
+            color: #ffeb3b;      /* 黄色 */
+            font-weight: bold;
+        }
+        
+        /* 元々の画像表示エリアは完全に非表示にする */
+        .p-revealed-container {
+            display: none !important;
+        }
+        
+        /* スマホ表示の微調整 */
+        @media (max-width: 600px) {
+            .p-revealed-info {
+                font-size: 10px;
+            }
+        }
+
+        /* --- 点滅アニメーション定義 --- */
+        @keyframes blink-text {
+            0% { opacity: 1.0; transform: scale(1.0); }
+            50% { opacity: 0.5; transform: scale(1.05); } /* 半透明になりつつ少し大きくなる */
+            100% { opacity: 1.0; transform: scale(1.0); }
+        }
+        /* --- チャット吹き出し (Chat Bubble) --- */
+    .chat-bubble {
+        position: absolute;
+        background: #fff;
+        color: #000;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 6px 10px;
+        border-radius: 12px;
+        max-width: 240px;       /* 長文は省略 */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        opacity: 0;             /* 最初は隠す */
+        pointer-events: none;   /* クリックの邪魔をしない */
+        z-index: 500;           /* カードより手前 */
+        transition: opacity 0.2s;
+    }
+
+    /* 吹き出しのしっぽ (共通) */
+    .chat-bubble::after {
+        content: "";
+        position: absolute;
+        border-style: solid;
+        display: block;
+    }
+
+    /* アニメーションクラス */
+    .chat-bubble.active {
+        animation: bubble-pop 4s ease-out forwards;
+    }
+
+    @keyframes bubble-pop {
+        0% { opacity: 0; transform: scale(0.5); }
+        10% { opacity: 1; transform: scale(1); }
+        85% { opacity: 1; transform: scale(1); }
+        100% { opacity: 0; transform: scale(0.8); }
+    }
+
+    /* --- 位置別のスタイル (画面内側に向くように配置) --- */
+
+    /* 1. 自分 (下部配置) -> 吹き出しは「上」に出す */
+    .bubble-pos-bottom {
+        bottom: 110%; /* 箱の上に */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .bubble-pos-bottom::after {
+        bottom: -6px; left: 50%; margin-left: -6px;
+        border-width: 6px 6px 0;
+        border-color: #fff transparent;
+    }
+
+    /* 2. 上の人 (上部配置) -> 吹き出しは「下」に出す */
+    .bubble-pos-top {
+        top: 100%;    /* 箱の下に */
+        left: 0;
+        margin-top: 10px;
+        transform: none;
+    }
+    .bubble-pos-top::after {
+        top: -6px; left: 50%; margin-left: -6px;
+        border-width: 0 6px 6px;
+        border-color: #fff transparent;
+    }
+
+    /* 3. 左の人 -> 吹き出しは「右」に出す */
+    .bubble-pos-left {
+        top: auto;
+        bottom: 100%; /* ボックスの上に */
+        
+        /* 左端をボックスに合わせる */
+        left: 0;
+        right: auto;
+        
+        /* 隙間調整 */
+        margin-bottom: 10px; 
+        margin-left: 0;
+        margin-right: 0;
+        
+        transform: none;
+    }
+    .bubble-pos-left::after {
+        top: 50%; right: 100%; margin-top: -6px;
+        border-width: 6px 6px 6px 0;
+        border-color: transparent #fff;
+    }
+
+    /* 4. 右の人 -> 吹き出しは「左」に出す */
+    .bubble-pos-right {
+        /* 上に出す設定(bottom)を解除し、下(top: 100%)に出す */
+        top: 100%;
+        bottom: auto;
+        
+        /* 左端をボックスに合わせる */
+        left: auto;
+        right: 0;
+        
+        /* 隙間調整 (上側にマージンを入れる) */
+        margin-top: 10px; 
+        margin-bottom: 0;
+        margin-left: 0;
+        margin-right: 0;
+        
+        transform: none;
+    }
+    .bubble-pos-right::after {
+        top: 50%; left: 100%; margin-top: -6px;
+        border-width: 6px 0 6px 6px;
+        border-color: transparent #fff;
+    }
+
+    /* スマホ調整: 左右の人が画面端すぎる場合、少し内側に寄せる微調整 */
+    @media (max-width: 600px) {
+        .chat-bubble { max-width: 90px; font-size: 10px; }
+    }
+
+
+

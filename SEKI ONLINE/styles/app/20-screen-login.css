@@ -1,0 +1,412 @@
+﻿    /* --- S.E.K.I. タイトル画面（ログイン専用） --- */
+    #login-screen {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-right: max(20px, env(safe-area-inset-right));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding-left: max(20px, env(safe-area-inset-left));
+        overflow: hidden;
+        isolation: isolate;
+        box-sizing: border-box;
+        background: radial-gradient(circle at 50% 100%, #0e2342 0%, #050d19 48%, #02060e 100%);
+    }
+
+    #login-cyber-bg,
+    .login-grid,
+    .login-scanlines {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+    #login-cyber-bg { z-index: 0; }
+
+    .login-grid {
+        z-index: 1;
+        background:
+            radial-gradient(circle at 18% 16%, rgba(0, 216, 255, 0.22), transparent 44%),
+            radial-gradient(circle at 82% 26%, rgba(255, 53, 94, 0.14), transparent 36%),
+            radial-gradient(circle at 74% 84%, rgba(52, 247, 141, 0.16), transparent 40%),
+            linear-gradient(rgba(45, 100, 190, 0.18) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(45, 100, 190, 0.18) 1px, transparent 1px);
+        background-size: auto, auto, auto, 48px 48px, 48px 48px;
+        animation: loginGridShift 16s linear infinite;
+    }
+
+    .login-scanlines {
+        z-index: 2;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.05) 0px,
+            rgba(255, 255, 255, 0.05) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.3;
+        animation: loginScanlineShift 10s linear infinite;
+    }
+
+    #login-panel {
+        position: relative;
+        z-index: 3;
+        width: min(520px, 100%);
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 34px 30px 30px;
+        box-sizing: border-box;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 216, 255, 0.42);
+        background:
+            linear-gradient(155deg, rgba(6, 16, 32, 0.85), rgba(4, 11, 23, 0.72)),
+            radial-gradient(circle at 14% 18%, rgba(0, 216, 255, 0.12), transparent 38%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow:
+            0 24px 54px rgba(0, 0, 0, 0.62),
+            0 0 40px rgba(0, 216, 255, 0.16),
+            inset 0 0 25px rgba(0, 216, 255, 0.08);
+        animation: loginPanelPulse 6s ease-in-out infinite alternate;
+    }
+
+    #title-logo {
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+        object-fit: contain;
+        filter:
+            drop-shadow(0 0 14px rgba(0, 216, 255, 0.38))
+            drop-shadow(0 0 26px rgba(255, 53, 94, 0.2));
+        animation: loginLogoFloat 3.8s ease-in-out infinite alternate;
+        margin-bottom: 2px;
+    }
+
+    .version-text {
+        margin: 0;
+        font-family: var(--font-ui);
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        color: #cfe8ff;
+        text-shadow: 0 0 10px rgba(0, 216, 255, 0.36);
+        opacity: 0.92;
+    }
+
+    .seki-tagline {
+        margin: 12px 0;
+        font-size: 12px;
+        color: #d9ebff;
+        letter-spacing: 0.8px;
+        text-shadow: 0 0 8px rgba(0, 216, 255, 0.22);
+    }
+
+    #login-screen input {
+        width: 100%;
+        border: 1px solid rgba(165, 205, 255, 0.3);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        color: #eff6ff;
+        padding: 13px 14px;
+        font-size: 15px;
+        font-family: var(--font-ui);
+        letter-spacing: 1px;
+        text-align: center;
+        appearance: none;
+        -webkit-appearance: none;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+    }
+    #login-screen input::placeholder { color: rgba(216, 235, 255, 0.56); }
+    #login-screen input:focus {
+        outline: none;
+        transform: translateY(-1px);
+    }
+    #roomName:focus {
+        border-color: var(--seki-s);
+        box-shadow: 0 0 0 2px rgba(0, 216, 255, 0.2), 0 0 18px rgba(0, 216, 255, 0.36);
+    }
+    #playerName:focus {
+        border-color: var(--seki-e);
+        box-shadow: 0 0 0 2px rgba(52, 247, 141, 0.18), 0 0 18px rgba(52, 247, 141, 0.35);
+    }
+
+    #login-screen input:-webkit-autofill,
+    #login-screen input:-webkit-autofill:hover,
+    #login-screen input:-webkit-autofill:focus {
+        -webkit-text-fill-color: #eff6ff;
+        -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3) inset;
+        box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3) inset;
+        caret-color: #eff6ff;
+        transition: background-color 9999s ease-out 0s;
+    }
+
+    #room-suggestion-panel {
+        width: 100%;
+        max-height: 170px;
+        overflow-y: auto;
+        margin-top: -2px;
+        margin-bottom: 2px;
+        font-family: var(--font-ui);
+        border-radius: 12px;
+        border: 1px solid rgba(0, 216, 255, 0.33);
+        background: rgba(2, 10, 20, 0.92);
+        box-shadow: inset 0 0 14px rgba(0, 216, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.36);
+    }
+    .room-suggestion-title {
+        font-family: var(--font-ui);
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        color: #a5cfff;
+        padding: 8px 10px 5px;
+        text-align: left;
+    }
+    .room-suggestion-item {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #e8f4ff;
+        text-align: left;
+        padding: 9px 10px;
+        font-family: var(--font-ui);
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.18s ease;
+    }
+    .room-suggestion-item:hover {
+        background: rgba(0, 216, 255, 0.12);
+    }
+    .room-suggestion-empty {
+        padding: 10px;
+        font-family: var(--font-ui);
+        font-size: 12px;
+        text-align: left;
+        color: #9cb3c9;
+    }
+
+    #login-screen #btn-join {
+        width: 100%;
+        margin-top: 8px;
+        padding: 14px 18px;
+        border: 1px solid rgba(255, 143, 166, 0.72);
+        border-radius: 12px;
+        background: linear-gradient(135deg, #8f0f2d 0%, #d81f48 42%, #ff355e 100%);
+        color: #fff5f8;
+        font-family: var(--font-ui);
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        cursor: pointer;
+        text-transform: uppercase;
+        clip-path: polygon(4% 0%, 100% 0%, 100% 84%, 96% 100%, 0% 100%, 0% 16%);
+        box-shadow: 0 10px 24px rgba(255, 53, 94, 0.32), 0 0 20px rgba(255, 53, 94, 0.28);
+        transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+    }
+    #login-screen #btn-join:hover {
+        transform: translateY(-1px) scale(1.01);
+        filter: saturate(1.15);
+        box-shadow: 0 14px 34px rgba(255, 53, 94, 0.42), 0 0 26px rgba(255, 53, 94, 0.46);
+    }
+    #login-screen #btn-join:active { transform: translateY(1px); }
+    #login-screen #btn-join:disabled {
+        background: #4d5563;
+        border-color: #6c7482;
+        clip-path: none;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+    @keyframes loginPanelPulse {
+        0% { box-shadow: 0 24px 54px rgba(0, 0, 0, 0.62), 0 0 34px rgba(0, 216, 255, 0.14), inset 0 0 20px rgba(0, 216, 255, 0.08); }
+        100% { box-shadow: 0 24px 54px rgba(0, 0, 0, 0.7), 0 0 46px rgba(0, 216, 255, 0.25), inset 0 0 25px rgba(52, 247, 141, 0.08); }
+    }
+    @keyframes loginLogoFloat {
+        0% { transform: translateY(0px); }
+        100% { transform: translateY(-6px); }
+    }
+    @keyframes loginGridShift {
+        0% { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(-20px, -24px, 0); }
+    }
+    @keyframes loginScanlineShift {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(4px); }
+    }
+    @keyframes gameGridShift {
+        0% { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(-18px, -16px, 0); }
+    }
+
+    @media (max-width: 600px) {
+        body { background-attachment: scroll; }
+        #login-screen {
+            padding: 12px;
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-right: max(12px, env(safe-area-inset-right));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            padding-left: max(12px, env(safe-area-inset-left));
+        }
+        #login-panel {
+            width: min(440px, 100%);
+            padding: 24px 18px 22px;
+            gap: 8px;
+            border-radius: 16px;
+        }
+        #title-logo { max-width: 340px; }
+        .seki-tagline { margin: 10px 0; font-size: 11px; }
+        #login-screen input { padding: 11px 12px; font-size: 14px; }
+        #login-screen #btn-join { font-size: 14px; padding: 12px 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .login-grid,
+        .login-scanlines,
+        #login-panel,
+        #title-logo,
+        #game-screen::before {
+            animation: none !important;
+        }
+        #login-screen input,
+        #login-screen #btn-join,
+        .seki-btn {
+            transition: none !important;
+        }
+        #boot-transition-title.is-active {
+            animation: none !important;
+        }
+        #boot-transition-screen.is-wiping {
+            animation: sekiBootFadeOut 300ms ease forwards !important;
+            transform: none !important;
+            clip-path: inset(0 0 0 0) !important;
+            filter: none !important;
+        }
+        #boot-transition-screen.is-wiping::after {
+            animation: none !important;
+            opacity: 0 !important;
+        }
+        .role-draft-card.fade-out,
+        .role-draft-card.fade-out .role-draft-card-inner,
+        .role-draft-card.fade-out .role-draft-card-media img,
+        .role-draft-card.fade-out::before,
+        .role-draft-card.fade-out::after {
+            animation: none !important;
+            transform: none !important;
+            filter: none !important;
+        }
+        .role-draft-card.fade-out {
+            opacity: 0.15 !important;
+        }
+        .role-draft-card.fade-out::after {
+            content: none !important;
+            opacity: 0 !important;
+        }
+        .role-draft-card.fade-out::before {
+            content: none !important;
+            opacity: 0 !important;
+        }
+    }
+
+    /* エリアごとのパネル化（グラスモーフィズム） */
+    #my-area {
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.82), rgba(4, 11, 23, 0.74));
+        backdrop-filter: blur(7px);
+        border-radius: var(--seki-radius-lg);
+        border: 1px solid var(--seki-panel-border);
+        padding: 15px;
+        box-shadow: var(--seki-shadow-panel), inset 0 0 18px rgba(0, 216, 255, 0.08);
+        margin-top: 10px;
+    }
+    #my-hand {
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: flex-end;
+        white-space: nowrap;
+        overflow: visible;
+        box-sizing: border-box;
+        min-height: 94px;
+    }
+    #my-hand .card {
+        flex: 0 0 auto;
+    }
+
+    /* カード・盤面デザイン */
+    .pile { 
+        width: 60px; height: 90px; 
+        border: 2px dashed rgba(173, 214, 255, 0.62); 
+        border-radius: var(--seki-radius-sm);
+        margin: auto; display:flex; align-items:center; justify-content:center; 
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.7), rgba(3, 10, 20, 0.56)); 
+        cursor: pointer;
+        box-shadow: inset 0 0 12px rgba(0, 216, 255, 0.11);
+        transition: transform var(--seki-transition-fast), border-color var(--seki-transition-fast), box-shadow var(--seki-transition-fast), background var(--seki-transition-fast); 
+    }
+    .pile:hover {
+        background: linear-gradient(155deg, rgba(8, 26, 48, 0.82), rgba(4, 14, 28, 0.74));
+        border-color: var(--seki-warning);
+        transform: scale(1.05);
+        box-shadow: 0 0 12px rgba(255, 235, 59, 0.25), inset 0 0 14px rgba(0, 216, 255, 0.24);
+    }
+
+    .card { 
+        width: 54px; height: 86px; 
+        background-color: #f5fbff;
+        color: #1f2a3a; 
+        border-radius: 6px; 
+        border: 1px solid #a3b9d6;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.38); /* カードの影 */
+        display: inline-flex; align-items: center; justify-content: center; 
+        font-weight: bold; margin: 3px; font-size: 22px; 
+        cursor: pointer; position: relative; 
+        transition: transform var(--seki-transition-fast) cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast);
+        vertical-align: bottom;
+        background-size: cover; background-position: center; background-repeat: no-repeat;
+    }
+    /* カードの動き */
+    .card:not(.selected):hover {
+        transform: translateY(-8px) rotate(2deg);
+        z-index: 5;
+        border-color: rgba(0, 216, 255, 0.55);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.45), 0 0 10px rgba(0, 216, 255, 0.18);
+    }
+    
+    .card.num { color: #1565c0; font-family: var(--font-display-strong); }
+    .card.sym { color: #c62828; font-size: 11px; text-align:center; line-height:1.1; letter-spacing: -0.5px;}
+    /*.card[data-val="0"] { border: 2px solid #ab47bc; color: #8e24aa; background: #f3e5f5; }*/
+
+    /* 選択状態：光るエフェクト */
+    .selected { 
+        transform: translateY(-20px) scale(1.1) !important; 
+        border: 2px solid var(--seki-warning); 
+        box-shadow: 0 0 15px rgba(255, 235, 59, 0.9), 0 10px 20px rgba(0,0,0,0.5); 
+        z-index: 100; 
+    }
+    .card.has-img { color: transparent !important; font-size: 0; border: 2px solid rgba(255, 255, 255, 0.9); }
+    @media (hover: none) and (pointer: coarse) {
+        .card:not(.selected):hover {
+            transform: none;
+            border-color: #a3b9d6;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.38);
+        }
+        .pile:hover {
+            background: linear-gradient(155deg, rgba(6, 16, 32, 0.7), rgba(3, 10, 20, 0.56));
+            border-color: rgba(173, 214, 255, 0.62);
+            transform: none;
+            box-shadow: inset 0 0 12px rgba(0, 216, 255, 0.11);
+        }
+        #my-hand .card {
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+        }
+        #my-hand .selected {
+            transform: translateY(-10px) scale(1.03) !important;
+            box-shadow: 0 0 10px rgba(255, 235, 59, 0.72), 0 6px 14px rgba(0,0,0,0.44);
+        }
+    }
+
+    /* 他プレイヤー表示 */

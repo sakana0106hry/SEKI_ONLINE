@@ -1,0 +1,1380 @@
+﻿    /* --- 円卓レイアウト用CSS --- */
+    /* --- アニメーション定義 (光る演出用) --- */
+    @keyframes pulse-yellow {
+        0% { box-shadow: 0 0 5px #ffeb3b; }
+        50% { box-shadow: 0 0 15px #ffeb3b, 0 0 5px rgba(255,235,59,0.5) inset; }
+        100% { box-shadow: 0 0 5px #ffeb3b; }
+    }
+    @keyframes blink-red {
+        0% { border-color: #ff1744; background-color: rgba(255, 23, 68, 0.1); }
+        50% { border-color: #b71c1c; background-color: rgba(255, 23, 68, 0.3); }
+        100% { border-color: #ff1744; background-color: rgba(255, 23, 68, 0.1); }
+    }
+    @keyframes blink-orange {
+        0% { border-color: #ff9800; }
+        50% { border-color: #ffe0b2; }
+        100% { border-color: #ff9800; }
+    }
+    @keyframes pulse-badge { from{transform:scale(1);} to{transform:scale(1.3);} }
+
+    /* --- 円卓レイアウト用 (画面分割) --- */
+    #game-table {
+        /* 残りの高さを全部使う */
+        flex: 1;
+        
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        position: relative;
+        
+        /* ★ここが重要：入り切らない場合はここだけスクロールさせる */
+        overflow-y: visible; 
+        
+        /* ★ログバー(35px)と被らないよう、底上げする */
+        padding-bottom: 80px !important; 
+        
+        /* 横のパディング */
+        padding-left: 10px;
+        padding-right: 10px;
+        box-sizing: border-box;
+        
+        /* 高さ指定（calc）は削除して auto に */
+        height: auto !important; 
+    }
+
+    /* エリア定義 */
+    #area-top {
+        height: 15%; /* 画面上部 */
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 10px;
+        padding-bottom: 5px;
+    }
+
+    #area-middle {
+        flex: 1; /* 残りのスペース */
+        display: flex;
+        align-items: center;
+        /* justify-content: space-between;  ← これを削除して */
+        justify-content: center;         /* ← これに変更！ */
+        gap: 5px;                        /* ← 間隔を少し空ける */
+        width: 100%;
+        position: relative;
+    }
+    /* ↓↓↓ 追加: 自分の手番のときの強調表示 ↓↓↓ */
+    #my-area.current-turn {
+        border: 2px solid var(--seki-warning) !important;
+        box-shadow: 0 0 30px rgba(255, 235, 59, 0.45), 0 0 20px rgba(0, 216, 255, 0.2);
+        background: linear-gradient(155deg, rgba(42, 38, 8, 0.88), rgba(18, 25, 38, 0.78));
+        transform: translateY(-2px);                /* ほんの少し浮き上がる */
+        transition: all 0.3s ease;
+    }
+
+    /* サイドバー (左右のプレイヤー) */
+    /* --- プレイヤーエリアの枠組み --- */
+    /* サイドバーの幅を少し広げて、プレイヤーボックスが入るようにする */
+    /* --- 1. エリア定義の調整 (ボックス拡大に合わせて広げる) --- */
+    
+    /* 左右のサイドバー：幅を広げる */
+    .player-zone.col {
+        width: 150px; /* 80px -> 110px -> 130px に拡大 */
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        z-index: 10; /* 中央フィールドより手前に表示 */
+    }
+
+    /* 上部エリア：高さを確保 */
+    #area-top {
+        height: auto;
+        min-height: 130px; /* ボックスがしっかり入る高さ */
+        display: flex;
+        justify-content: center;
+        align-items: flex-end; /* 下揃え */
+        gap: 12px; /* 横並び時の隙間 */
+        padding-bottom: 5px;
+        z-index: 10;
+    }
+    /* ↓↓↓ 追加: 自分のネームプレート（ヘッダー風） ↓↓↓ */
+    .my-name-plate {
+        background: linear-gradient(155deg, rgba(6, 18, 35, 0.82), rgba(4, 11, 23, 0.74));
+        border-bottom: 1px solid rgba(0, 216, 255, 0.28);
+        padding: 8px 15px;
+        margin: -15px -15px 10px -15px;       /* 親のpadding(15px)を相殺して上端に密着 */
+        border-radius: var(--seki-radius-lg) var(--seki-radius-lg) 0 0;
+        
+        font-weight: bold;
+        font-size: 14px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--seki-text-main);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 8px rgba(0, 216, 255, 0.2);
+        position: relative;
+        overflow: visible;
+    }
+    .my-host-icon {
+        color: #ffd700;
+        margin-right: 4px;
+    }
+    .my-name-link {
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+    }
+    .role-attr-strategy {
+        --role-accent: var(--seki-s);
+        --role-accent-rgb: 0, 216, 255;
+    }
+    .role-attr-efficiency {
+        --role-accent: var(--seki-e);
+        --role-accent-rgb: 52, 247, 141;
+    }
+    .role-attr-killer {
+        --role-accent: var(--seki-k);
+        --role-accent-rgb: 255, 53, 94;
+    }
+    .my-role-chip {
+        margin-left: 10px;
+        color: var(--role-accent, #8fefff);
+        text-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.32);
+    }
+    .my-role-chip.used {
+        opacity: 0.6;
+        filter: saturate(0.82);
+    }
+    .my-reset-badge {
+        margin-left: 10px;
+        font-size: 12px;
+        vertical-align: middle;
+        display: inline-block;
+    }
+    .my-rank-badge {
+        color: #ffd700;
+        margin-left: 10px;
+        text-shadow: 0 0 6px rgba(255, 196, 0, 0.5);
+    }
+
+    /* --- 2. プレイヤープレート本体 (サイズアップ) --- */
+    .p-box-new {
+        width: 140px;            /* 横幅 */
+        height: 110px;           /* ★高さを数値で強制固定！ */
+        
+        display: flex;
+        flex-direction: column;  /* 縦並び */
+        justify-content: space-between; /* 上・中・下をきっちり配置 */
+        
+        background: linear-gradient(150deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84));
+        border: 1px solid rgba(0, 216, 255, 0.32);
+        border-radius: 10px;
+        box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+        transition: transform var(--seki-transition-mid), border-color var(--seki-transition-mid), box-shadow var(--seki-transition-mid), background var(--seki-transition-mid);
+        overflow: visible !important;        /* ★はみ出した分はカット（これで伸びない） */
+    }
+
+    /* 手番のときの強調 */
+    .p-box-new.current {
+        border: 2px solid var(--seki-warning);
+        box-shadow: 0 0 20px rgba(255, 235, 59, 0.65), 0 0 14px rgba(0, 216, 255, 0.2);
+        background: linear-gradient(145deg, rgba(61, 54, 14, 0.92), rgba(12, 22, 36, 0.85));
+        z-index: 100;
+        /* currentで拡大させるとレイアウトが崩れることがあるので、
+           scaleではなく translate や shadow だけで目立たせるのが安全ですが、
+           一旦 scale(1.05) はそのままでいきます */
+        transform: scale(1.05);
+    }
+
+    /* --- 3. 内部パーツ (文字サイズ拡大) --- */
+
+    /* ヘッダー（名前） */
+    .p-header {
+        height: 26px;            /* ★高さ固定 */
+        line-height: 26px;       /* 垂直中央 */
+        padding: 0 4px;
+        background: rgba(8, 26, 48, 0.64);
+        border-bottom: 1px solid rgba(0, 216, 255, 0.24);
+        border-top-left-radius: 9px;
+        border-top-right-radius: 9px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #f3fbff;
+        white-space: nowrap;     /* 改行させない */
+        overflow: hidden;
+        text-overflow: ellipsis; /* 長すぎたら...にする */
+    }
+
+    .p-host-mark { color: #ffd700; margin-right: 4px; font-size: 13px; }
+
+    /* --- 3段固定レイアウト用の修正 --- */
+
+    /* 中段：手札数とステータスを横並びに */
+    .p-body {
+        flex: 1;                 /* ★余った高さを全部使う */
+        display: flex;
+        flex-direction: row;     /* 横並び */
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 8px;
+        border-bottom: 1px solid rgba(0, 216, 255, 0.2);
+    }
+
+    /* 左側：手札枚数（フォントサイズはそのまま維持） */
+    .p-hand-count {
+        flex-shrink: 0 !important;      /* 横幅が足りなくても、絶対に縮めない！ */
+        white-space: nowrap !important; /* 勝手に改行させない！ */
+        font-size: 24px;         /* ★そのまま！ */
+        font-weight: 800;
+        color: #fff;
+        display: flex; 
+        align-items: center; 
+        gap: 2px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .p-hand-count.count-danger {
+        color: #ff1744;
+        text-shadow: 0 0 10px #ff1744;
+        animation: blink-text 0.6s infinite;
+    }
+    .p-hand-count.count-warning {
+        color: #ffeb3b;
+        text-shadow: 0 0 10px #ffeb3b;
+        animation: blink-text 1.2s infinite;
+    }
+    .p-hand-count.count-passed {
+        color: #78909c;
+    }
+    .p-hand-icon { font-size: 16px; opacity: 0.8; margin-right: 2px; } 
+
+    /* 右側：ステータス表示エリア */
+    .p-status-area {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+    }
+    
+    /* ステータス文字のスタイル定義 */
+    .status-text {
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 1px;
+    }
+    
+    .status-normal { color: #8aa0b8; }
+    
+    .status-reset { 
+        color: #ffeb3b; 
+        animation: pulse-yellow 2s infinite; 
+        border: 1px solid #ffeb3b;
+        padding: 0 4px;
+        border-radius: 4px;
+        background: rgba(0,0,0,0.3);
+    }
+    
+    .status-rank {
+        color: #ffd700;
+        font-size: 14px; /* 順位は少し大きく */
+        text-shadow: 0 0 5px #ff9800;
+    }
+
+    /* 下段：役職エリア（高さ固定） */
+    .p-role-row {
+        height: 30px;            /* ★高さ固定 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(4, 12, 24, 0.5);
+        padding: 0 4px;
+        border-bottom-left-radius: 9px;
+        border-bottom-right-radius: 9px;
+    }
+
+    /* --- 役職バッジ（視認性アップ版） --- */
+    .role-badge-pill {
+        font-size: 14px;       /* 擬似太字を避ける分、少し大きくする */
+        font-weight: 400;      /* WDXLの擬似太字を使わない */
+        
+        padding: 2px 0;        /* 上下は詰めて文字スペース確保 */
+        width: 95%;            /* 横幅いっぱいに広げる */
+        
+        /* 属性色グラデーション */
+        background:
+            linear-gradient(
+                135deg,
+                rgba(9, 24, 40, 0.92),
+                rgba(var(--role-accent-rgb, 0, 216, 255), 0.72) 52%,
+                rgba(var(--role-accent-rgb, 0, 216, 255), 0.95)
+            );
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.86);
+        
+        /* ほんのり発光させて目立たせる */
+        box-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.38);
+        
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        
+        /* 中央揃え */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+        letter-spacing: 0.08em;
+    }
+    .p-box-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .p-box-new.with-bubble {
+        position: relative;
+    }
+    .p-header.clickable {
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+    }
+    .role-activate-btn {
+        margin-top: 8px;
+        min-width: 112px;
+        min-height: 32px;
+        padding: 6px 12px;
+        line-height: 1.2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        background: linear-gradient(
+            135deg,
+            rgba(8, 22, 40, 0.96),
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.72) 56%,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.92)
+        );
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.72);
+        box-shadow:
+            0 3px 10px rgba(0, 0, 0, 0.35),
+            0 0 10px rgba(var(--role-accent-rgb, 0, 216, 255), 0.24);
+        color: #effbff;
+    }
+    .role-activate-btn:hover:not(:disabled) {
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.9);
+        box-shadow:
+            0 6px 16px rgba(0, 0, 0, 0.45),
+            0 0 14px rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
+    }
+    .role-status-badge {
+        font-size: 11px;
+        color: var(--seki-warning);
+        margin-top: 5px;
+        font-weight: bold;
+    }
+    .role-card.is-used {
+        filter: saturate(0.75) brightness(0.84);
+        opacity: 0.7;
+    }
+
+    /* 正体不明のとき（ROLE: ???）も見やすく */
+    .role-unknown {
+        font-size: 11px;
+        /* 暗いグレーではなく、半透明の白にして読みやすくする */
+        color: rgba(255, 255, 255, 0.6); 
+        font-weight: bold;
+        letter-spacing: 2px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    /* 修正: 役職の補足情報（手品師のスキル名など）を横並びにする */
+    .role-sub { 
+        font-size: 13px; 
+        display: inline;      /* 横に並べる */
+        color: inherit;
+        text-shadow: inherit;
+        opacity: 1; 
+        margin-left: 4px;
+    }
+    /* --- 4. 公開カード (ミニカードも拡大) --- */
+    .p-revealed-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 6px;
+        width: 140px; /* ボックス幅に合わせる */
+    }
+    .mini-card {
+        width: 24px; height: 36px; /* 18x26 -> 24x36 に拡大 */
+        border-radius: 4px;
+        background: #fff;
+        color: #333;
+        font-size: 14px; /* 数字も読みやすく */
+        font-weight: bold;
+        line-height: 36px;
+        text-align: center;
+        border: 1px solid #999;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+    /* 0のカード */
+    /*.mini-card[data-val="0"] { border: 1px solid #ab47bc; color: #8e24aa; background: #f3e5f5; }*/
+
+    /* --- その他微調整 --- */
+    /* 自分エリアが隠れないようにマージン確保 */
+    /* 中央フィールド（ゾーン分けレイアウト修正） */
+    #field-center {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between; /* 上下に要素を分散 */
+        position: relative;
+        
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.62), rgba(3, 9, 20, 0.54));
+        border-radius: 20px;
+        box-shadow: inset 0 0 22px rgba(0, 216, 255, 0.11), 0 6px 16px rgba(0,0,0,0.28);
+        border: 1px solid rgba(0, 216, 255, 0.18);
+        
+        padding: 5px;
+        margin: 0 5px;
+        z-index: 1;
+        overflow: hidden;
+    }
+    #role-draft-monitor {
+        --role-draft-monitor-gap: 6px;
+        --role-draft-monitor-padding: 8px;
+        --role-draft-stage-gap: 6px;
+        --role-draft-headline-padding-y: 4px;
+        --role-draft-headline-padding-x: 7px;
+        --role-draft-headline-font-size: 16px;
+        --role-draft-choice-gap: 4px;
+        --role-draft-card-min-height: 64px;
+        --role-draft-card-padding-y: 7px;
+        --role-draft-card-padding-x: 7px;
+        --role-draft-card-gap: 3px;
+        --role-draft-group-font-size: 12px;
+        --role-draft-role-font-size: clamp(14px, 3vw, 22px);
+        --role-draft-role-line-height: 1.22;
+        --role-draft-role-jp-font-size: 20px;
+        --role-draft-placeholder-font-size: 11px;
+        --role-draft-footer-gap: 6px;
+        --role-draft-footer-padding-y: 5px;
+        --role-draft-footer-padding-x: 7px;
+        --role-draft-selected-font-size: 16px;
+        --role-draft-confirm-font-size: 11px;
+        --role-draft-confirm-padding-y: 3px;
+        --role-draft-confirm-padding-x: 8px;
+        --role-draft-confirm-min-width: 72px;
+        --role-draft-confirm-min-height: 30px;
+        position: absolute;
+        inset: 0;
+        z-index: 45;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: var(--role-draft-monitor-gap);
+        padding: var(--role-draft-monitor-padding);
+        box-sizing: border-box;
+        border-radius: 18px;
+        border: 1px solid rgba(0, 216, 255, 0.25);
+        background:
+            radial-gradient(circle at 18% 16%, rgba(0, 216, 255, 0.16), transparent 42%),
+            radial-gradient(circle at 84% 22%, rgba(255, 53, 94, 0.12), transparent 36%),
+            linear-gradient(150deg, rgba(2, 7, 14, 0.97), rgba(1, 5, 10, 0.98));
+        color: #dff6ff;
+        overflow: hidden;
+    }
+    #role-draft-monitor.hidden {
+        display: none !important;
+    }
+    #role-draft-monitor::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.03) 0px,
+            rgba(255, 255, 255, 0.03) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.26;
+    }
+    #role-draft-monitor.phase-noise-out {
+        animation: roleDraftNoiseOut 500ms steps(10, end) 1000ms forwards;
+    }
+    #role-draft-monitor.phase-noise-out::before {
+        opacity: 0.6;
+        animation: roleDraftNoiseFlicker 120ms steps(2, end) 1000ms infinite;
+    }
+    .role-draft-stage {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--role-draft-stage-gap);
+        flex: 1;
+        min-height: 0;
+    }
+    .role-draft-headline {
+        margin: 0;
+        padding: var(--role-draft-headline-padding-y) var(--role-draft-headline-padding-x);
+        border-radius: 10px;
+        border: 1px solid rgba(0, 216, 255, 0.32);
+        background: rgba(2, 10, 20, 0.8);
+        font-size: var(--role-draft-headline-font-size) !important;
+        line-height: 1.25;
+        letter-spacing: 0.05em;
+        text-shadow: 0 0 8px rgba(0, 216, 255, 0.28);
+    }
+    .role-draft-logo-wrap {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .role-draft-logo {
+        width: min(82%, 380px);
+        max-height: 58%;
+        object-fit: contain;
+        opacity: 0;
+        filter: drop-shadow(0 0 10px rgba(0, 216, 255, 0.35));
+        animation: roleDraftLogoFade 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    }
+    .role-draft-choice-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--role-draft-choice-gap);
+        width: 100%;
+        min-height: 0;
+        align-items: stretch;
+        flex: 1;
+    }
+    .role-draft-card {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: var(--role-draft-card-min-height);
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        border-radius: 10px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.54);
+        background: linear-gradient(
+            140deg,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.22),
+            rgba(3, 10, 21, 0.9) 65%
+        );
+        color: #eff6ff;
+        padding: 0;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--role-draft-card-gap);
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.25s ease;
+        touch-action: manipulation;
+    }
+    .role-draft-card-media {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+    }
+    .role-draft-card-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 12%;
+        opacity: 0.34;
+        filter: saturate(0.82) contrast(1.08);
+    }
+    .role-draft-card-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(160deg, rgba(2, 10, 20, 0.32), rgba(2, 10, 20, 0.86) 72%),
+            radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 50%);
+    }
+    .role-draft-card-inner {
+        position: relative;
+        z-index: 1;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: var(--role-draft-card-gap);
+        padding: var(--role-draft-card-padding-y) var(--role-draft-card-padding-x);
+        box-sizing: border-box;
+    }
+    .role-draft-card.selectable {
+        cursor: pointer;
+    }
+    .role-draft-card.selectable:hover {
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.9);
+    }
+    .role-draft-card.selected {
+        border-color: rgba(255, 235, 59, 0.92);
+        transform: none !important;
+        box-shadow: inset 0 0 0 2px rgba(255, 235, 59, 0.86), 0 0 12px rgba(255, 235, 59, 0.28);
+    }
+    .role-draft-card.selectable:active {
+        transform: none !important;
+    }
+    .role-draft-card.selected .role-draft-card-media img {
+        opacity: 0.44;
+    }
+    .role-draft-card.fade-out {
+        pointer-events: none;
+        will-change: opacity;
+        animation: roleDraftCardFadeSimple 420ms ease-out forwards;
+        transform: none !important;
+        filter: none !important;
+    }
+    .role-draft-card.fade-out .role-draft-card-inner {
+        animation: none !important;
+        transform: none !important;
+        filter: none !important;
+    }
+    .role-draft-card.fade-out .role-draft-card-media img {
+        animation: none !important;
+        transform: none !important;
+        filter: none !important;
+    }
+    .role-draft-card.fade-out::before {
+        content: none !important;
+        animation: none !important;
+        opacity: 0 !important;
+    }
+    .role-draft-card.fade-out::after {
+        content: none !important;
+        animation: none !important;
+        opacity: 0 !important;
+    }
+    .role-draft-card.disabled {
+        opacity: 0.76;
+        cursor: default;
+    }
+    .role-draft-group {
+        font-size: var(--role-draft-group-font-size);
+        color: var(--role-accent, #9ce8ff);
+        letter-spacing: 0.08em;
+        line-height: 1.15;
+        text-transform: uppercase;
+        text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.35);
+    }
+    .role-draft-role {
+        font-size: var(--role-draft-role-font-size);
+        font-family: var(--font-display-strong);
+        display: block;
+        letter-spacing: 0.04em;
+        line-height: var(--role-draft-role-line-height);
+        padding-bottom: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        word-break: normal;
+        text-overflow: ellipsis;
+    }
+    .role-draft-role-jp {
+        font-size: var(--role-draft-role-jp-font-size) !important;
+        line-height: 1.35;
+        color: #d9ebff;
+    }
+    .role-draft-summary {
+        font-size: 10px;
+        line-height: 1.35;
+        color: #b8ccdf;
+    }
+    .role-draft-placeholder {
+        display: block;
+        font-size: var(--role-draft-placeholder-font-size);
+        color: rgba(239, 246, 255, 0.86);
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+        letter-spacing: 0.08em;
+    }
+    .role-draft-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--role-draft-footer-gap);
+        flex-wrap: nowrap;
+        padding: var(--role-draft-footer-padding-y) var(--role-draft-footer-padding-x);
+        border-radius: 10px;
+        border: 1px solid rgba(0, 216, 255, 0.28);
+        background: rgba(2, 10, 20, 0.82);
+    }
+    .role-draft-selected-label {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--role-draft-selected-font-size) !important;
+        line-height: 1.3;
+        color: #d9ebff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .role-draft-confirm-btn {
+        border: 1px solid rgba(0, 216, 255, 0.66);
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+        color: #f4fbff;
+        padding: var(--role-draft-confirm-padding-y) var(--role-draft-confirm-padding-x) !important;
+        min-height: var(--role-draft-confirm-min-height) !important;
+        min-width: var(--role-draft-confirm-min-width) !important;
+        font-size: var(--role-draft-confirm-font-size) !important;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        font-family: var(--font-ui);
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+    .role-draft-confirm-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.52;
+        background: rgba(92, 110, 128, 0.72);
+        border-color: rgba(132, 147, 168, 0.62);
+    }
+    #role-draft-monitor.role-draft-density-compact {
+        --role-draft-monitor-padding: 6px;
+        --role-draft-monitor-gap: 4px;
+        --role-draft-stage-gap: 4px;
+        --role-draft-headline-padding-y: 3px;
+        --role-draft-headline-padding-x: 6px;
+        --role-draft-headline-font-size: 15px;
+        --role-draft-choice-gap: 3px;
+        --role-draft-card-min-height: 56px;
+        --role-draft-card-padding-y: 5px;
+        --role-draft-card-padding-x: 5px;
+        --role-draft-card-gap: 2px;
+        --role-draft-group-font-size: 11px;
+        --role-draft-role-font-size: clamp(13px, 2.8vw, 20px);
+        --role-draft-role-jp-font-size: 18px;
+        --role-draft-placeholder-font-size: 10px;
+        --role-draft-footer-gap: 4px;
+        --role-draft-footer-padding-y: 4px;
+        --role-draft-footer-padding-x: 6px;
+        --role-draft-selected-font-size: 15px;
+        --role-draft-confirm-min-width: 68px;
+        --role-draft-confirm-font-size: 10.5px;
+        --role-draft-confirm-padding-y: 2px;
+        --role-draft-confirm-padding-x: 7px;
+        --role-draft-confirm-min-height: 28px;
+    }
+    #role-draft-monitor.role-draft-density-xcompact {
+        --role-draft-monitor-padding: 5px;
+        --role-draft-monitor-gap: 3px;
+        --role-draft-stage-gap: 3px;
+        --role-draft-headline-padding-y: 2px;
+        --role-draft-headline-padding-x: 5px;
+        --role-draft-headline-font-size: 14px;
+        --role-draft-choice-gap: 2px;
+        --role-draft-card-min-height: 50px;
+        --role-draft-card-padding-y: 4px;
+        --role-draft-card-padding-x: 4px;
+        --role-draft-card-gap: 2px;
+        --role-draft-group-font-size: 10px;
+        --role-draft-role-font-size: clamp(12px, 2.6vw, 18px);
+        --role-draft-role-jp-font-size: 16px;
+        --role-draft-placeholder-font-size: 9.5px;
+        --role-draft-footer-gap: 3px;
+        --role-draft-footer-padding-y: 3px;
+        --role-draft-footer-padding-x: 5px;
+        --role-draft-selected-font-size: 14px;
+        --role-draft-confirm-min-width: 64px;
+        --role-draft-confirm-font-size: 9.5px;
+        --role-draft-confirm-padding-y: 2px;
+        --role-draft-confirm-padding-x: 6px;
+        --role-draft-confirm-min-height: 26px;
+    }
+    .role-draft-text-block {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        text-align: center;
+        padding: 10px 8px;
+        overflow-y: auto;
+    }
+    .role-draft-text-block.role-draft-text-block-unused {
+        justify-content: flex-start;
+        align-items: stretch;
+        text-align: center;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+    .role-draft-maintext {
+        font-family: var(--font-display-strong);
+        font-size: clamp(18px, 4.5vw, 34px);
+        letter-spacing: 0.08em;
+        color: #e9fbff;
+        text-shadow: 0 0 10px rgba(0, 216, 255, 0.42), 0 0 18px rgba(52, 247, 141, 0.22);
+    }
+    .role-draft-maintext.role-draft-maintext-system-online {
+        font-size: clamp(14px, 3.4vw, 22px);
+        letter-spacing: 0.03em;
+        line-height: 1.3;
+        max-width: 96%;
+        overflow-wrap: anywhere;
+    }
+    .role-draft-subtext {
+        font-size: 14px;
+        color: #b9d5ea;
+        max-width: 95%;
+    }
+    .role-draft-unused-absence-note {
+        font-family: var(--font-readable);
+        font-size: clamp(10px, 2.6vw, 13px);
+        line-height: 1.25;
+        letter-spacing: 0.02em;
+        color: #dff0ff;
+        white-space: nowrap;
+        max-width: 96%;
+    }
+    .role-draft-transition-meter {
+        position: relative;
+        width: min(92%, 520px);
+        height: 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 216, 255, 0.62);
+        background:
+            linear-gradient(180deg, rgba(12, 29, 52, 0.9), rgba(3, 12, 24, 0.92)),
+            repeating-linear-gradient(90deg, rgba(0, 216, 255, 0.12) 0 1px, rgba(0, 216, 255, 0) 1px 10px);
+        box-shadow:
+            inset 0 0 12px rgba(0, 0, 0, 0.58),
+            inset 0 0 24px rgba(0, 216, 255, 0.12),
+            0 0 16px rgba(0, 216, 255, 0.18);
+        overflow: hidden;
+    }
+    .role-draft-transition-meter::before,
+    .role-draft-transition-meter::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+    .role-draft-transition-meter::before {
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.08) 0 1px,
+            rgba(255, 255, 255, 0) 1px 3px
+        );
+        opacity: 0.22;
+        mix-blend-mode: screen;
+        animation: roleDraftTransitionScan 900ms linear infinite;
+    }
+    .role-draft-transition-meter::after {
+        background: repeating-linear-gradient(
+            90deg,
+            rgba(0, 216, 255, 0.28) 0 1px,
+            rgba(0, 216, 255, 0) 1px 14px
+        );
+        opacity: 0.55;
+        animation: roleDraftTransitionGridFlicker 180ms steps(2, end) infinite;
+    }
+    .role-draft-transition-meter-fill {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-origin: left center;
+        transform: scaleX(0);
+        background:
+            linear-gradient(90deg, rgba(0, 216, 255, 0.94), rgba(52, 247, 141, 0.94) 50%, rgba(158, 236, 255, 0.98)),
+            repeating-linear-gradient(90deg, rgba(6, 18, 34, 0) 0 8px, rgba(6, 18, 34, 0.24) 8px 10px);
+        background-size: 200% 100%, 20px 100%;
+        box-shadow: 0 0 16px rgba(0, 216, 255, 0.55), inset 0 0 10px rgba(255, 255, 255, 0.24);
+        animation: roleDraftTransitionLoad 1000ms linear forwards, roleDraftTransitionSweep 260ms linear infinite;
+    }
+    .role-draft-transition-meter-fill::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -42px;
+        bottom: 0;
+        width: 42px;
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.58),
+            rgba(255, 255, 255, 0)
+        );
+        filter: blur(0.4px);
+        animation: roleDraftTransitionShine 600ms linear infinite;
+    }
+    .role-draft-unused-list {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .role-draft-unused-group {
+        border-radius: 10px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.34);
+        background: linear-gradient(
+            145deg,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.14),
+            rgba(3, 10, 21, 0.9) 66%
+        );
+        box-shadow: inset 0 0 12px rgba(var(--role-accent-rgb, 0, 216, 255), 0.08);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .role-draft-unused-group-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        text-align: left;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--role-accent, #9ce8ff);
+        text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
+    }
+    .role-draft-unused-group-tag {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 20px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.76);
+        background: rgba(var(--role-accent-rgb, 0, 216, 255), 0.2);
+        color: #f2fbff;
+        font-family: var(--font-display-strong);
+        font-size: 10px;
+        line-height: 1;
+        box-sizing: border-box;
+    }
+    .role-draft-unused-group-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .role-draft-unused-item {
+        position: relative;
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.4);
+        background: linear-gradient(
+            120deg,
+            rgba(var(--role-accent-rgb, 0, 216, 255), 0.1),
+            rgba(6, 16, 32, 0.9) 52%,
+            rgba(2, 8, 18, 0.94)
+        );
+        color: #eef4f9;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "main meta"
+            "sub meta";
+        column-gap: 8px;
+        row-gap: 2px;
+        align-items: center;
+        text-align: left;
+        padding: 6px 9px 6px 13px;
+        cursor: pointer;
+        opacity: 0.92;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
+        box-sizing: border-box;
+    }
+    .role-draft-unused-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 7px;
+        bottom: 7px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: rgba(var(--role-accent-rgb, 0, 216, 255), 0.9);
+        box-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.42);
+    }
+    .role-draft-unused-item-main {
+        grid-area: main;
+        min-width: 0;
+        font-size: 14px;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #f5fbff;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .role-draft-unused-item-sub {
+        grid-area: sub;
+        min-width: 0;
+        font-size: 10px;
+        line-height: 1.2;
+        color: #c8e1f7;
+        letter-spacing: 0.04em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .role-draft-unused-item-meta {
+        grid-area: meta;
+        align-self: center;
+        font-size: 9px;
+        line-height: 1.2;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--role-accent, #9ce8ff);
+        text-shadow: 0 0 6px rgba(var(--role-accent-rgb, 0, 216, 255), 0.32);
+        white-space: nowrap;
+    }
+    .role-draft-unused-item:hover {
+        opacity: 1;
+        border-color: rgba(var(--role-accent-rgb, 0, 216, 255), 0.88);
+        box-shadow: 0 0 12px rgba(var(--role-accent-rgb, 0, 216, 255), 0.28), inset 0 0 10px rgba(var(--role-accent-rgb, 0, 216, 255), 0.1);
+        transform: translateY(-1px);
+    }
+    @media (max-width: 600px) {
+        #role-draft-monitor {
+            --role-draft-monitor-padding: 7px;
+            --role-draft-monitor-gap: 5px;
+            --role-draft-stage-gap: 5px;
+            --role-draft-headline-padding-y: 3px;
+            --role-draft-headline-padding-x: 6px;
+            --role-draft-headline-font-size: 15px;
+            --role-draft-card-min-height: 52px;
+            --role-draft-card-padding-y: 5px;
+            --role-draft-card-padding-x: 5px;
+            --role-draft-footer-padding-y: 4px;
+            --role-draft-footer-padding-x: 6px;
+            --role-draft-selected-font-size: 15px;
+            --role-draft-confirm-min-width: 70px;
+            --role-draft-confirm-font-size: 10.5px;
+            --role-draft-confirm-padding-y: 3px;
+            --role-draft-confirm-padding-x: 7px;
+            --role-draft-confirm-min-height: 28px;
+        }
+        .role-draft-unused-list {
+            gap: 6px;
+        }
+        .role-draft-text-block.role-draft-text-block-unused {
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
+        .role-draft-unused-absence-note {
+            font-size: clamp(9.5px, 2.7vw, 12px);
+        }
+        .role-draft-unused-group {
+            padding: 7px;
+            gap: 5px;
+        }
+        .role-draft-unused-group-title {
+            font-size: 10px;
+            gap: 6px;
+        }
+        .role-draft-unused-group-tag {
+            min-width: 18px;
+            height: 16px;
+            font-size: 9px;
+        }
+        .role-draft-unused-group-rows {
+            gap: 4px;
+        }
+        .role-draft-unused-item {
+            padding: 6px 8px 6px 11px;
+            column-gap: 7px;
+        }
+        .role-draft-unused-item::before {
+            top: 6px;
+            bottom: 6px;
+        }
+        .role-draft-unused-item-main {
+            font-size: 13px;
+        }
+        .role-draft-unused-item-sub {
+            font-size: 9.5px;
+        }
+        .role-draft-unused-item-meta {
+            font-size: 8.5px;
+        }
+    }
+    @media (max-width: 420px) {
+        .role-draft-unused-list {
+            gap: 5px;
+        }
+        .role-draft-text-block.role-draft-text-block-unused {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+        .role-draft-unused-absence-note {
+            font-size: clamp(9px, 2.9vw, 11px);
+            letter-spacing: 0.01em;
+        }
+        .role-draft-unused-group {
+            padding: 6px;
+        }
+        .role-draft-unused-group-title {
+            font-size: 9px;
+            letter-spacing: 0.06em;
+        }
+        .role-draft-unused-group-tag {
+            min-width: 16px;
+            height: 15px;
+            padding: 0 4px;
+            font-size: 8px;
+        }
+        .role-draft-unused-item {
+            padding: 5px 7px 5px 10px;
+            column-gap: 6px;
+        }
+        .role-draft-unused-item-main {
+            font-size: 12px;
+        }
+        .role-draft-unused-item-sub {
+            font-size: 9px;
+        }
+        .role-draft-unused-item-meta {
+            font-size: 8px;
+            letter-spacing: 0.08em;
+        }
+    }
+    @media (max-height: 760px) {
+        #role-draft-monitor {
+            --role-draft-monitor-padding: 6px;
+            --role-draft-monitor-gap: 4px;
+            --role-draft-stage-gap: 4px;
+            --role-draft-headline-padding-y: 3px;
+            --role-draft-headline-padding-x: 6px;
+            --role-draft-headline-font-size: 15px;
+            --role-draft-card-min-height: 50px;
+            --role-draft-card-padding-y: 5px;
+            --role-draft-card-padding-x: 5px;
+            --role-draft-card-gap: 2px;
+            --role-draft-group-font-size: 9px;
+            --role-draft-role-jp-font-size: 17px;
+            --role-draft-footer-padding-y: 4px;
+            --role-draft-footer-padding-x: 6px;
+            --role-draft-selected-font-size: 14px;
+        }
+    }
+    .role-badge-group-mask {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    @keyframes roleDraftLogoFade {
+        0% {
+            opacity: 0;
+            transform: scale(0.93) translate3d(0, 2px, 0);
+            filter: drop-shadow(0 0 4px rgba(0, 216, 255, 0.22));
+        }
+        9% {
+            opacity: 0.16;
+        }
+        12% {
+            opacity: 0.03;
+        }
+        18% {
+            opacity: 0.28;
+            transform: scale(0.95) translate3d(-1px, 1px, 0);
+        }
+        22% {
+            opacity: 0.1;
+            transform: scale(0.95) translate3d(1px, -1px, 0);
+        }
+        30% {
+            opacity: 0.42;
+            transform: scale(0.96) translate3d(0, 0, 0);
+        }
+        34% {
+            opacity: 0.2;
+        }
+        44% {
+            opacity: 0.56;
+            transform: scale(0.97) translate3d(-1px, 0, 0);
+        }
+        49% {
+            opacity: 0.3;
+            transform: scale(0.97) translate3d(1px, 0, 0);
+        }
+        62% {
+            opacity: 0.72;
+            transform: scale(0.985) translate3d(0, 0, 0);
+        }
+        68% {
+            opacity: 0.55;
+        }
+        80% {
+            opacity: 0.88;
+        }
+        90% {
+            opacity: 0.94;
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translate3d(0, 0, 0);
+            filter: drop-shadow(0 0 12px rgba(0, 216, 255, 0.4));
+        }
+    }
+    @keyframes roleDraftNoiseOut {
+        0% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            clip-path: inset(0 0 0 0);
+        }
+        78% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            clip-path: inset(0 0 0 0);
+        }
+        92% {
+            opacity: 0.62;
+            transform: translate3d(3px, -2px, 0) scale(0.99);
+            clip-path: inset(18% 0 26% 0);
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(0, 0, 0) scale(0.97);
+            clip-path: inset(48% 0 52% 0);
+        }
+    }
+    @keyframes roleDraftTransitionLoad {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+    }
+    @keyframes roleDraftTransitionSweep {
+        from { background-position: 0 0, 0 0; }
+        to { background-position: 42px 0, 20px 0; }
+    }
+    @keyframes roleDraftTransitionShine {
+        from { transform: translateX(-140%); }
+        to { transform: translateX(220%); }
+    }
+    @keyframes roleDraftTransitionScan {
+        from { transform: translateY(0); }
+        to { transform: translateY(3px); }
+    }
+    @keyframes roleDraftTransitionGridFlicker {
+        0% { opacity: 0.34; }
+        100% { opacity: 0.62; }
+    }
+    @keyframes roleDraftNoiseFlicker {
+        0% { transform: translate3d(0, 0, 0); opacity: 0.22; }
+        50% { transform: translate3d(-2px, 1px, 0); opacity: 0.6; }
+        100% { transform: translate3d(2px, -1px, 0); opacity: 0.26; }
+    }
+    @keyframes roleDraftCardFadeSimple {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    @keyframes roleDraftCardDisperseSmooth {
+        0% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: saturate(1) brightness(1);
+        }
+        22% {
+            opacity: 0.94;
+            transform: translate3d(-1px, -1px, 0) scale(0.995);
+            filter: saturate(1.03) brightness(1.04);
+        }
+        52% {
+            opacity: 0.68;
+            transform: translate3d(1px, -6px, 0) scale(0.978);
+            filter: saturate(0.96) brightness(1.12) blur(0.45px);
+        }
+        78% {
+            opacity: 0.34;
+            transform: translate3d(-1px, -12px, 0) scale(0.956);
+            filter: saturate(0.84) brightness(1.2) blur(1px);
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(0, -18px, 0) scale(0.94);
+            filter: saturate(0.74) brightness(1.28) blur(1.5px);
+        }
+    }
+    @keyframes roleDraftCardInnerDissolve {
+        0% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+            filter: blur(0);
+        }
+        40% {
+            opacity: 0.92;
+            transform: translate3d(1px, -2px, 0);
+            filter: blur(0.1px);
+        }
+        72% {
+            opacity: 0.55;
+            transform: translate3d(-2px, -8px, 0);
+            filter: blur(0.6px);
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(-3px, -14px, 0);
+            filter: blur(1.1px);
+        }
+    }
+    @keyframes roleDraftCardMediaDissolve {
+        0% {
+            opacity: 0.34;
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: saturate(0.86) contrast(1.06);
+        }
+        45% {
+            opacity: 0.29;
+            transform: translate3d(1px, -3px, 0) scale(1.03);
+            filter: saturate(0.94) contrast(1.1);
+        }
+        78% {
+            opacity: 0.14;
+            transform: translate3d(0, -8px, 0) scale(1.06);
+            filter: saturate(1.02) contrast(1.12) blur(1px);
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(0, -13px, 0) scale(1.08);
+            filter: saturate(1.08) contrast(1.14) blur(1.7px);
+        }
+    }
+    @keyframes roleDraftCardParticleFine {
+        0% {
+            opacity: 0;
+            transform: translate3d(0, 2px, 0) scale(0.9);
+        }
+        26% {
+            opacity: 0.94;
+            transform: translate3d(1px, -4px, 0) scale(1);
+        }
+        64% {
+            opacity: 0.56;
+            transform: translate3d(-2px, -15px, 0) scale(1.16);
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(1px, -24px, 0) scale(1.34);
+        }
+    }
+    @keyframes roleDraftCardParticleMist {
+        0% {
+            opacity: 0;
+            transform: translate3d(0, 4px, 0) scale(0.92);
+        }
+        30% {
+            opacity: 0.9;
+            transform: translate3d(-1px, -4px, 0) scale(1.02);
+        }
+        70% {
+            opacity: 0.5;
+            transform: translate3d(1px, -18px, 0) scale(1.18);
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(0, -30px, 0) scale(1.34);
+        }
+    }

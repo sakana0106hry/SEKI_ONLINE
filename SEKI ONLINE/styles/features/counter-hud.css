@@ -1,0 +1,172 @@
+﻿    /* --- カウンティングHUDのスタイル --- */
+    #counter-hud-wrapper {
+        font-family: var(--font-ui);
+        user-select: none;
+        z-index: 9999; /* 最前面に */
+        /* 画面が広いときもゲームテーブル右端に沿う */
+        --counter-right-anchor: max(12px, calc((100vw - 860px) / 2 + 12px));
+    }
+
+    /* 1. 開閉ボタン（スマホで邪魔にならないサイズ） */
+    #counter-toggle-btn {
+        position: fixed;
+        top: 60px;       /* ヘッダーの下あたり */
+        right: var(--counter-right-anchor);
+        z-index: 2000;   
+        
+        width: 44px; height: 44px;
+        background: rgba(4, 11, 23, 0.8);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(0, 216, 255, 0.62);
+        border-radius: 50%;
+        
+        display: flex; justify-content: center; align-items: center;
+        color: #dff6ff;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 12px rgba(0, 216, 255, 0.2);
+        transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    #counter-toggle-btn:hover {
+        border-color: rgba(0, 216, 255, 0.82);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.55), 0 0 16px rgba(0, 216, 255, 0.3);
+    }
+    #counter-toggle-btn:active { transform: scale(0.9); background: rgba(2, 8, 16, 0.92); }
+
+    /* 2. パネル本体（グラスモーフィズム） */
+    #counter-panel {
+        position: fixed;
+        top: 115px;
+        right: var(--counter-right-anchor);
+        z-index: 1999;
+        
+        width: 240px;    /* スマホでも見やすい幅 */
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.86));
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(0, 216, 255, 0.34);
+        border-radius: 12px;
+        padding: 12px;
+        
+        /* アニメーション（右上から展開） */
+        transform-origin: top right;
+        transform: scale(0);
+        opacity: 0;
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: none;
+        
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 22px rgba(0, 216, 255, 0.18);
+    }
+    /* 開いた状態 */
+    #counter-panel.active {
+        transform: scale(1);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* 内部レイアウト */
+    .hud-header {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 12px; font-weight: bold; color: #a8e9ff;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+        border-bottom: 1px solid rgba(0, 216, 255, 0.28);
+        padding-bottom: 5px; margin-bottom: 8px;
+    }
+    .close-btn { cursor: pointer; padding: 0 5px; font-size: 16px; color: #fff; }
+
+    .hud-section-title {
+        font-size: 10px; color: #b9cde4; margin-bottom: 4px; letter-spacing: 1px;
+    }
+
+    .hud-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr); /* 5列 (0-4, 5-9) */
+        gap: 4px;
+        margin-bottom: 12px;
+    }
+    .hud-grid-sym {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 記号は2列 */
+        gap: 4px;
+        margin-bottom: 12px;
+    }
+    .hud-grid-role {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+    }
+    .hud-role-pill {
+        border-radius: 8px;
+        border: 1px solid rgba(163, 196, 231, 0.3);
+        padding: 4px 6px;
+        text-align: center;
+        font-size: 11px;
+        color: #f4fbff;
+        letter-spacing: 0.04em;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
+    }
+    .hud-role-pill.role-attr-strategy {
+        background: linear-gradient(135deg, rgba(0, 216, 255, 0.46), rgba(1, 16, 25, 0.86));
+        border-color: rgba(0, 216, 255, 0.72);
+    }
+    .hud-role-pill.role-attr-efficiency {
+        background: linear-gradient(135deg, rgba(52, 247, 141, 0.4), rgba(5, 20, 12, 0.86));
+        border-color: rgba(52, 247, 141, 0.72);
+    }
+    .hud-role-pill.role-attr-killer {
+        background: linear-gradient(135deg, rgba(255, 53, 94, 0.42), rgba(23, 4, 11, 0.86));
+        border-color: rgba(255, 53, 94, 0.72);
+    }
+
+    .hud-item {
+        background: rgba(255,255,255,0.05);
+        border-radius: 6px;
+        padding: 4px 0;
+        text-align: center;
+        border: 1px solid rgba(163, 196, 231, 0.16);
+    }
+    /* 残り0枚になったら暗くする */
+    .hud-item.zero { opacity: 0.3; background: transparent; border: 1px dashed #444; }
+    /* 残り枚数が多いときは強調 */
+    .hud-item.rich { border-color: rgba(0, 216, 255, 0.36); background: rgba(0, 216, 255, 0.08); }
+
+    .hud-val {
+        font-size: 11px;
+        font-weight: bold;
+        color: #ccc;
+        display: block;
+        line-height: 1;
+        margin-bottom: 2px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+    }
+    .hud-count {
+        font-size: 15px;
+        font-weight: 800;
+        color: #fff;
+        display: block;
+        line-height: 1;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+    }
+    .hud-loading {
+        grid-column: 1/-1;
+        text-align: center;
+        color: #8ca2bd;
+        font-size: 10px;
+    }
+    .hud-footnote {
+        font-size: 10px;
+        color: #9cb3c9;
+        margin-top: 5px;
+        text-align: center;
+    }
+    
+    /* 記号ごとの色分け */
+    .hud-item.sym-rev .hud-val { color: #e91e63; } /* REVERSE: 赤 */
+    .hud-item.sym-tra .hud-val { color: #ff9800; } /* TRADE: オレンジ */
+    .hud-item.sym-dig .hud-val { color: #795548; } /* DIG UP: 茶 */
+    .hud-item.sym-dis .hud-val { color: #9e9e9e; } /* DISCARD: グレー */
+

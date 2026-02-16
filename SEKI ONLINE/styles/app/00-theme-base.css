@@ -1,0 +1,492 @@
+﻿    /* ベース設定：タイトル画面に寄せた全体テーマ */
+    :root {
+        --seki-s: #00d8ff;
+        --seki-e: #34f78d;
+        --seki-k: #ff355e;
+        --seki-bg: #030a15;
+        --seki-bg-deep: #02060e;
+        --seki-bg-mid: #050d19;
+        --seki-bg-bright: #0e2342;
+        --seki-text-main: #eff6ff;
+        --seki-text-sub: #d9ebff;
+        --seki-text-muted: #9cb3c9;
+        --seki-danger: #ef5350;
+        --seki-warning: #ffeb3b;
+        --seki-success: #34f78d;
+        --seki-card-border: rgba(165, 205, 255, 0.35);
+        --seki-panel-border: rgba(0, 216, 255, 0.32);
+        --seki-panel-bg: rgba(4, 11, 23, 0.76);
+        --seki-panel-bg-soft: rgba(6, 16, 32, 0.55);
+        --seki-radius-sm: 8px;
+        --seki-radius-md: 12px;
+        --seki-radius-lg: 18px;
+        --seki-shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.36);
+        --seki-shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.52);
+        --seki-shadow-glow: 0 0 26px rgba(0, 216, 255, 0.22);
+        --seki-transition-fast: 0.2s ease;
+        --seki-transition-mid: 0.3s ease;
+    }
+
+    html {
+        min-height: 100%;
+        background: var(--seki-bg-deep);
+    }
+
+    body {
+        font-family: var(--font-ui);
+        font-synthesis: none;
+        font-synthesis-weight: none;
+        background:
+            radial-gradient(circle at 18% 14%, rgba(0, 216, 255, 0.14), transparent 36%),
+            radial-gradient(circle at 82% 24%, rgba(255, 53, 94, 0.11), transparent 34%),
+            radial-gradient(circle at 70% 78%, rgba(52, 247, 141, 0.08), transparent 36%),
+            radial-gradient(circle at 50% 110%, #0e2342 0%, #050d19 48%, #02060e 100%);
+        background-attachment: fixed;
+        color: var(--seki-text-main);
+        margin: 0;
+        text-align: center;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 100vh;
+        min-height: 100dvh;
+        min-height: var(--app-height, 100dvh);
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 共通レイアウト */
+    #game-screen {
+        position: relative;
+        isolation: isolate;
+        padding: 0;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 860px;
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+        min-height: var(--app-height, 100dvh);
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+        background: linear-gradient(155deg, rgba(6, 16, 32, 0.5), rgba(2, 8, 18, 0.35));
+        border-left: 1px solid rgba(0, 216, 255, 0.11);
+        border-right: 1px solid rgba(0, 216, 255, 0.11);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+    }
+    #game-screen::before,
+    #game-screen::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+    }
+    #game-screen::before {
+        background:
+            linear-gradient(rgba(45, 100, 190, 0.11) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(45, 100, 190, 0.11) 1px, transparent 1px);
+        background-size: 42px 42px;
+        opacity: 0.45;
+        animation: gameGridShift 22s linear infinite;
+    }
+    #game-screen::after {
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.026) 0px,
+            rgba(255, 255, 255, 0.026) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.24;
+    }
+    #header-info {
+        flex: 0 0 42px;
+        padding: 8px 10px;
+    }
+    .hidden { display: none !important; }
+    .seki-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+        font-size: 12px;
+        height: 42px;
+        border-bottom: 1px solid rgba(0, 216, 255, 0.22);
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.12));
+        backdrop-filter: blur(6px);
+    }
+    .seki-topbar-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .seki-msg {
+        margin-top: 2px;
+        color: var(--seki-warning);
+        font-weight: 400;
+        font-size: 13px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        height: 18px;
+        line-height: 18px;
+        white-space: nowrap;
+        text-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
+    }
+    .seki-controls {
+        margin-top: 5px;
+    }
+    .seki-controls .seki-btn {
+        min-width: 84px;
+    }
+    .seki-btn {
+        border: 1px solid var(--seki-card-border);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(4, 14, 30, 0.95), rgba(8, 22, 44, 0.92));
+        color: var(--seki-text-main);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+        font-weight: 700;
+        padding: 5px 12px;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+        transition: transform var(--seki-transition-fast), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast), filter var(--seki-transition-fast);
+    }
+    .seki-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(0, 216, 255, 0.66);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45), 0 0 14px rgba(0, 216, 255, 0.2);
+    }
+    .seki-btn:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+    .seki-btn:disabled,
+    .seki-btn.is-disabled {
+        background: rgba(84, 99, 118, 0.85);
+        border-color: rgba(132, 147, 168, 0.7);
+        color: rgba(239, 246, 255, 0.7);
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        opacity: 0.78;
+    }
+    .seki-btn-mini {
+        font-size: 12px;
+        padding: 4px 9px;
+    }
+    .seki-btn-host {
+        padding: 5px 12px;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        border-radius: 18px;
+    }
+    .seki-btn-gold {
+        background: linear-gradient(135deg, #bd8b14, #fbc02d 52%, #ffe082);
+        color: #2f2214;
+        border-color: rgba(255, 230, 156, 0.62);
+    }
+    .seki-btn-accent {
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+        color: #effbff;
+        border-color: rgba(0, 216, 255, 0.65);
+    }
+    .seki-btn-danger {
+        background: linear-gradient(135deg, #7c132a, #c21e44 46%, #ff355e);
+        border-color: rgba(255, 143, 166, 0.75);
+        color: #fff5f8;
+    }
+    .seki-btn-soft {
+        background: linear-gradient(135deg, #2c3b54, #546e7a);
+        border-color: rgba(197, 222, 255, 0.4);
+    }
+    .seki-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        color: var(--seki-text-main);
+        background: rgba(1, 6, 14, 0.88);
+        backdrop-filter: blur(4px);
+    }
+    #asset-loading-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 10050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(2, 8, 18, 0.9);
+        backdrop-filter: blur(5px);
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    #asset-loading-screen.hidden {
+        display: none !important;
+    }
+    #asset-loading-panel {
+        width: min(92vw, 520px);
+        border: 1px solid rgba(0, 216, 255, 0.4);
+        border-radius: 14px;
+        padding: 20px 18px;
+        box-shadow: var(--seki-shadow-panel), 0 0 20px rgba(0, 216, 255, 0.22);
+        background:
+            linear-gradient(155deg, rgba(6, 16, 32, 0.95), rgba(4, 11, 23, 0.9)),
+            radial-gradient(circle at 14% 16%, rgba(0, 216, 255, 0.13), transparent 42%);
+    }
+    #asset-loading-panel h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        color: #dff6ff;
+        letter-spacing: 0.08em;
+        text-shadow:
+            0 0 6px rgba(0, 216, 255, 0.45),
+            0 0 14px rgba(52, 247, 141, 0.28);
+        line-height: 1.35;
+        animation: sekiLoadingPulse 2.2s ease-in-out infinite alternate;
+    }
+    #asset-loading-panel h3 .seki-loading-sub {
+        display: block;
+        margin-top: 3px;
+        font-size: 12px;
+        color: #9ce8ff;
+        letter-spacing: 0.14em;
+    }
+    @keyframes sekiLoadingPulse {
+        from { filter: brightness(0.88); opacity: 0.9; }
+        to { filter: brightness(1.08); opacity: 1; }
+    }
+    #asset-loading-text {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: #cfe5f8;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+    }
+    #asset-loading-progress-track {
+        width: 100%;
+        height: 12px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(120, 145, 171, 0.35);
+        border: 1px solid rgba(164, 194, 225, 0.38);
+    }
+    #asset-loading-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #00d8ff, #34f78d);
+        transition: width 0.2s ease;
+    }
+    #asset-loading-current {
+        margin: 9px 0 0;
+        font-size: 12px;
+        color: #9ec3df;
+        min-height: 1.2em;
+        word-break: break-all;
+    }
+    #asset-loading-failed {
+        margin-top: 10px;
+        font-size: 12px;
+        text-align: left;
+        border: 1px solid rgba(255, 152, 0, 0.35);
+        background: rgba(45, 28, 6, 0.5);
+        border-radius: 10px;
+        padding: 8px 10px;
+        color: #ffe3c0;
+    }
+    #asset-loading-failed ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+    }
+    #asset-loading-actions {
+        margin-top: 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+    #asset-loading-retry-btn,
+    #asset-loading-continue-btn {
+        border: 1px solid var(--seki-card-border);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(4, 14, 30, 0.95), rgba(8, 22, 44, 0.92));
+        color: var(--seki-text-main);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+        font-weight: 700;
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+    #asset-loading-retry-btn:hover,
+    #asset-loading-continue-btn:hover {
+        border-color: rgba(0, 216, 255, 0.75);
+    }
+    #asset-loading-continue-btn {
+        background: linear-gradient(135deg, #0f314d, #166d98 46%, #00d8ff);
+    }
+    #boot-transition-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 10070;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transform-origin: left center;
+        background:
+            radial-gradient(circle at 18% 20%, rgba(0, 216, 255, 0.28), transparent 34%),
+            radial-gradient(circle at 82% 28%, rgba(255, 53, 94, 0.18), transparent 36%),
+            linear-gradient(145deg, #020814 0%, #051326 46%, #081e35 100%);
+        will-change: opacity, transform, filter, clip-path;
+    }
+    #boot-transition-screen.hidden {
+        display: none !important;
+    }
+    #boot-transition-screen::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.04) 0px,
+            rgba(255, 255, 255, 0.04) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.32;
+    }
+    #boot-transition-screen::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.06;
+        mix-blend-mode: screen;
+        background:
+            radial-gradient(circle at 17% 28%, rgba(0, 216, 255, 0.35), transparent 38%),
+            radial-gradient(circle at 76% 62%, rgba(52, 247, 141, 0.24), transparent 34%),
+            repeating-linear-gradient(
+                95deg,
+                rgba(255, 255, 255, 0.16) 0 2px,
+                rgba(0, 0, 0, 0.08) 2px 5px,
+                rgba(255, 53, 94, 0.16) 5px 7px,
+                rgba(0, 0, 0, 0.06) 7px 11px
+            );
+        background-size: 100% 100%, 100% 100%, 240px 100%;
+        background-position: center, center, 0 0;
+        will-change: opacity, transform, background-position, filter, clip-path;
+    }
+    #boot-transition-screen.is-wiping {
+        animation: sekiBootNoiseOut 900ms steps(14, end) forwards;
+    }
+    #boot-transition-screen.is-wiping::after {
+        opacity: 0.72;
+        animation: sekiBootNoiseFlicker 120ms steps(2, end) infinite;
+    }
+    #boot-transition-title {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        text-align: center;
+        font-family: var(--font-ui);
+        font-size: clamp(40px, 9vw, 98px);
+        letter-spacing: 0.12em;
+        color: #e9fbff;
+        text-shadow:
+            0 0 10px rgba(0, 216, 255, 0.55),
+            0 0 26px rgba(52, 247, 141, 0.35),
+            0 0 48px rgba(0, 216, 255, 0.18);
+        padding: 0 18px;
+    }
+    #boot-transition-title.is-active {
+        animation: sekiBootTitlePulse 0.55s ease-in-out infinite alternate;
+    }
+    #boot-transition-screen.is-wiping #boot-transition-title {
+        text-shadow:
+            0 0 9px rgba(0, 216, 255, 0.4),
+            0 0 20px rgba(52, 247, 141, 0.28),
+            0 0 36px rgba(255, 53, 94, 0.24);
+    }
+    @keyframes sekiBootNoiseOut {
+        0% {
+            opacity: 1;
+            filter: contrast(1) saturate(1);
+            clip-path: inset(0 0 0 0);
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+        20% {
+            opacity: 0.94;
+            clip-path: inset(0 0 0 0);
+            transform: translate3d(3px, -1px, 0) scale(1.002);
+        }
+        40% {
+            opacity: 0.84;
+            clip-path: inset(3% 0 6% 0);
+            transform: translate3d(-3px, 2px, 0) scale(1.003);
+            filter: contrast(1.16) saturate(1.06);
+        }
+        58% {
+            opacity: 0.6;
+            clip-path: inset(11% 0 17% 0);
+            transform: translate3d(4px, -3px, 0) scale(0.997);
+            filter: contrast(1.26) saturate(1.12);
+        }
+        76% {
+            opacity: 0.35;
+            clip-path: inset(30% 0 40% 0);
+            transform: translate3d(-4px, 3px, 0) scale(0.993);
+            filter: contrast(1.32) saturate(1.2);
+        }
+        100% {
+            opacity: 0;
+            clip-path: inset(48% 0 52% 0);
+            transform: translate3d(0, 0, 0) scale(0.985);
+            filter: contrast(0.82) saturate(0.74);
+        }
+    }
+    @keyframes sekiBootNoiseFlicker {
+        0% {
+            opacity: 0.28;
+            transform: translate3d(0, 0, 0);
+            background-position: center, center, 0 0;
+        }
+        25% {
+            opacity: 0.54;
+            transform: translate3d(-2px, 1px, 0);
+            background-position: center, center, 55px 0;
+        }
+        50% {
+            opacity: 0.4;
+            transform: translate3d(2px, -2px, 0);
+            background-position: center, center, -60px 0;
+        }
+        75% {
+            opacity: 0.66;
+            transform: translate3d(-3px, 2px, 0);
+            background-position: center, center, 95px 0;
+        }
+        100% {
+            opacity: 0.3;
+            transform: translate3d(1px, -1px, 0);
+            background-position: center, center, -40px 0;
+        }
+    }
+    @keyframes sekiBootTitlePulse {
+        from { filter: brightness(0.9); transform: scale(0.995); }
+        to { filter: brightness(1.16); transform: scale(1.01); }
+    }
+    @keyframes sekiBootFadeOut {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }

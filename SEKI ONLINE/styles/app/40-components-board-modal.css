@@ -1,0 +1,786 @@
+﻿    /* --- ゾーン分けデザイン --- */
+    
+    /* インジケーター（画像 + 天文学者表示） */
+    #flow-indicator-row {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+    #indicator { 
+        width: auto;
+        height: 60px;         /* 右側UIと高さを揃える */
+        object-fit: contain;
+        
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+        filter: drop-shadow(0 0 2px rgba(255,255,255,0.3));
+        
+        display: block;
+        margin: 0;
+    }
+    #astronomer-indicator {
+        width: 73.66px;
+        height: 50px;         /* 順行/逆行画像と同じ高さ */
+        padding: 4px 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.35);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.45), inset 0 0 16px rgba(120, 144, 255, 0.25);
+        background:
+            radial-gradient(circle at 20% 20%, rgba(255,255,255,0.26) 1px, transparent 2px),
+            radial-gradient(circle at 78% 35%, rgba(255,255,255,0.22) 1px, transparent 2px),
+            radial-gradient(circle at 52% 76%, rgba(255,255,255,0.18) 1px, transparent 2px),
+            linear-gradient(150deg, #0d1631, #1c2f66);
+        color: #e8f0ff;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.05;
+        text-align: center;
+        user-select: none;
+    }
+    #astronomer-indicator.state-strongest {
+        border-color: rgba(255, 214, 102, 0.8);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 10px rgba(255, 214, 102, 0.45);
+    }
+    #astronomer-indicator.state-weakest {
+        border-color: rgba(144, 202, 249, 0.7);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.45), 0 0 10px rgba(144, 202, 249, 0.4);
+        filter: saturate(0.75);
+    }
+    #astronomer-indicator-value {
+        width: 30px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.9);
+        background: linear-gradient(160deg, #fefefe, #dfe9ff);
+        color: #1a237e;
+        font-size: 24px;
+        font-weight: 900;
+        margin-top: 2px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        text-shadow: 0 0 4px rgba(103, 58, 183, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #astronomer-indicator-state {
+        font-size: 10px;
+        margin-bottom: 2px;
+        font-weight: bold;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    /* 左右のゾーンをまとめるコンテナ */
+    .field-zone-container {
+        display: flex;
+        justify-content: center;
+        gap: 8px; /* ゾーン間の隙間 */
+        width: 100%;
+        flex: 1; /* 高さいっぱいに広げる */
+    }
+
+    /* 個別ゾーンの枠 */
+    .field-zone {
+        flex: 1; /* 左右均等 */
+        border-radius: 12px;
+        padding: 5px 2px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        border: 1px solid rgba(255,255,255,0.15);
+        position: relative;
+    }
+
+    /* 数字ゾーン (青系) */
+    .zone-num {
+        background: rgba(33, 150, 243, 0.14); 
+        border-color: rgba(0, 216, 255, 0.42);
+    }
+    /* 記号ゾーン (赤系) */
+    .zone-sym {
+        background: rgba(244, 67, 54, 0.12); 
+        border-color: rgba(255, 53, 94, 0.4);
+    }
+
+    /* ラベル (NUMBER / SYMBOL) */
+    .zone-label {
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+        opacity: 0.6;
+    }
+
+    /* 墓地スロット (少し縮小) */
+    .grave-slot {
+        transform: scale(0.9); 
+        margin-bottom: auto; /* 山札を下に押しやる */
+    }
+
+    /* 山札エリア (アイコン化) */
+    .deck-slot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: rgba(0,0,0,0.34);
+        padding: 4px 10px;
+        border-radius: 15px;
+        margin-bottom: 5px;
+        cursor: default;
+        border: 1px solid rgba(0, 216, 255, 0.2);
+    }
+
+    /* 山札アイコン (CSSでカード裏面を表現) */
+    .deck-icon {
+        width: 12px; height: 18px;
+        border-radius: 2px;
+        border: 1px solid #fff;
+    }
+    .deck-icon.num { background: repeating-linear-gradient(45deg, #1565c0, #1565c0 2px, #0d47a1 2px, #0d47a1 4px); }
+    .deck-icon.sym { background: repeating-linear-gradient(45deg, #c62828, #c62828 2px, #b71c1c 2px, #b71c1c 4px); }
+
+    /* 山札の数字 */
+    .deck-count {
+        font-size: 12px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 1px 2px #000;
+    }
+
+    /* 除外エリア (ゴミ箱) */
+    #exclusion-area {
+        margin-top: 2px;
+        font-size: 11px;
+        opacity: 0.8;
+        cursor: pointer;
+        background: rgba(3, 12, 24, 0.62);
+        padding: 3px 12px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid rgba(255, 53, 94, 0.3);
+        transition: background var(--seki-transition-fast), opacity var(--seki-transition-fast), border-color var(--seki-transition-fast);
+    }
+    #exclusion-area:hover {
+        opacity: 1;
+        background: rgba(6, 18, 35, 0.8);
+        border-color: rgba(255, 53, 94, 0.55);
+    }
+
+    /* 残り枚数バッジも大きく */
+    .p-count-badge {
+        width: 24px; height: 24px;
+        line-height: 24px;
+        font-size: 14px;
+        top: -10px; left: -10px;
+    }
+
+    /* フィールド調整 */
+    #graveyard-container { display: flex; gap: 15px; align-items: center; }
+    .grave-box { text-align: center; cursor: pointer; transition: transform 0.1s; }
+    .grave-box:active { transform: scale(0.95); }
+    .grave-label { font-size: 10px; color: #ccc; }
+
+    /* ログエリア */
+    #game-log-bar { 
+        position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; 
+        background: linear-gradient(135deg, rgba(6, 16, 32, 0.96), rgba(4, 11, 23, 0.96));
+        font-size: 13px; line-height: 35px; 
+        text-align: left; padding-left: 15px; overflow: hidden; white-space: nowrap; 
+        z-index: 50;
+        color: var(--seki-text-main);
+        cursor: pointer;
+        border-top: 1px solid rgba(0, 216, 255, 0.34);
+        box-shadow: 0 -2px 14px rgba(0,0,0,0.55);
+    }
+    
+    /* 通知アニメーション */
+    @keyframes flash-notify {
+        0% { background-color: #ff9800; transform: scale(1); }
+        50% { background-color: #f57c00; transform: scale(1.1); }
+        100% { background-color: #ff9800; transform: scale(1); }
+    }
+    .notify-active { animation: flash-notify 1s infinite; border: 2px solid #fff !important; }
+    .notify-bar {
+        background-color: #ff9800 !important;
+        color: white !important;
+        font-weight: bold;
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+    }
+
+    /* モーダル */
+    #modal-overlay {
+        position: fixed; top:0; left:0; width:100%; height:100%;
+        background: rgba(2, 7, 15, 0.74); z-index: 999;
+        backdrop-filter: blur(5px);
+        display: flex; justify-content: center; align-items: center;
+        animation: fadeIn 0.2s ease;
+        transition: background 0.2s, backdrop-filter 0.2s;
+    }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    #modal-overlay.board-visible {
+        background: rgba(0,0,0,0.05);
+        backdrop-filter: none;
+    }
+    #modal-overlay.modal-tone-guide {
+        background: rgba(2, 10, 20, 0.62);
+    }
+    #modal-overlay.modal-tone-alert {
+        background: rgba(36, 2, 12, 0.7);
+    }
+
+    #modal-box {
+        background:
+            linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.84)),
+            radial-gradient(circle at 12% 18%, rgba(0, 216, 255, 0.1), transparent 34%);
+        color: var(--seki-text-main);
+        padding: 25px;
+        border-radius: 14px;
+        max-width: 90%;
+        max-height: 92%;
+        max-height: 88dvh;
+        width: 400px;
+        overflow: hidden; text-align: center; display:flex; flex-direction:column;
+        font-family: var(--font-readable);
+        box-shadow: var(--seki-shadow-panel), var(--seki-shadow-glow);
+        border: 1px solid var(--seki-panel-border);
+        transition: background 0.2s, opacity 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    #modal-box.modal-size-default { width: 400px; max-width: 90%; }
+    #modal-box.modal-size-wide { width: 600px; max-width: 95%; }
+    #modal-box.modal-size-narrow { width: 340px; max-width: 86%; }
+    #modal-box.modal-tone-guide {
+        border-color: rgba(0, 216, 255, 0.44);
+    }
+    #modal-box.modal-tone-alert {
+        border-color: rgba(255, 53, 94, 0.6);
+        box-shadow: var(--seki-shadow-panel), 0 0 22px rgba(255, 53, 94, 0.25);
+    }
+    #modal-overlay.board-visible #modal-box {
+        background: rgba(13, 22, 40, 0.34);
+        border-color: rgba(209, 231, 255, 0.75);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        opacity: 0.4;
+    }
+    #modal-title {
+        margin: 0 0 12px 0;
+        padding-bottom: 6px;
+        border-bottom: 2px solid rgba(0, 200, 255, 0.6);
+        font-family: var(--font-ui);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #9ce8ff;
+        text-shadow: 0 0 12px rgba(125, 219, 255, 0.6);
+    }
+    #modal-content {
+        margin-bottom: 20px;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        font-size: 14px;
+        color: var(--seki-text-sub);
+    }
+    .modal-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .modal-btn {
+        margin: 5px;
+        padding: 10px 20px;
+        border: 1px solid rgba(142, 182, 227, 0.45);
+        border-radius: var(--seki-radius-sm);
+        cursor: pointer;
+        font-size: 14px;
+        font-family: var(--font-ui);
+        letter-spacing: var(--font-ui-emphasis-tracking);
+        text-shadow: var(--font-ui-emphasis-shadow);
+        color: var(--seki-text-main);
+        background: linear-gradient(135deg, rgba(9, 27, 52, 0.9), rgba(6, 18, 35, 0.88));
+        transition: transform var(--seki-transition-fast), box-shadow var(--seki-transition-fast), border-color var(--seki-transition-fast), filter var(--seki-transition-fast);
+    }
+    .modal-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(0, 216, 255, 0.7);
+        box-shadow: 0 5px 14px rgba(0,0,0,0.35), 0 0 10px rgba(0, 216, 255, 0.24);
+        filter: saturate(1.1);
+    }
+    .modal-btn:disabled,
+    .modal-btn.is-disabled {
+        background: rgba(89, 102, 119, 0.9);
+        color: rgba(239, 246, 255, 0.76);
+        border-color: rgba(151, 166, 187, 0.7);
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+    .modal-btn.primary {
+        background: linear-gradient(135deg, #0f314d, #166d98 44%, #00d8ff);
+        border-color: rgba(0, 216, 255, 0.7);
+        color: #effbff;
+        font-weight: 700;
+    }
+    .modal-btn.danger {
+        background: linear-gradient(135deg, #7f1730, #cc244a 46%, #ff355e);
+        border-color: rgba(255, 143, 166, 0.78);
+        color: #fff5f8;
+        font-weight: 700;
+    }
+    .modal-btn.ghost {
+        background: rgba(12, 22, 35, 0.7);
+    }
+    .modal-note {
+        display: block;
+        font-size: 12px;
+        margin-top: 8px;
+        color: var(--seki-text-muted);
+    }
+    .modal-note.warn {
+        color: #ff9f9f;
+        font-weight: 700;
+    }
+    .modal-note.warn-block {
+        margin: 0 0 8px;
+    }
+    .modal-note.info {
+        color: #9ce8ff;
+    }
+    .modal-card-row {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 10px 0;
+        gap: 8px;
+    }
+    .modal-card-col {
+        width: 100px;
+    }
+    .modal-card-label {
+        font-size: 12px;
+        color: var(--seki-text-muted);
+        margin-bottom: 4px;
+    }
+    .modal-notif-wrap {
+        text-align: center;
+    }
+    .modal-notif-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #ffadb8;
+        margin: 0;
+    }
+    .modal-notif-arrow {
+        font-size: 20px;
+        color: #9cb3c9;
+    }
+    .modal-notif-card {
+        width: 100px;
+    }
+    .modal-notif-card .modal-notif-card-view {
+        margin: 0 auto;
+        cursor: default;
+    }
+    .modal-notif-card .modal-notif-card-view:hover {
+        transform: none;
+        box-shadow: 0 0 10px rgba(87, 170, 245, 0.35);
+        border-color: #70b8e8;
+    }
+    .modal-notif-value {
+        font-size: 32px;
+        font-weight: bold;
+        line-height: 80px;
+    }
+    .modal-image-center {
+        height: 80px;
+        width: auto;
+        display: block;
+        margin: 0 auto;
+    }
+    .seki-section {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border-radius: var(--seki-radius-sm);
+        border: 1px solid rgba(143, 176, 214, 0.35);
+        background: rgba(6, 16, 32, 0.6);
+    }
+    .seki-section.warn {
+        border-color: rgba(255, 143, 166, 0.55);
+        background: rgba(72, 12, 27, 0.35);
+    }
+    .seki-section.info {
+        border-color: rgba(0, 216, 255, 0.5);
+        background: rgba(8, 26, 48, 0.42);
+    }
+    .seki-note {
+        display: block;
+        font-size: 12px;
+        color: var(--seki-text-muted);
+    }
+    .seki-note.warn {
+        color: #ffadb8;
+        font-weight: 700;
+    }
+    .seki-scroll-panel {
+        text-align: left;
+        max-height: 420px;
+        overflow-y: auto;
+        font-size: 13px;
+    }
+    .seki-log-line {
+        border-bottom: 1px solid rgba(143, 176, 214, 0.3);
+        padding: 6px 0;
+    }
+    .seki-log-time {
+        color: #9cb3c9;
+        font-size: 12px;
+        margin-right: 8px;
+    }
+    .seki-log-text {
+        color: #d9ebff;
+    }
+    .seki-disabled-note {
+        font-size: 12px;
+        color: #ff9f9f;
+        margin-top: 8px;
+    }
+    .seki-host-settings {
+        text-align: left;
+        font-size: 14px;
+    }
+    .seki-host-mode-box {
+        margin-bottom: 15px;
+        background: rgba(6, 16, 32, 0.64);
+        padding: 10px;
+        border-radius: var(--seki-radius-sm);
+        border: 1px solid rgba(143, 176, 214, 0.32);
+    }
+    .seki-host-mode-item {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    .seki-host-mode-item + .seki-host-mode-item {
+        margin-top: 8px;
+    }
+    .seki-host-mode-item input {
+        margin: 0 8px 0 0;
+        width: auto;
+        transform: scale(1.2);
+    }
+    .seki-host-mode-title {
+        font-weight: 700;
+        color: #9ce8ff;
+    }
+    .seki-host-mode-title.hot {
+        color: #ffb86b;
+    }
+    .seki-host-mode-meta {
+        font-size: 12px;
+        color: #9cb3c9;
+        margin-left: 5px;
+    }
+    .seki-host-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .seki-host-actions .modal-btn {
+        margin: 0;
+    }
+    .seki-host-actions .modal-btn.primary {
+        flex: 1;
+    }
+    .seki-host-actions .modal-btn.danger {
+        width: 80px;
+    }
+    .seki-guide-root {
+        text-align: left;
+    }
+    .seki-guide-role-group {
+        margin-bottom: 14px;
+        padding: 8px 8px 2px;
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
+        border-radius: 10px;
+        background: linear-gradient(160deg, rgba(6, 16, 32, 0.62), rgba(4, 11, 23, 0.5));
+    }
+    .seki-guide-group-title {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: var(--role-accent, #9ce8ff);
+        text-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.24);
+    }
+    .seki-guide-role-item {
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(var(--role-accent-rgb, 143, 176, 214), 0.28);
+        padding-bottom: 5px;
+    }
+    .seki-guide-role-item.is-public-unused {
+        opacity: 0.58;
+        filter: grayscale(0.45);
+    }
+    .seki-guide-summary {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        outline: none;
+        list-style: none;
+    }
+    .seki-guide-role-img {
+        height: 40px;
+        vertical-align: middle;
+        margin-right: 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(143, 176, 214, 0.45);
+    }
+    .seki-guide-role-main {
+        flex: 1;
+    }
+    .seki-guide-role-jp {
+        font-weight: 700;
+        color: var(--role-accent, #9ce8ff);
+        font-size: 15px;
+    }
+    .seki-guide-role-en {
+        font-size: 13px;
+        color: #cce6ff;
+        font-weight: 400;
+        margin-left: 4px;
+    }
+    .seki-guide-role-summary {
+        font-size: 12px;
+        color: #d9ebff;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    .seki-guide-role-detail {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(6, 16, 32, 0.52);
+        border-radius: 5px;
+        font-size: 12px;
+        color: #d9ebff;
+        line-height: 1.6;
+        border: 1px solid rgba(143, 176, 214, 0.28);
+    }
+    .seki-guide-hint {
+        font-size: 12px;
+        color: #9cb3c9;
+        white-space: nowrap;
+    }
+    .seki-guide-public-tag {
+        margin-left: 6px;
+        font-size: 12px;
+        color: #cfd7de;
+        background: rgba(93, 104, 114, 0.5);
+        border: 1px solid rgba(180, 190, 198, 0.6);
+        border-radius: 10px;
+        padding: 1px 6px;
+    }
+    .seki-rule-root {
+        text-align: left;
+        font-size: 13px;
+        color: #d9ebff;
+    }
+    .seki-rule-paragraph {
+        margin: 0 0 10px 0;
+    }
+    .seki-rule-heading {
+        border-left: 4px solid #0fa0d8;
+        padding-left: 8px;
+        margin: 10px 0 5px 0;
+        color: #b7ecff;
+    }
+    .seki-rule-heading.danger {
+        border-left-color: #c62828;
+    }
+    .seki-rule-heading.info {
+        border-left-color: #1565c0;
+    }
+    .seki-rule-heading.warn {
+        border-left-color: #f76205;
+    }
+    .seki-rule-list {
+        padding-left: 20px;
+        margin: 0;
+    }
+    .score-dist {
+        font-size: 12px;
+        color: #d9ebff;
+        margin-bottom: 10px;
+        background: rgba(188, 140, 20, 0.2);
+        padding: 5px;
+        border-radius: 4px;
+        text-align: center;
+        border: 1px solid rgba(251, 192, 45, 0.55);
+    }
+    .score-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .score-head {
+        border-bottom: 2px solid rgba(143, 176, 214, 0.45);
+        background: rgba(8, 26, 48, 0.55);
+    }
+    .score-table th,
+    .score-table td {
+        padding: 8px;
+    }
+    .score-table th:first-child,
+    .score-name-cell {
+        text-align: center;
+    }
+    .score-table th:last-child,
+    .score-point-cell {
+        text-align: right;
+    }
+    .score-empty {
+        padding: 20px;
+        color: #9cb3c9;
+        text-align: center;
+    }
+    .score-row {
+        border-bottom: 1px solid rgba(143, 176, 214, 0.28);
+    }
+    .score-row.me {
+        color: #ffadb8;
+        font-weight: 700;
+    }
+    .score-point-cell {
+        font-weight: 700;
+    }
+    .score-reset-wrap {
+        margin-top: 20px;
+        text-align: center;
+    }
+    .score-reset-btn {
+        font-size: 12px;
+        color: #9cb3c9;
+        background: rgba(6, 16, 32, 0.6);
+        border: 1px solid rgba(143, 176, 214, 0.4);
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        transition: border-color var(--seki-transition-fast), color var(--seki-transition-fast), background var(--seki-transition-fast);
+    }
+    .score-reset-btn:hover {
+        border-color: rgba(0, 216, 255, 0.65);
+        color: #d9ebff;
+        background: rgba(8, 26, 48, 0.7);
+    }
+
+    /* ログスタイル */
+    .log-entry { text-align: left; padding: 8px; border-bottom: 1px solid rgba(143, 176, 214, 0.28); font-size: 13px; display: flex; align-items: flex-start; }
+    .log-time { color: #a1b4cc; margin-right: 10px; font-size: 12px; min-width: 45px; }
+    .log-text { word-break: break-all; line-height: 1.4; }
+    .log-private .log-text { color: #ffc8d3; font-weight: bold; background: rgba(136, 20, 45, 0.34); padding: 2px 5px; border-radius: 4px;}
+    .log-chat { background: rgba(0, 216, 255, 0.08); }
+    
+    /* チャット入力 */
+    #chat-input-container { display: flex; gap: 8px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(143, 176, 214, 0.3); }
+    #chat-input {
+        color: var(--seki-text-main);
+        flex: 1;
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid rgba(126, 173, 224, 0.45);
+        outline:none;
+        background: rgba(6, 16, 32, 0.78);
+        font-family: var(--font-ui);
+    }
+    #chat-input::placeholder {
+        font-family: var(--font-ui);
+    }
+    #chat-send-btn { background: linear-gradient(135deg, #157a53, #34b583); color: white; border-radius: 20px; padding: 0 20px; border: 1px solid rgba(93, 255, 192, 0.45); font-family: var(--font-ui); }
+
+    .host-settings { margin-bottom: 15px; font-size: 14px; text-align: left; background: rgba(6, 16, 32, 0.55); padding: 10px; border-radius: 8px; border: 1px solid rgba(0, 216, 255, 0.24); }
+    .host-settings label { margin-right: 15px; cursor: pointer; display: inline-block; padding: 5px; }
+/* --- 追加修正: 墓地カードのはみ出し防止 --- */
+    
+    /* 墓地（pile）の中にあるカードは余白と影をなくす */
+    .pile .card {
+        margin: 0; 
+        box-shadow: none; /* 埋まっている感じにするため影も消す */
+        width: 100%; /* 枠いっぱいに広げる */
+        height: 100%;
+        border: none; /* 枠線もpile側に任せて消す */
+        border-radius: 6px; /* 角丸を合わせる */
+    }
+    
+    /* 墓地のカードはホバーしても浮き上がらないようにする */
+    .pile:hover .card {
+        transform: none; 
+    }
+
+    /* --- 役職パネルのデザイン --- */
+    #my-role-panel {
+        margin: 10px 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .role-card {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(var(--role-accent-rgb, 0, 216, 255), 0.24),
+                rgba(4, 11, 23, 0.9) 65%
+            );
+        color: var(--seki-text-main);
+        padding: 10px 20px;
+        border-radius: var(--seki-radius-sm);
+        border: 1px solid rgba(var(--role-accent-rgb, 0, 216, 255), 0.42);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.45), inset 0 0 12px rgba(var(--role-accent-rgb, 0, 216, 255), 0.12);
+        text-align: center;
+        width: 100%;
+        max-width: 300px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* 背景にうっすら装飾 */
+    .role-card::before {
+        content: 'ROLE';
+        position: absolute;
+        top: -10px; right: -10px;
+        font-size: 50px;
+        color: rgba(255,255,255,0.05);
+        font-weight: bold;
+        transform: rotate(15deg);
+    }
+
+    .role-name {
+        font-family: var(--font-display-strong);
+        font-size: 16px;
+        letter-spacing: 1px;
+        color: var(--role-accent, #8fefff);
+        text-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.35);
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    
+    .role-jp {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 2px 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .role-desc {
+        font-size: 11px;
+        color: #d9ebff;
+        border-top: 1px solid rgba(var(--role-accent-rgb, 179, 223, 255), 0.4);
+        margin-top: 5px;
+        padding-top: 4px;
+    }
