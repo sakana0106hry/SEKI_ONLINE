@@ -236,7 +236,8 @@
                 if (!card) return;
                 
                 if (card.type === 'num') {
-                    if (Number(card.val) === 0 && currentHand.length === 1) {
+                    let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
+                    if (Number(card.val) === 0 && (currentHand.length + myHackedCount) === 1) {
                         return showInfoModal("禁止あがり", "最後の一枚が「0」であがることはできません。");
                     }
 
@@ -251,7 +252,8 @@
 
                         const txCard = txHand[selectedIdx];
                         if (!txCard || txCard.type !== "num") return false;
-                        if (Number(txCard.val) === 0 && txHand.length === 1) return false;
+                        let myTxHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+                        if (Number(txCard.val) === 0 && (txHand.length + myTxHackedCount) === 1) return false;
 
                         const txTop = getTop(state.graveNum || []);
                         if (!canPlay(txCard, txTop, state.isReverse, state)) return false;
@@ -260,8 +262,7 @@
                         state.hands = state.hands || {};
                         state.hands[myId] = txHand;
 
-                        let myHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
-                        let nextTotal = txHand.length + myHackedCount;
+                        let nextTotal = txHand.length + myTxHackedCount;
                         let soundList = ['PUT'];
                         if (nextTotal === 1) soundList.push('UNO');
                         else if (nextTotal === 2) soundList.push('DOS');
@@ -274,7 +275,7 @@
                         ctx.appendLog(`${myName}が [${txCard.val}] を出しました`, 'public');
 
                         let tempRankings = {...(state.rankings || {})};
-                        if (txHand.length === 0 && myHackedCount === 0) {
+                        if (txHand.length === 0 && myTxHackedCount === 0) {
                             let currentRank = Object.keys(state.rankings || {}).length + 1;
                             state.rankings = { ...(state.rankings || {}), [myId]: currentRank };
                             ctx.appendLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
