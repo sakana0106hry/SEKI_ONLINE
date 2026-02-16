@@ -124,10 +124,10 @@
         const gridSym = document.getElementById("hud-grid-sym");
         if(gridSym) {
             const syms = [
-                {k: "REVERSE", l:"REV", c:"sym-rev"},
-                {k: "TRADE",   l:"TRA", c:"sym-tra"},
-                {k: "DIG UP",  l:"DIG", c:"sym-dig"},
-                {k: "DISCARD", l:"DIS", c:"sym-dis"}
+                {k: "REVERSE", l:"REVERSE", c:"sym-rev"},
+                {k: "TRADE",   l:"TRADE", c:"sym-tra"},
+                {k: "DIG UP",  l:"DIG UP", c:"sym-dig"},
+                {k: "DISCARD", l:"DISCARD", c:"sym-dis"}
             ];
             let html = "";
             syms.forEach(s => {
