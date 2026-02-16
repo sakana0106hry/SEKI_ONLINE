@@ -31,95 +31,104 @@ function activateGambler() {
 // --- 賭博師：送信処理（サイバー演出対応版） ---
 async function execGamblerGuess(type) {
     closeModal();
-    let updates = {};
-    let deck = [...(gameState.deckNum || [])];
-    let excl = [...(gameState.exclusion || [])];
-    
-    let card = deck.pop(); 
-    if (!card) return showInfoModal("エラー", "数字山札が空になりました。");
-    let val = card.val;
-    let win = false;
-
-    // 判定
-    let guessText = "";
-    if (type === 'A') {
-        if ([1,2,3,4].includes(val)) win = true;
-        guessText = "小さい [1-4]";
-    } else if (type === 'B') {
-        if ([6,7,8,9].includes(val)) win = true;
-        guessText = "大きい [6-9]";
-    } else if (type === 'C') {
-        if ([0,5].includes(val)) win = true;
-        guessText = "命知らず [0, 5]";
-    }
     const cutInDelayMs = (typeof CUT_IN_DURATION_MS === "number") ? CUT_IN_DURATION_MS : 4500;
     const gamblerVisualDurationMs = 6000;
     const gamblerTotalWaitMs = cutInDelayMs + gamblerVisualDurationMs;
+    let openDiscardAfterDelay = false;
+    let discardCount = 0;
+    let localFailReason = "";
 
-    // --- ★演出データ送信 ---
-    updates[`rooms/${currentRoom}/effect`] = {
-        guessTitle: guessText,
-        cardVal: val,
-        sub: win ? "WIN!!" : "LOSE...",
-        color: win ? "#ff4d73" : "#9cb3c9",
-        isWin: win,
-        guessType: type, // ★追加: これで「大当たり」かどうか判定する
-        showDelayMs: cutInDelayMs,
-        durationMs: gamblerVisualDurationMs,
-        effectId: Date.now(),
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    };
-    // ------------------------
+    const txResult = await runTurnTransaction("execGamblerGuess", (state, ctx) => {
+        openDiscardAfterDelay = false;
+        discardCount = 0;
+        localFailReason = "";
 
-    await pushLog(`${myName}が[賭博師]を発動！: ${guessText} -> 結果は...?`, 'public');
+        let deck = [...(state.deckNum || [])];
+        if (deck.length === 0) {
+            localFailReason = "deck-empty";
+            return false;
+        }
 
-    // データ更新
-    let actList = {...(gameState.activatedList || {})};
-    actList[myId] = true;
-    updates[`rooms/${currentRoom}/activatedList`] = actList;
-    updates[`rooms/${currentRoom}/deckNum`] = deck;
-    if (win || type !== 'C') {
-        excl.push(card);
-        updates[`rooms/${currentRoom}/exclusion`] = excl;
+        let excl = [...(state.exclusion || [])];
+        let card = deck.pop();
+        if (!card) {
+            localFailReason = "deck-empty";
+            return false;
+        }
+
+        const val = card.val;
+        let win = false;
+        let guessText = "";
+        if (type === 'A') {
+            if ([1, 2, 3, 4].includes(val)) win = true;
+            guessText = "小さい [1-4]";
+        } else if (type === 'B') {
+            if ([6, 7, 8, 9].includes(val)) win = true;
+            guessText = "大きい [6-9]";
+        } else if (type === 'C') {
+            if ([0, 5].includes(val)) win = true;
+            guessText = "命知らず [0, 5]";
+        } else {
+            localFailReason = "invalid-type";
+            return false;
+        }
+
+        state.effect = {
+            guessTitle: guessText,
+            cardVal: val,
+            sub: win ? "WIN!!" : "LOSE...",
+            color: win ? "#ff4d73" : "#9cb3c9",
+            isWin: win,
+            guessType: type,
+            showDelayMs: cutInDelayMs,
+            durationMs: gamblerVisualDurationMs,
+            effectId: ctx.now,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+        ctx.appendLog(`${myName}が[賭博師]を発動！: ${guessText} -> 結果は...?`, 'public');
+
+        let actList = {...(state.activatedList || {})};
+        actList[myId] = true;
+        state.activatedList = actList;
+        state.deckNum = deck;
+
+        if (win || type !== 'C') {
+            excl.push(card);
+            state.exclusion = excl;
+        } else {
+            let hand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+            hand.push(card);
+            state.hands = state.hands || {};
+            state.hands[myId] = sortCards(hand);
+        }
+
+        if (!win) {
+            state.passCount = 0;
+            state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            if (type === 'C') {
+                ctx.appendLog(`結果: [${val}] でした。開いたカードを手札に加えました。`, 'public');
+            } else {
+                ctx.appendLog(`結果: [${val}] でした。開いたカードは除外されました。`, 'public');
+            }
+        } else {
+            openDiscardAfterDelay = true;
+            discardCount = (type === 'C') ? 2 : 1;
+        }
+        return true;
+    });
+
+    if (!txResult.committed) {
+        if (localFailReason === "deck-empty") {
+            showInfoModal("エラー", "数字山札が空になりました。");
+            return;
+        }
+        showTurnActionError(txResult.reason);
+        return;
     }
 
-    //playSoundEffect('SKILL'); // 演出開始の合図音
-
-    // DB更新（これで全員の画面で演出が始まる）
-    await db.ref().update(updates);
-
-    // 結果処理の分岐（カットイン4秒 + 賭博師演出6秒 = 合計10秒待機）
-    if (win) {
-        let discardCount = (type === 'C') ? 2 : 1;
+    if (openDiscardAfterDelay) {
         setTimeout(() => {
             gamblerSelectDiscard(discardCount);
-        }, gamblerTotalWaitMs);
-
-    } else {
-        // ハズレ処理
-        let hand = null;
-        if (type === 'C') {
-            hand = sortCards(deepCopy(gameState.hands[myId]));
-            hand.push(card);
-            hand = sortCards(hand);
-        }
-        
-        // 遅延更新
-        setTimeout(async () => {
-            let finalUpdates = {};
-            if (type === 'C') {
-                finalUpdates[`rooms/${currentRoom}/hands/${myId}`] = hand;
-            }
-            finalUpdates[`rooms/${currentRoom}/passCount`] = 0;
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-            finalUpdates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-            
-            await db.ref().update(finalUpdates);
-            if (type === 'C') {
-                await pushLog(`結果: [${val}] でした。開いたカードを手札に加えました。`, 'public');
-            } else {
-                await pushLog(`結果: [${val}] でした。開いたカードは除外されました。`, 'public');
-            }
         }, gamblerTotalWaitMs);
     }
 }
@@ -201,104 +210,101 @@ function toggleGamblerSelect(el, maxCount) {
 }
 
 // 4. (勝利時) 捨てる実行処理
-// ↓↓↓ execGamblerDiscard関数を丸ごとこれに置き換えてください ↓↓↓
-        async function execGamblerDiscard(count) {
-            closeModal();
-            let updates = {};
-            
-            let handEls = document.querySelectorAll('.selected-gambler');
-            let indices = Array.from(handEls).map(el => parseInt(el.dataset.idx)).sort((a,b)=>b-a);
-            
-            let hand = sortCards(deepCopy(gameState.hands[myId]));
-            let graveNum = [...(gameState.graveNum || [])];
-            let graveSym = [...(gameState.graveSym || [])];
-            
-            let discardedNames = [];
+async function execGamblerDiscard(count) {
+    closeModal();
+    const handEls = document.querySelectorAll('.selected-gambler');
+    const indices = Array.from(handEls)
+        .map(el => parseInt(el.dataset.idx, 10))
+        .sort((a, b) => b - a);
+    const discardCount = Number(count);
 
-            // 手札から捨てて、それぞれの墓地へ
-            indices.forEach(idx => {
-                let c = hand.splice(idx, 1)[0];
-                discardedNames.push(c.val);
-                
-                if (c.type === 'num') graveNum.push({...c, owner:myId});
-                else graveSym.push(c);
-            });
+    const txResult = await runTurnTransaction("execGamblerDiscard", (state, ctx) => {
+        if (!Number.isInteger(discardCount) || discardCount < 0) return false;
+        if (indices.length !== discardCount) return false;
+        if ((new Set(indices)).size !== indices.length) return false;
 
-            hand = sortCards(hand);
+        let hand = sortCards(deepCopy((state.hands && state.hands[myId]) || []));
+        if (discardCount > hand.length) return false;
 
-            updates[`rooms/${currentRoom}/hands/${myId}`] = hand;
-            updates[`rooms/${currentRoom}/graveNum`] = graveNum;
-            updates[`rooms/${currentRoom}/graveSym`] = graveSym;
-            updates[`rooms/${currentRoom}/passCount`] = 0;
+        let graveNum = [...(state.graveNum || [])];
+        let graveSym = [...(state.graveSym || [])];
+        let discardedNames = [];
 
-            let tempRankings = {...(gameState.rankings || {})};
-            if (hand.length === 0) tempRankings[myId] = 99; 
+        for (const idx of indices) {
+            if (!Number.isInteger(idx) || idx < 0 || idx >= hand.length) return false;
+            let c = hand.splice(idx, 1)[0];
+            if (!c) return false;
 
-            let nextIdx = getNextActivePlayerIndex(gameState.turnIdx, gameState.playerOrder, gameState.rankings);
-            updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
+            discardedNames.push(c.val);
+            if (c.type === 'num') graveNum.push({ ...c, owner: myId });
+            else graveSym.push(c);
+        }
 
-            await pushLog(`${myName}が[賭博師]の報酬で [${discardedNames.join(', ')}] を捨てました！`, 'public');
-            
-            // ★重複エラー対策 & 同時再生対応
-            let myHackedCount = (gameState.hackedHands && gameState.hackedHands[myId]) ? gameState.hackedHands[myId].length : 0;
-            let nextTotal = hand.length + myHackedCount;
+        hand = sortCards(hand);
+        let myHackedCount = (state.hackedHands && state.hackedHands[myId]) ? state.hackedHands[myId].length : 0;
+        let nextTotal = hand.length + myHackedCount;
 
-            let soundList = ['DISCARD'];
-            if (nextTotal === 1) soundList.push('UNO');
-            else if (nextTotal === 2) soundList.push('DOS');
+        let soundList = ['DISCARD'];
+        if (nextTotal === 1) soundList.push('UNO');
+        else if (nextTotal === 2) soundList.push('DOS');
 
-            updates[`rooms/${currentRoom}/lastSound`] = { type: soundList, id: Date.now() };
+        state.hands = state.hands || {};
+        state.hands[myId] = hand;
+        state.graveNum = graveNum;
+        state.graveSym = graveSym;
+        state.passCount = 0;
+        state.lastSound = { type: soundList, id: ctx.now };
 
-            // あがり判定
-            if (hand.length === 0 && myHackedCount === 0) {
-                let currentRank = Object.keys(gameState.rankings || {}).length + 1;
-                updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
-                await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
-                
-                // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
-                updates[`rooms/${currentRoom}/lastWinnerId`] = myId;
-                updates[`rooms/${currentRoom}/lastWinnerTime`] = Date.now();
-                // ▲▲▲ 追加ここまで ▲▲▲
-                
-                let totalPlayers = gameState.playerOrder.length;
-                appendRankSound(soundList, currentRank, totalPlayers);
-                if (currentRank >= totalPlayers - 1) {
-                         updates[`rooms/${currentRoom}/status`] = "finished";
+        ctx.appendLog(`${myName}が[賭博師]の報酬で [${discardedNames.join(', ')}] を捨てました！`, 'public');
 
-                        // 敗者（最後の一人）を特定
-                        let loserId = gameState.playerOrder.find(pid => !gameState.rankings?.[pid] && pid !== myId);
-                     
-                        if(loserId) {
-                            // 敗者の順位を確定
-                            updates[`rooms/${currentRoom}/rankings/${loserId}`] = totalPlayers;
-                            appendRankSound(soundList, totalPlayers, totalPlayers);
-                            
-                            // 敗者の手札（通常手札 + ハッキング中の手札）を取得
-                            let lHand = gameState.hands[loserId] || [];
-                            let lHacked = (gameState.hackedHands && gameState.hackedHands[loserId]) ? gameState.hackedHands[loserId] : [];
-                            let allL = [...lHand, ...lHacked];
-                            
-                            // カード名を文字列化
-                            let lText = allL.map(c => c.val).join(", ") || "なし";
-                            let lName = gameState.players[loserId].name;
-                            
-                            // 全員に見えるログとして送信
-                            await pushLog(`全順位確定！！最下位 ${lName} の残り手札: [${lText}]`, 'public');
-                        } else {
-                            await pushLog(`全順位が確定しました！！`, 'public');
-                        }
-                        // スコア更新を実行 (finalRankingsを組み立てて渡す)
-                        let finalRankings = {...(gameState.rankings || {})};
-                        finalRankings[myId] = currentRank; // 自分の順位
-                        loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
-                        if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
-                        
-                        updateFinalScores(finalRankings, gameState.playerOrder);
+        let tempRankings = {...(state.rankings || {})};
+        if (hand.length === 0 && myHackedCount === 0) {
+            let currentRank = Object.keys(state.rankings || {}).length + 1;
+            state.rankings = { ...(state.rankings || {}), [myId]: currentRank };
+            ctx.appendLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
+            state.lastWinnerId = myId;
+            state.lastWinnerTime = ctx.now;
+
+            let totalPlayers = state.playerOrder.length;
+            appendRankSound(soundList, currentRank, totalPlayers);
+            if (currentRank >= totalPlayers - 1) {
+                state.status = "finished";
+                let loserId = state.playerOrder.find(pid => !(state.rankings && state.rankings[pid]) && pid !== myId);
+                if (loserId) {
+                    state.rankings = { ...(state.rankings || {}), [loserId]: totalPlayers };
+                    appendRankSound(soundList, totalPlayers, totalPlayers);
+
+                    let lHand = (state.hands && state.hands[loserId]) ? state.hands[loserId] : [];
+                    let lHacked = (state.hackedHands && state.hackedHands[loserId]) ? state.hackedHands[loserId] : [];
+                    let allL = [...lHand, ...lHacked];
+                    let lText = allL.map(c => c.val).join(", ") || "なし";
+                    let lName = (state.players && state.players[loserId]) ? state.players[loserId].name : "Player";
+                    ctx.appendLog(`全順位確定！！最下位 ${lName} の残り手札: [${lText}]`, 'public');
+                } else {
+                    ctx.appendLog(`全順位が確定しました！！`, 'public');
                 }
             }
-
-            await db.ref().update(updates);
+            tempRankings[myId] = 99;
         }
+
+        state.turnIdx = ctx.getNextTurnIdx(tempRankings);
+        return true;
+    });
+
+    if (!txResult.committed) {
+        showTurnActionError(txResult.reason);
+        return;
+    }
+
+    if (
+        txResult.snapshot &&
+        txResult.snapshot.status === "finished" &&
+        txResult.snapshot.rankings &&
+        txResult.snapshot.playerOrder
+    ) {
+        updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder);
+    }
+}
 
 
 /* --- 賭博師サイバー演出 --- */

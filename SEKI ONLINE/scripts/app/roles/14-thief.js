@@ -124,9 +124,13 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
             if (stepCount === 2) {
                 const skillSound = (typeof SOUND_FILES !== 'undefined' && SOUND_FILES['SKILL_THIEF']) ? 'SKILL_THIEF' : 'SKILL';
                 state.lastSound = { type: skillSound, id: ctx.now };
-            }
-
-            if (stepCount === 1) {
+                let actList = {...(state.activatedList || {})};
+                actList[myId] = true;
+                state.activatedList = actList;
+                state.passCount = 0;
+                state.lastAction = "THIEF_END";
+                state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            } else {
                 let actList = {...(state.activatedList || {})};
                 actList[myId] = true;
                 state.activatedList = actList;
@@ -165,29 +169,26 @@ async function execThiefTrade(targetId, giveIdx, takeIdx, count) {
             if (document.getElementById("modal-footer")) {
                 document.getElementById("modal-footer").innerHTML = "";
             }
-        } else {
-            endThiefTurn();
         }
     });
 }
 // 4. ターン終了処理
 async function endThiefTurn() {
     closeModal();
-    
-    // ★修正: gameState.turnIdx を使うように変更（念のため）
-    let currentTurnIdx = (typeof turnIdx !== 'undefined') ? turnIdx : gameState.turnIdx;
-    let nextIdx = (currentTurnIdx + 1) % gameState.playerOrder.length;
-    
-    let updates = {};
-    updates[`rooms/${currentRoom}/turnIdx`] = nextIdx;
-    updates[`rooms/${currentRoom}/passCount`] = 0; 
-    updates[`rooms/${currentRoom}/lastAction`] = "THIEF_END";
 
-    let actList = {...(gameState.activatedList || {})};
-    actList[myId] = true; 
-    updates[`rooms/${currentRoom}/activatedList`] = actList;
+    const txResult = await runTurnTransaction("endThiefTurn", (state, ctx) => {
+        let actList = {...(state.activatedList || {})};
+        actList[myId] = true;
+        state.activatedList = actList;
+        state.passCount = 0;
+        state.lastAction = "THIEF_END";
+        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+        ctx.appendLog(`${myName}の[盗賊]が終了しました。`, 'public');
+        return true;
+    });
 
-    await db.ref().update(updates);
-    await pushLog(`${myName}の[盗賊]が終了しました。`, 'public');
+    if (!txResult.committed) {
+        showTurnActionError(txResult.reason);
+    }
 }
 
