@@ -248,7 +248,7 @@
         gap: 8px;
         padding: 10px 10px 8px;
         border-bottom: 1px solid rgba(143, 176, 214, 0.28);
-        align-items: center;
+        align-items: stretch;
     }
     #desktop-chat-input {
         color: var(--seki-text-main);
