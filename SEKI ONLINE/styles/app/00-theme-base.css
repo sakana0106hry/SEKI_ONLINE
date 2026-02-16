@@ -29,6 +29,14 @@
         --seki-side-gap: 12px;
         --seki-side-left-width: 260px;
         --seki-side-right-width: 320px;
+        --seki-desktop-panel-bg: linear-gradient(155deg, rgba(6, 16, 32, 0.9), rgba(4, 11, 23, 0.86));
+        --seki-desktop-panel-border: 1px solid rgba(0, 216, 255, 0.34);
+        --seki-desktop-panel-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 22px rgba(0, 216, 255, 0.18);
+        --seki-desktop-header-bg: rgba(8, 26, 48, 0.42);
+        --seki-desktop-header-border: 1px solid rgba(0, 216, 255, 0.28);
+        --seki-desktop-header-text: #a8e9ff;
+        --seki-desktop-header-font: var(--font-ui);
+        --seki-desktop-header-pad: 10px 12px 8px;
     }
 
     html {
@@ -141,6 +149,10 @@
         padding-left: 16px;
         padding-right: 16px;
         z-index: 130;
+        background: var(--seki-desktop-header-bg);
+        border-bottom: var(--seki-desktop-header-border);
+        color: var(--seki-desktop-header-text);
+        font-family: var(--seki-desktop-header-font);
     }
     body.desktop-side-mode #game-table {
         grid-column: 2;

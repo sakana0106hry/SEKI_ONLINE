@@ -100,6 +100,9 @@
         pointer-events: auto !important;
         z-index: 20;
         border-radius: 0;
+        background: var(--seki-desktop-panel-bg);
+        border: var(--seki-desktop-panel-border);
+        box-shadow: var(--seki-desktop-panel-shadow);
     }
 
     /* 内部レイアウト */
@@ -110,6 +113,14 @@
         text-shadow: var(--font-ui-emphasis-shadow);
         border-bottom: 1px solid rgba(0, 216, 255, 0.28);
         padding-bottom: 5px; margin-bottom: 8px;
+    }
+    body.desktop-side-mode #counter-panel .hud-header {
+        font-family: var(--seki-desktop-header-font);
+        color: var(--seki-desktop-header-text);
+        border-bottom: var(--seki-desktop-header-border);
+        background: var(--seki-desktop-header-bg);
+        padding: var(--seki-desktop-header-pad);
+        margin: 0 0 8px;
     }
     .close-btn { cursor: pointer; padding: 0 5px; font-size: 16px; color: #fff; }
 

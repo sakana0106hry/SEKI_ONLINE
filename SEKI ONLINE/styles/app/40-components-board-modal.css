@@ -239,6 +239,10 @@
         height: 100%;
         min-height: 0;
         max-height: none;
+        overflow: hidden;
+        background: var(--seki-desktop-panel-bg);
+        border: var(--seki-desktop-panel-border);
+        box-shadow: var(--seki-desktop-panel-shadow);
         z-index: 20;
     }
     #desktop-chatlog-header {
@@ -252,12 +256,22 @@
         border-bottom: 1px solid rgba(0, 216, 255, 0.26);
         background: rgba(8, 26, 48, 0.42);
     }
+    body.desktop-side-mode #desktop-chatlog-header {
+        font-family: var(--seki-desktop-header-font);
+        color: var(--seki-desktop-header-text);
+        border-bottom: var(--seki-desktop-header-border);
+        background: var(--seki-desktop-header-bg);
+        padding: var(--seki-desktop-header-pad);
+    }
     #desktop-chat-input-wrap {
         display: flex;
         gap: 8px;
         padding: 10px 10px 8px;
         border-bottom: 1px solid rgba(143, 176, 214, 0.28);
         align-items: stretch;
+    }
+    body.desktop-side-mode #desktop-chat-input-wrap {
+        border-bottom: var(--seki-desktop-header-border);
     }
     #desktop-chat-input {
         color: var(--seki-text-main);
@@ -290,6 +304,10 @@
         overflow-y: auto;
         text-align: left;
         padding-bottom: 8px;
+    }
+    body.desktop-side-mode #desktop-log-list {
+        min-height: 0;
+        overflow-y: auto;
     }
     #desktop-log-list .log-entry {
         padding: 7px 9px;
