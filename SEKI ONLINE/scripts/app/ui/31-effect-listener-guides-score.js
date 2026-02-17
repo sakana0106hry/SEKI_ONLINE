@@ -364,6 +364,11 @@ function setupEffectListener() {
             const groupOrder = Array.isArray(ROLE_DRAFT_GROUP_ORDER) && ROLE_DRAFT_GROUP_ORDER.length > 0
                 ? ROLE_DRAFT_GROUP_ORDER.filter(groupKey => defaultGroups.includes(groupKey))
                 : defaultGroups;
+            const groupThemeClassMap = {
+                STRATEGY: "attr-s",
+                EFFICIENCY: "attr-e",
+                KILLER: "attr-k"
+            };
 
             const groupCounts = {};
             groupOrder.forEach(groupKey => { groupCounts[groupKey] = 0; });
@@ -395,28 +400,33 @@ function setupEffectListener() {
                         </section>`;
             }
 
-            let rowsHtml = "";
+            let stackedBarHtml = `<div class="attr-share-stack">`;
+            let legendHtml = "";
             groupOrder.forEach(groupKey => {
                 const count = groupCounts[groupKey] || 0;
                 const ratio = (count / winnerCount) * 100;
                 const groupLabel = (typeof getRoleGroupLabel === "function")
                     ? getRoleGroupLabel(groupKey)
                     : groupKey;
+                const themeClass = groupThemeClassMap[groupKey] || "attr-s";
 
-                rowsHtml += `
-                    <div class="win-attr-row">
-                        <div class="win-attr-label">${groupLabel}</div>
-                        <div class="win-attr-bar-wrap">
-                            <div class="win-attr-bar" style="width:${ratio.toFixed(1)}%;"></div>
-                        </div>
-                        <div class="win-attr-value">${count}勝 (${ratio.toFixed(1)}%)</div>
+                if (ratio > 0) {
+                    stackedBarHtml += `<div class="attr-share-segment ${themeClass}" style="width:${ratio.toFixed(1)}%;" title="${groupLabel} ${ratio.toFixed(1)}%"></div>`;
+                }
+                legendHtml += `
+                    <div class="attr-share-legend-item">
+                        <span class="attr-share-dot ${themeClass}"></span>
+                        <span class="attr-share-label">${groupLabel}</span>
+                        <span class="attr-share-value">${count}勝 (${ratio.toFixed(1)}%)</span>
                     </div>
                 `;
             });
+            stackedBarHtml += `</div>`;
 
             return `<section class="seki-section info">
                         <div class="win-attr-title">3属性の割合（1位の役職属性）</div>
-                        ${rowsHtml}
+                        ${stackedBarHtml}
+                        <div class="attr-share-legend">${legendHtml}</div>
                     </section>`;
         }
 
