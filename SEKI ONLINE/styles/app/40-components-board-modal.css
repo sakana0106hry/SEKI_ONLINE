@@ -621,6 +621,16 @@
     .seki-host-role-item + .seki-host-role-item {
         margin-top: 6px;
     }
+    .seki-host-role-item input {
+        accent-color: var(--role-accent, #9ce8ff);
+    }
+    .seki-host-role-item .seki-host-mode-title {
+        color: var(--role-accent, #9ce8ff);
+        text-shadow: 0 0 8px rgba(var(--role-accent-rgb, 0, 216, 255), 0.28);
+    }
+    .seki-host-role-item .seki-host-mode-meta {
+        color: rgba(var(--role-accent-rgb, 156, 179, 201), 0.86);
+    }
     .seki-host-mode-title {
         font-weight: 700;
         color: #9ce8ff;
