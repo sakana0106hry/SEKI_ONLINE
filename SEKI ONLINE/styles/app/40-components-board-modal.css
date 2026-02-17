@@ -796,6 +796,7 @@
     .score-table th,
     .score-table td {
         padding: 8px;
+        text-align: center;
     }
     .score-table th:first-child,
     .score-name-cell {
@@ -803,7 +804,7 @@
     }
     .score-table th:last-child,
     .score-point-cell {
-        text-align: right;
+        text-align: center;
     }
     .score-empty {
         padding: 20px;
@@ -838,6 +839,60 @@
         border-color: rgba(0, 216, 255, 0.65);
         color: #d9ebff;
         background: rgba(8, 26, 48, 0.7);
+    }
+    .score-history-btn {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 8px 16px;
+        color: #f3fcff;
+        border-color: rgba(0, 216, 255, 0.75);
+        background: linear-gradient(135deg, #0a3a5d, #1185b0 45%, #16c9e6);
+        box-shadow: 0 4px 14px rgba(0, 216, 255, 0.26);
+    }
+    .score-history-btn:hover {
+        color: #ffffff;
+        border-color: rgba(136, 241, 255, 0.95);
+        background: linear-gradient(135deg, #0c4a70, #12a5cb 45%, #3ce7ff);
+        box-shadow: 0 6px 16px rgba(0, 216, 255, 0.35);
+    }
+    .win-attr-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #bff2ff;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+    .win-attr-row {
+        display: grid;
+        grid-template-columns: 110px 1fr 120px;
+        gap: 8px;
+        align-items: center;
+        margin-top: 6px;
+    }
+    .win-attr-label {
+        font-size: 12px;
+        color: #d9ebff;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .win-attr-bar-wrap {
+        height: 12px;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 1px solid rgba(143, 176, 214, 0.42);
+        background: rgba(6, 16, 32, 0.72);
+    }
+    .win-attr-bar {
+        height: 100%;
+        min-width: 0;
+        background: linear-gradient(90deg, rgba(0, 216, 255, 0.38), rgba(0, 216, 255, 0.95));
+    }
+    .win-attr-value {
+        font-size: 12px;
+        color: #d9ebff;
+        text-align: center;
+        white-space: nowrap;
     }
 
     /* ログスタイル */

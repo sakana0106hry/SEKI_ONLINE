@@ -306,6 +306,59 @@ function setupEffectListener() {
             return FINISH_METHOD_LABELS[methodKey] || "-";
         }
 
+        function buildWinAttrRatioBlock(matchHistory) {
+            const methodOrder = ["NUMERIC", "GAMBLER", "ALCHEMIST", "DISCARD"];
+            const methodCounts = {
+                NUMERIC: 0,
+                GAMBLER: 0,
+                ALCHEMIST: 0,
+                DISCARD: 0
+            };
+            let winnerCount = 0;
+
+            (Array.isArray(matchHistory) ? matchHistory : []).forEach(entry => {
+                if (!entry || typeof entry !== "object") return;
+                const rankings = entry.rankings || {};
+                const finishMethods = entry.finishMethods || {};
+
+                const winnerPid = Object.keys(rankings).find(pid => Number(rankings[pid]) === 1);
+                if (!winnerPid) return;
+
+                const methodKey = finishMethods[winnerPid];
+                if (!methodKey || !Object.prototype.hasOwnProperty.call(methodCounts, methodKey)) return;
+
+                methodCounts[methodKey] += 1;
+                winnerCount += 1;
+            });
+
+            if (winnerCount === 0) {
+                return `<section class="seki-section info">
+                            <div class="win-attr-title">勝利属性の割合（1位の上がり方）</div>
+                            <div class="score-empty">まだ集計できるデータがありません</div>
+                        </section>`;
+            }
+
+            let rowsHtml = "";
+            methodOrder.forEach(methodKey => {
+                const count = methodCounts[methodKey] || 0;
+                const ratio = (count / winnerCount) * 100;
+                rowsHtml += `
+                    <div class="win-attr-row">
+                        <div class="win-attr-label">${getFinishMethodLabel(methodKey)}</div>
+                        <div class="win-attr-bar-wrap">
+                            <div class="win-attr-bar" style="width:${ratio.toFixed(1)}%;"></div>
+                        </div>
+                        <div class="win-attr-value">${count}勝 (${ratio.toFixed(1)}%)</div>
+                    </div>
+                `;
+            });
+
+            return `<section class="seki-section info">
+                        <div class="win-attr-title">勝利属性の割合（1位の上がり方）</div>
+                        ${rowsHtml}
+                    </section>`;
+        }
+
         function buildMatchHistoryEntry(finalRankings, playerOrder, sourceState, finishedAt) {
             if (!finalRankings || typeof finalRankings !== "object") {
                 console.warn("[score-history] 順位情報が不正なため履歴保存を停止します。", finalRankings);
@@ -439,6 +492,7 @@ function setupEffectListener() {
             });
 
             let html = `<div class="seki-scroll-panel">`;
+            html += buildWinAttrRatioBlock(matchHistory);
 
             matchHistory.forEach((entry, idx) => {
                 if (!entry || !Array.isArray(entry.playerOrder)) return;
@@ -560,7 +614,7 @@ function setupEffectListener() {
             html += `</table>`;
 
             html += `<div class="score-reset-wrap">
-                        <button onclick="showMatchHistory()" class="score-reset-btn">試合履歴を閲覧</button>
+                        <button onclick="showMatchHistory()" class="score-reset-btn score-history-btn">試合履歴を閲覧</button>
                     </div>`;
             
             // ホストのみスコアリセットボタンを表示
