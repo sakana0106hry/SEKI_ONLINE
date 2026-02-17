@@ -333,7 +333,7 @@ function setupEffectListener() {
 
             if (winnerCount === 0) {
                 return `<section class="seki-section info">
-                            <div class="win-attr-title">勝利属性の割合（1位の上がり方）</div>
+                            <div class="win-attr-title">上がり方の割合（1位）</div>
                             <div class="score-empty">まだ集計できるデータがありません</div>
                         </section>`;
             }
@@ -354,7 +354,68 @@ function setupEffectListener() {
             });
 
             return `<section class="seki-section info">
-                        <div class="win-attr-title">勝利属性の割合（1位の上がり方）</div>
+                        <div class="win-attr-title">上がり方の割合（1位）</div>
+                        ${rowsHtml}
+                    </section>`;
+        }
+
+        function buildWinnerRoleGroupRatioBlock(matchHistory) {
+            const defaultGroups = ["STRATEGY", "EFFICIENCY", "KILLER"];
+            const groupOrder = Array.isArray(ROLE_DRAFT_GROUP_ORDER) && ROLE_DRAFT_GROUP_ORDER.length > 0
+                ? ROLE_DRAFT_GROUP_ORDER.filter(groupKey => defaultGroups.includes(groupKey))
+                : defaultGroups;
+
+            const groupCounts = {};
+            groupOrder.forEach(groupKey => { groupCounts[groupKey] = 0; });
+
+            let winnerCount = 0;
+
+            (Array.isArray(matchHistory) ? matchHistory : []).forEach(entry => {
+                if (!entry || typeof entry !== "object") return;
+                const rankings = entry.rankings || {};
+                const roles = entry.roles || {};
+
+                const winnerPid = Object.keys(rankings).find(pid => Number(rankings[pid]) === 1);
+                if (!winnerPid) return;
+
+                const winnerRoleKey = roles[winnerPid];
+                if (!winnerRoleKey) return;
+
+                const groupKey = (typeof getRoleGroup === "function") ? getRoleGroup(winnerRoleKey) : null;
+                if (!groupKey || !Object.prototype.hasOwnProperty.call(groupCounts, groupKey)) return;
+
+                groupCounts[groupKey] += 1;
+                winnerCount += 1;
+            });
+
+            if (winnerCount === 0) {
+                return `<section class="seki-section info">
+                            <div class="win-attr-title">3属性の割合（1位の役職属性）</div>
+                            <div class="score-empty">まだ集計できるデータがありません</div>
+                        </section>`;
+            }
+
+            let rowsHtml = "";
+            groupOrder.forEach(groupKey => {
+                const count = groupCounts[groupKey] || 0;
+                const ratio = (count / winnerCount) * 100;
+                const groupLabel = (typeof getRoleGroupLabel === "function")
+                    ? getRoleGroupLabel(groupKey)
+                    : groupKey;
+
+                rowsHtml += `
+                    <div class="win-attr-row">
+                        <div class="win-attr-label">${groupLabel}</div>
+                        <div class="win-attr-bar-wrap">
+                            <div class="win-attr-bar" style="width:${ratio.toFixed(1)}%;"></div>
+                        </div>
+                        <div class="win-attr-value">${count}勝 (${ratio.toFixed(1)}%)</div>
+                    </div>
+                `;
+            });
+
+            return `<section class="seki-section info">
+                        <div class="win-attr-title">3属性の割合（1位の役職属性）</div>
                         ${rowsHtml}
                     </section>`;
         }
@@ -493,6 +554,7 @@ function setupEffectListener() {
 
             let html = `<div class="seki-scroll-panel">`;
             html += buildWinAttrRatioBlock(matchHistory);
+            html += buildWinnerRoleGroupRatioBlock(matchHistory);
 
             matchHistory.forEach((entry, idx) => {
                 if (!entry || !Array.isArray(entry.playerOrder)) return;
