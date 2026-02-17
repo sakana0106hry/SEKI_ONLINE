@@ -424,6 +424,49 @@
             list.dataset.sekiSig = nextSig;
         }
 
+        function isChatLogModalOpen() {
+            if (!els.modal || els.modal.classList.contains("hidden")) return false;
+            if (!els.mTitle || els.mTitle.innerText.trim() !== "チャット & ログ") return false;
+            if (!els.mContent || !els.mContent.querySelector("#log-list-container")) return false;
+            return true;
+        }
+
+        function syncChatLogModal(logs) {
+            if (!isChatLogModalOpen()) return;
+
+            const logList = document.getElementById("log-list-container");
+            if (!logList) {
+                console.warn("[chat-modal] ログリスト要素が見つからないため同期を停止します。");
+                return;
+            }
+
+            const sourceLogs = Array.isArray(logs) ? logs : [];
+            const lastLog = sourceLogs.length > 0 ? sourceLogs[sourceLogs.length - 1] : null;
+            const nextSig = buildRenderSignature({
+                length: sourceLogs.length,
+                lastType: lastLog ? (lastLog.type || "") : "",
+                lastTargetId: lastLog ? (lastLog.targetId || "") : "",
+                lastTimestamp: lastLog ? (Number(lastLog.timestamp) || 0) : 0,
+                lastText: lastLog ? (lastLog.text || "") : ""
+            });
+            if (logList.dataset.sekiSig === nextSig) return;
+
+            const nearBottomThresholdPx = 24;
+            const prevTop = logList.scrollTop;
+            const prevBottomDistance = logList.scrollHeight - (prevTop + logList.clientHeight);
+            const wasNearBottom = prevBottomDistance <= nearBottomThresholdPx;
+
+            logList.innerHTML = buildVisibleLogEntriesHtml(sourceLogs);
+
+            if (wasNearBottom) {
+                logList.scrollTop = logList.scrollHeight;
+            } else {
+                const maxTop = Math.max(0, logList.scrollHeight - logList.clientHeight);
+                logList.scrollTop = Math.min(prevTop, maxTop);
+            }
+            logList.dataset.sekiSig = nextSig;
+        }
+
         function renderLogs(logs, options = {}) {
             const forceBubbleRefresh = !!(options && options.forceBubbleRefresh);
 
@@ -434,6 +477,7 @@
                 logRenderCache.signature = "empty";
                 logRenderCache.recentChats = [];
                 renderDesktopChatLogPanel([], "empty");
+                syncChatLogModal([]);
                 return;
             }
 
@@ -453,6 +497,7 @@
                     });
                 }
                 renderDesktopChatLogPanel(logs, signature);
+                syncChatLogModal(logs);
                 return;
             }
 
@@ -500,6 +545,7 @@
             }
 
             renderDesktopChatLogPanel(logs, signature);
+            syncChatLogModal(logs);
         }
 
         // ▼▼▼ 新規関数: 吹き出し表示 ▼▼▼
@@ -573,7 +619,6 @@
         async function sendChat() {
             const sent = await sendChatWithInput('chat-input');
             if (!sent) return;
-            showLogHistory(); 
         }
 
         async function sendDesktopChat() {
