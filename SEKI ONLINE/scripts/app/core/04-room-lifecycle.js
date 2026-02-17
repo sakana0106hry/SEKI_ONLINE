@@ -260,6 +260,7 @@
                     roles: {},
                     players,
                     rankings: {},
+                    finishMethods: {},
                     astronomerObservation: null,
                     // 【追加】能力使用済みフラグ（初期値は空）
                     activatedList: {},

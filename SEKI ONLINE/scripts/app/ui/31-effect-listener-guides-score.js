@@ -293,22 +293,220 @@ function setupEffectListener() {
             openModal(`${targetName} の行動履歴`, html, { size: "default", tone: "guide" });
         }
 
-        // --- スコア更新関数 ---
-        async function updateFinalScores(finalRankings, playerOrder) {
-            let currentScores = gameState.scores || {};
-            let totalPlayers = playerOrder.length;
-            let updates = {};
+        const MATCH_HISTORY_LIMIT = 20;
+        const FINISH_METHOD_LABELS = Object.freeze({
+            NUMERIC: "数字カード",
+            GAMBLER: "賭博師",
+            ALCHEMIST: "錬金術師",
+            DISCARD: "DISCARD"
+        });
 
-            playerOrder.forEach(pid => {
-                let rank = finalRankings[pid];
-                if (rank) {
-                    // スコア計算式: 2 * (人数 - 順位) + 1
-                    let roundPoint = 2 * (totalPlayers - rank) + 1;
-                    let oldScore = currentScores[pid] || 0;
-                    updates[`rooms/${currentRoom}/scores/${pid}`] = oldScore + roundPoint;
+        function getFinishMethodLabel(methodKey) {
+            if (!methodKey) return "-";
+            return FINISH_METHOD_LABELS[methodKey] || "-";
+        }
+
+        function buildMatchHistoryEntry(finalRankings, playerOrder, sourceState, finishedAt) {
+            if (!finalRankings || typeof finalRankings !== "object") {
+                console.warn("[score-history] 順位情報が不正なため履歴保存を停止します。", finalRankings);
+                return null;
+            }
+            if (!Array.isArray(playerOrder) || playerOrder.length === 0) {
+                console.warn("[score-history] 手番順情報が不正なため履歴保存を停止します。", playerOrder);
+                return null;
+            }
+            if (!sourceState || typeof sourceState !== "object") {
+                console.warn("[score-history] 試合状態が不正なため履歴保存を停止します。", sourceState);
+                return null;
+            }
+
+            const players = sourceState.players || {};
+            const roles = sourceState.roles || {};
+            const finishMethods = sourceState.finishMethods || {};
+
+            const rankingsSnapshot = {};
+            const playerNameSnapshot = {};
+            const roleSnapshot = {};
+            const finishMethodSnapshot = {};
+
+            for (const pid of playerOrder) {
+                const rank = Number(finalRankings[pid]);
+                if (!Number.isFinite(rank) || rank <= 0) {
+                    console.warn("[score-history] 順位が不足しているため履歴保存を停止します。", { pid, rank: finalRankings[pid] });
+                    return null;
                 }
+
+                const player = players[pid];
+                if (!player || !player.name) {
+                    console.warn("[score-history] プレイヤー名が不足しているため履歴保存を停止します。", { pid, player });
+                    return null;
+                }
+
+                const roleKey = roles[pid];
+                if (!roleKey) {
+                    console.warn("[score-history] 役職情報が不足しているため履歴保存を停止します。", { pid, roleKey });
+                    return null;
+                }
+
+                rankingsSnapshot[pid] = rank;
+                playerNameSnapshot[pid] = player.name;
+                roleSnapshot[pid] = roleKey;
+
+                const finishMethod = finishMethods[pid];
+                if (finishMethod) {
+                    finishMethodSnapshot[pid] = finishMethod;
+                }
+            }
+
+            const finishedAtNum = Number(finishedAt);
+            return {
+                finishedAt: Number.isFinite(finishedAtNum) ? finishedAtNum : Date.now(),
+                playerOrder: [...playerOrder],
+                rankings: rankingsSnapshot,
+                players: playerNameSnapshot,
+                roles: roleSnapshot,
+                finishMethods: finishMethodSnapshot
+            };
+        }
+
+        // --- スコア更新関数 ---
+        async function updateFinalScores(finalRankings, playerOrder, options = {}) {
+            if (!currentRoom) {
+                console.warn("[score] ルーム未参加のためスコア更新を停止します。");
+                return;
+            }
+            if (!finalRankings || typeof finalRankings !== "object") {
+                console.warn("[score] 順位情報が不正なためスコア更新を停止します。", finalRankings);
+                return;
+            }
+            if (!Array.isArray(playerOrder) || playerOrder.length === 0) {
+                console.warn("[score] 手番順情報が不正なためスコア更新を停止します。", playerOrder);
+                return;
+            }
+
+            const sourceState = (options && typeof options.sourceState === "object" && options.sourceState)
+                ? options.sourceState
+                : gameState;
+            const finishedAtRaw = Number(options && options.finishedAt);
+            const finishedAt = Number.isFinite(finishedAtRaw) ? finishedAtRaw : Date.now();
+
+            await db.ref(`rooms/${currentRoom}`).transaction((state) => {
+                if (!state || typeof state !== "object") {
+                    console.warn("[score] 部屋データが存在しないためスコア更新を停止します。");
+                    return state;
+                }
+
+                const totalPlayers = playerOrder.length;
+                const nextScores = { ...(state.scores || {}) };
+
+                playerOrder.forEach(pid => {
+                    const rank = Number(finalRankings[pid]);
+                    if (!Number.isFinite(rank) || rank <= 0) return;
+
+                    // スコア計算式: 2 * (人数 - 順位) + 1
+                    const roundPoint = 2 * (totalPlayers - rank) + 1;
+                    const oldScore = Number(nextScores[pid]) || 0;
+                    nextScores[pid] = oldScore + roundPoint;
+                });
+                state.scores = nextScores;
+
+                const historyEntry = buildMatchHistoryEntry(finalRankings, playerOrder, sourceState, finishedAt);
+                if (!historyEntry) {
+                    console.warn("[score-history] 必須情報不足のため履歴保存を停止します。");
+                    return state;
+                }
+
+                const nextHistory = Array.isArray(state.matchHistory) ? [...state.matchHistory] : [];
+                nextHistory.push(historyEntry);
+                if (nextHistory.length > MATCH_HISTORY_LIMIT) {
+                    nextHistory.splice(0, nextHistory.length - MATCH_HISTORY_LIMIT);
+                }
+                state.matchHistory = nextHistory;
+
+                return state;
             });
-            await db.ref().update(updates);
+        }
+
+        function showMatchHistory() {
+            if (!gameState) return;
+            const matchHistory = Array.isArray(gameState.matchHistory) ? [...gameState.matchHistory] : [];
+            if (matchHistory.length === 0) return showInfoModal("試合履歴", "まだ記録がありません。");
+
+            matchHistory.sort((a, b) => {
+                const tsA = Number(a && a.finishedAt) || 0;
+                const tsB = Number(b && b.finishedAt) || 0;
+                return tsB - tsA;
+            });
+
+            let html = `<div class="seki-scroll-panel">`;
+
+            matchHistory.forEach((entry, idx) => {
+                if (!entry || !Array.isArray(entry.playerOrder)) return;
+
+                const entryOrder = [...entry.playerOrder];
+                const entryRankings = entry.rankings || {};
+                const entryPlayers = entry.players || {};
+                const entryRoles = entry.roles || {};
+                const entryFinishMethods = entry.finishMethods || {};
+                const totalPlayers = entryOrder.length;
+
+                const finishedAtNum = Number(entry.finishedAt);
+                const finishedAtText = Number.isFinite(finishedAtNum)
+                    ? new Date(finishedAtNum).toLocaleString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })
+                    : "-";
+
+                const rankedPids = [...entryOrder].sort((a, b) => {
+                    const rankA = Number(entryRankings[a]) || 999;
+                    const rankB = Number(entryRankings[b]) || 999;
+                    if (rankA === rankB) return String(a).localeCompare(String(b));
+                    return rankA - rankB;
+                });
+
+                html += `
+                    <section class="seki-section info">
+                        <div class="seki-log-line">
+                            <span class="seki-log-time">MATCH ${idx + 1}</span>
+                            <span class="seki-log-text">終了時刻: ${finishedAtText}</span>
+                        </div>
+                        <table class="score-table">
+                            <tr class="score-head">
+                                <th>順位</th>
+                                <th>名 前</th>
+                                <th>役 職</th>
+                                <th>上がり方</th>
+                            </tr>`;
+
+                rankedPids.forEach(pid => {
+                    const rank = Number(entryRankings[pid]) || "-";
+                    const name = entryPlayers[pid] || "不明なユーザー";
+                    const roleName = getRoleDisplayName(entryRoles[pid]);
+                    const finishMethod = (rank === totalPlayers)
+                        ? "-"
+                        : getFinishMethodLabel(entryFinishMethods[pid]);
+
+                    html += `
+                            <tr class="score-row">
+                                <td class="score-name-cell">${rank}</td>
+                                <td class="score-name-cell">${name}</td>
+                                <td class="score-name-cell">${roleName || "-"}</td>
+                                <td class="score-point-cell">${finishMethod}</td>
+                            </tr>`;
+                });
+
+                html += `
+                        </table>
+                    </section>`;
+            });
+
+            html += `</div>`;
+            openModal("📜 試合履歴", html, { size: "wide", tone: "guide" });
         }
 
         // --- スコアボード表示関数 ---
@@ -360,13 +558,17 @@ function setupEffectListener() {
                         </tr>`;
             });
             html += `</table>`;
+
+            html += `<div class="score-reset-wrap">
+                        <button onclick="showMatchHistory()" class="score-reset-btn">試合履歴を閲覧</button>
+                    </div>`;
             
             // ホストのみスコアリセットボタンを表示
             let hostId = getEffectiveHostId(gameState);
 
             if (myId === hostId) {
                 html += `<div class="score-reset-wrap">
-                            <button onclick="confirmResetScores()" class="score-reset-btn">スコアを全てリセット</button>
+                            <button onclick="confirmResetScores()" class="score-reset-btn">スコアと履歴をリセット</button>
                         </div>`;
             }
 
@@ -375,7 +577,24 @@ function setupEffectListener() {
 
         // スコアリセット用（ホスト用）
         function confirmResetScores() {
-            showConfirmModal("スコアリセット", "部屋全体の累積スコアを消去しますか？", "db.ref(`rooms/${currentRoom}/scores`).remove()");
+            showConfirmModal("スコアリセット", "部屋全体の累積スコアと試合履歴を消去しますか？", "execResetScoresAndHistory()");
+        }
+
+        async function execResetScoresAndHistory() {
+            if (!currentRoom) {
+                console.warn("[score] ルーム未参加のためリセットを停止します。");
+                return;
+            }
+
+            try {
+                const updates = {};
+                updates[`rooms/${currentRoom}/scores`] = null;
+                updates[`rooms/${currentRoom}/matchHistory`] = null;
+                await db.ref().update(updates);
+            } catch (e) {
+                console.error("[score] スコア・履歴リセットに失敗しました。", e);
+                showInfoModal("エラー", `リセット失敗: ${e.message}`);
+            }
         }
 
         // 1. 共通のホスト判定関数（これを一度作っておけば、どこでも使えます）

@@ -244,6 +244,7 @@ async function execAlchemist(resultVal) {
     if (hand.length === 0 && myHackedCount === 0) {
         let currentRank = Object.keys(gameState.rankings || {}).length + 1;
         updates[`rooms/${currentRoom}/rankings/${myId}`] = currentRank;
+        updates[`rooms/${currentRoom}/finishMethods/${myId}`] = "ALCHEMIST";
         await pushLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
         
         // ▼▼▼ 追加: 勝利者IDと、あがった時刻を記録 ▼▼▼
@@ -283,8 +284,19 @@ async function execAlchemist(resultVal) {
                         finalRankings[myId] = currentRank; // 自分の順位
                         loserId = gameState.playerOrder.find(pid => !finalRankings[pid]);
                         if(loserId) finalRankings[loserId] = totalPlayers; // 敗者の順位
-                        
-                        updateFinalScores(finalRankings, gameState.playerOrder);
+
+                        const mergedFinishMethods = {
+                            ...(gameState.finishMethods || {}),
+                            [myId]: "ALCHEMIST"
+                        };
+                        await updateFinalScores(finalRankings, gameState.playerOrder, {
+                            sourceState: {
+                                ...gameState,
+                                rankings: finalRankings,
+                                finishMethods: mergedFinishMethods
+                            },
+                            finishedAt: Date.now()
+                        });
                     }           
     }
     

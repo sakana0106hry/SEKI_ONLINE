@@ -49,6 +49,8 @@
         window.showRoleDraftUnusedDetail = showRoleDraftUnusedDetail;
         window.showRoleList = showRoleList;
         window.showRule = showRule;
+        window.showMatchHistory = showMatchHistory;
+        window.execResetScoresAndHistory = execResetScoresAndHistory;
         window.leaveRoom = leaveRoom; // これを追加
         // windowオブジェクトに登録してHTMLから呼べるようにする
         window.showPlayerLogs = showPlayerLogs;

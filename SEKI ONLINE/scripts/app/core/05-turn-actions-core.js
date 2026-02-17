@@ -278,6 +278,7 @@
                         if (txHand.length === 0 && myTxHackedCount === 0) {
                             let currentRank = Object.keys(state.rankings || {}).length + 1;
                             state.rankings = { ...(state.rankings || {}), [myId]: currentRank };
+                            state.finishMethods = { ...(state.finishMethods || {}), [myId]: "NUMERIC" };
                             ctx.appendLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
 
                             state.lastWinnerId = myId;
@@ -322,7 +323,9 @@
                         txResult.snapshot.rankings &&
                         txResult.snapshot.playerOrder
                     ) {
-                        updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder);
+                        await updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder, {
+                            sourceState: txResult.snapshot
+                        });
                     }
                 } else {
                     await handleSymbol(card, selectedIdx, currentHand);
@@ -772,6 +775,7 @@
                     if (currentHand.length === 0 && myHackedCount === 0) {
                         let currentRank = Object.keys(state.rankings || {}).length + 1;
                         state.rankings = { ...(state.rankings || {}), [myId]: currentRank };
+                        state.finishMethods = { ...(state.finishMethods || {}), [myId]: "DISCARD" };
                         ctx.appendLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
                         state.lastWinnerId = myId;
                         state.lastWinnerTime = ctx.now;
@@ -814,7 +818,9 @@
                     txResult.snapshot.rankings &&
                     txResult.snapshot.playerOrder
                 ) {
-                    updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder);
+                    await updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder, {
+                        sourceState: txResult.snapshot
+                    });
                 }
             });
         }

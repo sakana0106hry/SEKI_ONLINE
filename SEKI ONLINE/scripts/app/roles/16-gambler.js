@@ -261,6 +261,7 @@ async function execGamblerDiscard(count) {
         if (hand.length === 0 && myHackedCount === 0) {
             let currentRank = Object.keys(state.rankings || {}).length + 1;
             state.rankings = { ...(state.rankings || {}), [myId]: currentRank };
+            state.finishMethods = { ...(state.finishMethods || {}), [myId]: "GAMBLER" };
             ctx.appendLog(`${myName}が ${currentRank}位 であがりました！`, 'public');
             state.lastWinnerId = myId;
             state.lastWinnerTime = ctx.now;
@@ -302,7 +303,9 @@ async function execGamblerDiscard(count) {
         txResult.snapshot.rankings &&
         txResult.snapshot.playerOrder
     ) {
-        updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder);
+        await updateFinalScores(txResult.snapshot.rankings, txResult.snapshot.playerOrder, {
+            sourceState: txResult.snapshot
+        });
     }
 }
 
