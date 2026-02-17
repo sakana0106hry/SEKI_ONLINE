@@ -156,7 +156,12 @@
             const publicUnusedSet = new Set(publicUnused);
 
             const roleDraft = gameState.roleDraft || null;
+            const noRoleMode = !!(
+                (roleDraft && roleDraft.noRoleMode === true) ||
+                (publicRoleInfo && publicRoleInfo.noRoleMode === true)
+            );
             const enabledGroups = (() => {
+                if (noRoleMode) return [];
                 if (roleDraft && Array.isArray(roleDraft.groupOrder)) {
                     return ROLE_DRAFT_GROUP_ORDER.filter(groupKey => roleDraft.groupOrder.includes(groupKey));
                 }
@@ -211,6 +216,7 @@
             const roleCandidates = sortRoleKeysForDisplay(
                 ROLES.filter(roleKey => {
                     const groupKey = getRoleGroup(roleKey);
+                    if (noRoleMode) return false;
                     if (enabledGroups.length === 0) return false;
                     if (!enabledGroupSet.has(groupKey)) return false;
                     if (hiddenOpponentCount === 0) return false;

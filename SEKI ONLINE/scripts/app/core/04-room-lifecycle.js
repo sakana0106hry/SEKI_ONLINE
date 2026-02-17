@@ -237,6 +237,7 @@
 
                 const roleDraftChoices = buildRoleDraftChoices(playerIds, enabledRoleGroups);
                 const now = Date.now();
+                const isNoRoleMode = enabledRoleGroups.length === 0;
                 const roleModeLabel = (enabledRoleGroups.length > 0)
                     ? enabledRoleGroups.map(groupKey => getRoleGroupLabel(groupKey)).join(" / ")
                     : "なし（役職なしモード）";
@@ -267,11 +268,13 @@
                     publicRoleInfo: {
                         unselectedRoles: [],
                         selectedGroups: {},
-                        enabledGroups: [...enabledRoleGroups]
+                        enabledGroups: [...enabledRoleGroups],
+                        noRoleMode: isNoRoleMode
                     },
                     roleDraft: {
                         order: playerIds,
                         groupOrder: [...enabledRoleGroups],
+                        noRoleMode: isNoRoleMode,
                         currentIdx: 0,
                         choicesByPlayer: roleDraftChoices,
                         selectedRoles: {},

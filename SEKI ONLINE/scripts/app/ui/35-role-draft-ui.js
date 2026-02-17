@@ -111,7 +111,9 @@
             if (rd.phase !== "selecting") return;
             const currentPid = getRoleDraftActivePlayerId(gameState);
             if (currentPid !== myId) return;
-            const draftGroupOrder = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
+            const draftGroupOrder = (rd.noRoleMode === true)
+                ? []
+                : (Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER);
 
             const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
             const validRoles = draftGroupOrder.map(groupKey => myChoices[groupKey]).filter(Boolean);
@@ -149,7 +151,9 @@
 
                     const alreadySelected = rd.selectedRoles && rd.selectedRoles[myId];
                     if (alreadySelected) return state;
-                    const draftGroupOrder = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
+                    const draftGroupOrder = (rd.noRoleMode === true)
+                        ? []
+                        : (Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER);
 
                     const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
                     const validRoles = draftGroupOrder.map(groupKey => myChoices[groupKey]).filter(Boolean);
@@ -178,11 +182,15 @@
 
                     if (rd.currentIdx >= order.length) {
                         rd.publicUnusedRoles = collectPublicUnusedRoles(rd.unusedByPlayer || {});
-                        const enabledGroups = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
+                        const noRoleMode = rd.noRoleMode === true;
+                        const enabledGroups = noRoleMode
+                            ? []
+                            : (Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER);
                         state.publicRoleInfo = {
                             unselectedRoles: [...rd.publicUnusedRoles],
                             selectedGroups: { ...(rd.selectedGroups || {}) },
-                            enabledGroups: [...enabledGroups]
+                            enabledGroups: [...enabledGroups],
+                            noRoleMode: noRoleMode
                         };
                     }
 
@@ -243,7 +251,9 @@
             }
 
             const rd = data.roleDraft;
-            const draftGroupOrder = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
+            const draftGroupOrder = (rd.noRoleMode === true)
+                ? []
+                : (Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER);
             const players = data.players || {};
             const phase = rd.phase || "booting";
             const currentPid = getRoleDraftActivePlayerId(data);
@@ -476,19 +486,22 @@
                     const now = Date.now();
                     const phase = currentRd.phase || "booting";
                     const endAt = Number(currentRd.phaseEndsAt) || 0;
-                    const enabledGroups = Array.isArray(currentRd.groupOrder) ? currentRd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
+                    const noRoleMode = currentRd.noRoleMode === true;
+                    const enabledGroups = noRoleMode
+                        ? []
+                        : (Array.isArray(currentRd.groupOrder) ? currentRd.groupOrder : ROLE_DRAFT_GROUP_ORDER);
                     if (endAt > 0 && now < endAt) return state;
 
                     let clearRoleDraft = false;
 
                     if (phase === "booting") {
-                        currentRd.phase = (enabledGroups.length === 0) ? "system_online" : "selecting";
+                        currentRd.phase = noRoleMode ? "system_online" : "selecting";
                         currentRd.phaseStartedAt = now;
-                        currentRd.phaseEndsAt = (enabledGroups.length === 0)
+                        currentRd.phaseEndsAt = noRoleMode
                             ? now + ROLE_DRAFT_PHASE_MS.system_online
                             : 0;
                         currentRd.resolve = null;
-                        if (enabledGroups.length === 0) {
+                        if (noRoleMode) {
                             appendLogEntryToState(state, "役職なしモードのため選択フェーズをスキップしました", "public");
                         }
                     } else if (phase === "resolving") {
@@ -505,7 +518,8 @@
                             state.publicRoleInfo = {
                                 unselectedRoles: [...(currentRd.publicUnusedRoles || [])],
                                 selectedGroups: { ...(currentRd.selectedGroups || {}) },
-                                enabledGroups: [...enabledGroups]
+                                enabledGroups: [...enabledGroups],
+                                noRoleMode: noRoleMode
                             };
                             appendLogEntryToState(state, "未選択役職を公開しました", "public");
                         } else {
@@ -539,7 +553,8 @@
                         state.publicRoleInfo = {
                             unselectedRoles: publicUnusedRoles,
                             selectedGroups: selectedGroups,
-                            enabledGroups: [...enabledGroups]
+                            enabledGroups: [...enabledGroups],
+                            noRoleMode: noRoleMode
                         };
                         state.status = "playing";
                         state.turnIdx = 0;
