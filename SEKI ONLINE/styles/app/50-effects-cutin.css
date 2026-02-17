@@ -260,7 +260,7 @@
     #cut-in-role-image-wrap {
         position: absolute;
         left: 8%;
-        bottom: -25%;
+        bottom: -35%;
         height: 150%;
         z-index: 10;
         transform: rotate(4deg);
@@ -275,7 +275,6 @@
         width: auto;
         height: 100%;
         object-fit: contain;
-        object-position: center top;
     }
     #cut-in-info {
         position: relative;
