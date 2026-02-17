@@ -34,6 +34,20 @@ function setupEffectListener() {
         function openHostSettings() {
             let check6 = (lastHostHandMode === 6) ? "checked" : "";
             let check4 = (lastHostHandMode === 4) ? "checked" : "";
+            const selectedGroupSet = new Set(Array.isArray(lastHostRoleGroups) ? lastHostRoleGroups : []);
+            const roleGroupItems = ROLE_DRAFT_GROUP_ORDER.map(groupKey => {
+                const groupMeta = ROLE_GROUP_META[groupKey] || {};
+                const checked = selectedGroupSet.has(groupKey) ? "checked" : "";
+                return `
+                        <label class="seki-host-mode-item seki-host-role-item ${groupMeta.cssClass || ""}">
+                            <input type="checkbox" name="roleGroup" value="${groupKey}" ${checked}>
+                            <div>
+                                <span class="seki-host-mode-title">${groupMeta.label || groupKey}</span>
+                                <span class="seki-host-mode-meta">― 属性を有効化</span>
+                            </div>
+                        </label>
+                `;
+            }).join("");
 
             let html = `
                 <div class="seki-host-settings">
@@ -53,6 +67,12 @@ function setupEffectListener() {
                             </div>
                         </label>
                     </div>
+
+                    <div class="seki-host-mode-box">
+                        <div class="seki-host-mode-title">役職属性</div>
+                        ${roleGroupItems}
+                        <div class="seki-host-mode-meta seki-host-role-note">※全てOFFで役職なしモード（演出のみ）</div>
+                    </div>
                     
                     <div class="seki-host-actions">
                         <button onclick="confirmInitGameWithSettings()" class="modal-btn primary">
@@ -71,12 +91,25 @@ function setupEffectListener() {
         function confirmInitGameWithSettings() {
             const modeEls = document.getElementsByName('handMode');
             for(let el of modeEls) { if(el.checked) lastHostHandMode = parseInt(el.value); }
+            const selectedGroups = [];
+            const roleEls = document.getElementsByName('roleGroup');
+            for (let el of roleEls) {
+                if (el.checked) selectedGroups.push(el.value);
+            }
+            lastHostRoleGroups = ROLE_DRAFT_GROUP_ORDER.filter(groupKey => selectedGroups.includes(groupKey));
+
+            const roleModeText = (lastHostRoleGroups.length > 0)
+                ? `有効属性: ${lastHostRoleGroups.map(groupKey => getRoleGroupLabel(groupKey)).join(" / ")}`
+                : "有効属性: なし（役職なしモード）";
+            const roleGroupsArg = `[${lastHostRoleGroups.map(groupKey => `'${String(groupKey).replace(/'/g, "\\'")}'`).join(",")}]`;
 
             // 確認画面へ切り替え
             els.mTitle.innerText = "開始確認";
-            els.mContent.innerHTML = `<p><strong>${lastHostHandMode}枚モード</strong> で<br>ゲームを開始（リセット）しますか？</p>`;
+            els.mContent.innerHTML = `
+                <p><strong>${lastHostHandMode}枚モード</strong> / <strong>${roleModeText}</strong><br>ゲームを開始（リセット）しますか？</p>
+            `;
             els.mFooter.innerHTML = `
-                ${renderModalButton(getModalActionLabel("yes"), `closeModal(); execInitGame(${lastHostHandMode})`, "primary")}
+                ${renderModalButton(getModalActionLabel("yes"), `closeModal(); execInitGame(${lastHostHandMode}, ${roleGroupsArg})`, "primary")}
                 ${renderModalButton(getModalActionLabel("no"), "openHostSettings()", "ghost")}
             `;
         }

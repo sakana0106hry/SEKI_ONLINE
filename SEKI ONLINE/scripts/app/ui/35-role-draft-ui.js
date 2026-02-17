@@ -111,9 +111,10 @@
             if (rd.phase !== "selecting") return;
             const currentPid = getRoleDraftActivePlayerId(gameState);
             if (currentPid !== myId) return;
+            const draftGroupOrder = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
 
             const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
-            const validRoles = ROLE_DRAFT_GROUP_ORDER.map(groupKey => myChoices[groupKey]).filter(Boolean);
+            const validRoles = draftGroupOrder.map(groupKey => myChoices[groupKey]).filter(Boolean);
             if (!validRoles.includes(roleKey)) return;
 
             roleDraftPendingSelection = roleKey;
@@ -148,9 +149,10 @@
 
                     const alreadySelected = rd.selectedRoles && rd.selectedRoles[myId];
                     if (alreadySelected) return state;
+                    const draftGroupOrder = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
 
                     const myChoices = (rd.choicesByPlayer && rd.choicesByPlayer[myId]) ? rd.choicesByPlayer[myId] : {};
-                    const validRoles = ROLE_DRAFT_GROUP_ORDER.map(groupKey => myChoices[groupKey]).filter(Boolean);
+                    const validRoles = draftGroupOrder.map(groupKey => myChoices[groupKey]).filter(Boolean);
                     if (!validRoles.includes(selectedRoleKey)) return state;
 
                     const selectedGroup = getRoleGroup(selectedRoleKey);
@@ -176,9 +178,11 @@
 
                     if (rd.currentIdx >= order.length) {
                         rd.publicUnusedRoles = collectPublicUnusedRoles(rd.unusedByPlayer || {});
+                        const enabledGroups = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
                         state.publicRoleInfo = {
                             unselectedRoles: [...rd.publicUnusedRoles],
-                            selectedGroups: { ...(rd.selectedGroups || {}) }
+                            selectedGroups: { ...(rd.selectedGroups || {}) },
+                            enabledGroups: [...enabledGroups]
                         };
                     }
 
@@ -239,6 +243,7 @@
             }
 
             const rd = data.roleDraft;
+            const draftGroupOrder = Array.isArray(rd.groupOrder) ? rd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
             const players = data.players || {};
             const phase = rd.phase || "booting";
             const currentPid = getRoleDraftActivePlayerId(data);
@@ -273,7 +278,7 @@
                 }
 
                 let cardsHtml = "";
-                ROLE_DRAFT_GROUP_ORDER.forEach(groupKey => {
+                draftGroupOrder.forEach(groupKey => {
                     const groupMeta = ROLE_GROUP_META[groupKey] || {};
                     const groupClass = groupMeta.cssClass || "";
                     const roleKey = myChoices[groupKey];
@@ -347,7 +352,7 @@
             } else if (phase === "reveal_unused") {
                 headline = "UNSELECTED ROLES / PUBLIC";
                 const list = sortRoleKeysForDisplay(rd.publicUnusedRoles || []);
-                const grouped = ROLE_DRAFT_GROUP_ORDER.reduce((acc, groupKey) => {
+                const grouped = draftGroupOrder.reduce((acc, groupKey) => {
                     acc[groupKey] = [];
                     return acc;
                 }, {});
@@ -358,7 +363,7 @@
                     grouped[groupKey].push(roleKey);
                 });
 
-                const sections = ROLE_DRAFT_GROUP_ORDER.map(groupKey => {
+                const sections = draftGroupOrder.map(groupKey => {
                     const roleKeys = grouped[groupKey] || [];
                     if (roleKeys.length === 0) return "";
 
@@ -433,6 +438,7 @@
                 currentName,
                 resolveInfo,
                 myChoices,
+                draftGroupOrder,
                 mySelectedRole,
                 selectedRoleForUi,
                 publicUnusedRoles: rd.publicUnusedRoles || [],
@@ -470,15 +476,21 @@
                     const now = Date.now();
                     const phase = currentRd.phase || "booting";
                     const endAt = Number(currentRd.phaseEndsAt) || 0;
+                    const enabledGroups = Array.isArray(currentRd.groupOrder) ? currentRd.groupOrder : ROLE_DRAFT_GROUP_ORDER;
                     if (endAt > 0 && now < endAt) return state;
 
                     let clearRoleDraft = false;
 
                     if (phase === "booting") {
-                        currentRd.phase = "selecting";
+                        currentRd.phase = (enabledGroups.length === 0) ? "system_online" : "selecting";
                         currentRd.phaseStartedAt = now;
-                        currentRd.phaseEndsAt = 0;
+                        currentRd.phaseEndsAt = (enabledGroups.length === 0)
+                            ? now + ROLE_DRAFT_PHASE_MS.system_online
+                            : 0;
                         currentRd.resolve = null;
+                        if (enabledGroups.length === 0) {
+                            appendLogEntryToState(state, "役職なしモードのため選択フェーズをスキップしました", "public");
+                        }
                     } else if (phase === "resolving") {
                         const order = Array.isArray(currentRd.order) ? currentRd.order : [];
                         const done = (Number(currentRd.currentIdx) || 0) >= order.length;
@@ -492,7 +504,8 @@
                             }
                             state.publicRoleInfo = {
                                 unselectedRoles: [...(currentRd.publicUnusedRoles || [])],
-                                selectedGroups: { ...(currentRd.selectedGroups || {}) }
+                                selectedGroups: { ...(currentRd.selectedGroups || {}) },
+                                enabledGroups: [...enabledGroups]
                             };
                             appendLogEntryToState(state, "未選択役職を公開しました", "public");
                         } else {
@@ -525,7 +538,8 @@
                         state.revealedRoles = revealed;
                         state.publicRoleInfo = {
                             unselectedRoles: publicUnusedRoles,
-                            selectedGroups: selectedGroups
+                            selectedGroups: selectedGroups,
+                            enabledGroups: [...enabledGroups]
                         };
                         state.status = "playing";
                         state.turnIdx = 0;

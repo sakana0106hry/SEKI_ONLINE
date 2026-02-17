@@ -8,6 +8,7 @@
         const audioCache = {};
         // ★追加: ホスト設定の前回値を覚えておく変数
         let lastHostHandMode = 6;
+        let lastHostRoleGroups = [...ROLE_DRAFT_GROUP_ORDER];
 
         let currentRoom = null;
         let myName = "";

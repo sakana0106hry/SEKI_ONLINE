@@ -176,7 +176,7 @@
             `;
             els.modal.classList.remove("hidden");
         }
-        async function execInitGame(fixedNumCount) {
+        async function execInitGame(fixedNumCount, fixedRoleGroups) {
             try {
                 const players = gameState.players || {};
 
@@ -200,6 +200,21 @@
                 // ★修正: 引数で枚数を受け取る（なければデフォルト6）
                 // (モーダル内の要素を探す処理は削除しました)
                 let numCount = fixedNumCount || 6;
+                const requestedRoleGroups = (fixedRoleGroups === undefined)
+                    ? [...ROLE_DRAFT_GROUP_ORDER]
+                    : fixedRoleGroups;
+                if (!Array.isArray(requestedRoleGroups)) {
+                    console.error("[init] 無効な役職属性指定を検知したため開始を中止しました。", requestedRoleGroups);
+                    showInfoModal("エラー", "役職属性の指定形式が不正なため、開始を中止しました。");
+                    return;
+                }
+                const invalidRoleGroups = requestedRoleGroups.filter(groupKey => !ROLE_DRAFT_GROUP_ORDER.includes(groupKey));
+                if (invalidRoleGroups.length > 0) {
+                    console.error("[init] 未定義の役職属性を検知したため開始を中止しました。", invalidRoleGroups);
+                    showInfoModal("エラー", `未定義の役職属性(${invalidRoleGroups.join(", ")})が指定されたため、開始を中止しました。`);
+                    return;
+                }
+                const enabledRoleGroups = ROLE_DRAFT_GROUP_ORDER.filter(groupKey => requestedRoleGroups.includes(groupKey));
 
                 let deckNum = [];
                 NUMBERS.forEach(n => { for(let i=0; i<4; i++) deckNum.push({type:'num', val:n}); });
@@ -220,8 +235,14 @@
                     hands[pid] = h;
                 });
 
-                const roleDraftChoices = buildRoleDraftChoices(playerIds);
+                const roleDraftChoices = buildRoleDraftChoices(playerIds, enabledRoleGroups);
                 const now = Date.now();
+                const roleModeLabel = (enabledRoleGroups.length > 0)
+                    ? enabledRoleGroups.map(groupKey => getRoleGroupLabel(groupKey)).join(" / ")
+                    : "なし（役職なしモード）";
+                const rolePhaseStartLog = (enabledRoleGroups.length > 0)
+                    ? "役職選択フェーズを開始します"
+                    : "役職なしモードを開始します";
 
                 const initData = {
                     status: "role_selecting",
@@ -245,10 +266,12 @@
                     revealedRoles: {},
                     publicRoleInfo: {
                         unselectedRoles: [],
-                        selectedGroups: {}
+                        selectedGroups: {},
+                        enabledGroups: [...enabledRoleGroups]
                     },
                     roleDraft: {
                         order: playerIds,
+                        groupOrder: [...enabledRoleGroups],
                         currentIdx: 0,
                         choicesByPlayer: roleDraftChoices,
                         selectedRoles: {},
@@ -270,8 +293,8 @@
 
                     // ログにカミングアウト情報を追加
                     logs: [
-                        {text: `ゲーム開始！(数字${numCount}枚モード)`, type: "public", timestamp: now},
-                        {text: "役職選択フェーズを開始します", type: "public", timestamp: now + 1}
+                        {text: `ゲーム開始！(数字${numCount}枚モード / 役職:${roleModeLabel})`, type: "public", timestamp: now},
+                        {text: rolePhaseStartLog, type: "public", timestamp: now + 1}
                     ]
                 };
 

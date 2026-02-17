@@ -352,9 +352,12 @@
             return sortRoleKeysForDisplay(uniq);
         }
 
-        function buildRoleDraftChoices(playerIds) {
+        function buildRoleDraftChoices(playerIds, groupOrder = ROLE_DRAFT_GROUP_ORDER) {
+            const safeGroupOrder = Array.isArray(groupOrder)
+                ? ROLE_DRAFT_GROUP_ORDER.filter(groupKey => groupOrder.includes(groupKey))
+                : [...ROLE_DRAFT_GROUP_ORDER];
             const groupPools = {};
-            ROLE_DRAFT_GROUP_ORDER.forEach(groupKey => {
+            safeGroupOrder.forEach(groupKey => {
                 const pool = [...(ROLE_GROUPS[groupKey] || [])];
                 shuffle(pool);
                 groupPools[groupKey] = pool;
@@ -363,7 +366,7 @@
             const choicesByPlayer = {};
             playerIds.forEach(pid => {
                 const oneSet = {};
-                ROLE_DRAFT_GROUP_ORDER.forEach(groupKey => {
+                safeGroupOrder.forEach(groupKey => {
                     const pool = groupPools[groupKey] || [];
                     oneSet[groupKey] = pool.length > 0 ? pool.pop() : null;
                 });

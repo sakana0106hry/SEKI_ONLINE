@@ -156,6 +156,16 @@
             const publicUnusedSet = new Set(publicUnused);
 
             const roleDraft = gameState.roleDraft || null;
+            const enabledGroups = (() => {
+                if (roleDraft && Array.isArray(roleDraft.groupOrder)) {
+                    return ROLE_DRAFT_GROUP_ORDER.filter(groupKey => roleDraft.groupOrder.includes(groupKey));
+                }
+                if (Array.isArray(publicRoleInfo.enabledGroups)) {
+                    return ROLE_DRAFT_GROUP_ORDER.filter(groupKey => publicRoleInfo.enabledGroups.includes(groupKey));
+                }
+                return [...ROLE_DRAFT_GROUP_ORDER];
+            })();
+            const enabledGroupSet = new Set(enabledGroups);
             const savedRoles = gameState.roles || {};
             const draftSelectedRoles = (roleDraft && roleDraft.selectedRoles) ? roleDraft.selectedRoles : {};
             const resolvedRoles = (gameState.status === "role_selecting")
@@ -200,11 +210,14 @@
 
             const roleCandidates = sortRoleKeysForDisplay(
                 ROLES.filter(roleKey => {
+                    const groupKey = getRoleGroup(roleKey);
+                    if (enabledGroups.length === 0) return false;
+                    if (!enabledGroupSet.has(groupKey)) return false;
                     if (hiddenOpponentCount === 0) return false;
                     if (publicUnusedSet.has(roleKey)) return false;
                     if (myRoleKey && roleKey === myRoleKey) return false;
                     if (publicRevealedRoleSet.has(roleKey)) return false;
-                    if (shouldFilterByHiddenGroups && !hiddenOpponentGroupSet.has(getRoleGroup(roleKey))) return false;
+                    if (shouldFilterByHiddenGroups && !hiddenOpponentGroupSet.has(groupKey)) return false;
                     return true;
                 })
             );
