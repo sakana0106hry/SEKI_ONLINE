@@ -579,6 +579,51 @@
             lastBubbleTimestampByPid[pid] = tsNum;
         }
 
+        function markChatImeComposing(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) {
+                console.warn(`[chat] 入力欄(${inputId})が見つからないためIME開始処理を停止します。`);
+                return;
+            }
+            input.dataset.sekiImeComposing = "1";
+        }
+
+        function clearChatImeComposingDeferred(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) {
+                console.warn(`[chat] 入力欄(${inputId})が見つからないためIME終了処理を停止します。`);
+                return;
+            }
+            setTimeout(() => {
+                input.dataset.sekiImeComposing = "0";
+            }, 0);
+        }
+
+        function handleChatInputEnterKeydown(event, inputId, source) {
+            if (!event || event.key !== "Enter") return false;
+
+            const input = document.getElementById(inputId);
+            if (!input) {
+                console.warn(`[chat] 入力欄(${inputId})が見つからないためEnter送信を停止します。`);
+                return false;
+            }
+
+            const isComposing = event.isComposing === true
+                || event.key === "Process"
+                || event.keyCode === 229
+                || input.dataset.sekiImeComposing === "1";
+            if (isComposing) return false;
+
+            event.preventDefault();
+            if (source === "desktop") {
+                sendDesktopChat();
+                return true;
+            }
+
+            sendChat();
+            return true;
+        }
+
         function showLogHistory() {
             if(!gameState) return;
             let logs = gameState.logs || [];
@@ -590,7 +635,14 @@
 
             let html = `
                 <div id="chat-input-container">
-                    <input type="text" id="chat-input" placeholder="// ENTER MESSAGE..." onkeydown="if(event.key==='Enter' && !event.isComposing){sendChat();}">
+                    <input
+                        type="text"
+                        id="chat-input"
+                        placeholder="// ENTER MESSAGE..."
+                        oncompositionstart="markChatImeComposing('chat-input')"
+                        oncompositionend="clearChatImeComposingDeferred('chat-input')"
+                        onkeydown="handleChatInputEnterKeydown(event, 'chat-input', 'modal')"
+                    >
                     <button id="chat-send-btn" onclick="sendChat()">SEND</button>
                 </div>
                 <div id="log-list-container">

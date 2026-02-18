@@ -185,7 +185,9 @@
                     type="text"
                     id="desktop-chat-input"
                     placeholder="// ENTER MESSAGE..."
-                    onkeydown="if(event.key==='Enter' && !event.isComposing){sendDesktopChat();}"
+                    oncompositionstart="markChatImeComposing('desktop-chat-input')"
+                    oncompositionend="clearChatImeComposingDeferred('desktop-chat-input')"
+                    onkeydown="handleChatInputEnterKeydown(event, 'desktop-chat-input', 'desktop')"
                 >
                 <button id="desktop-chat-send-btn" onclick="sendDesktopChat()">SEND</button>
             </div>

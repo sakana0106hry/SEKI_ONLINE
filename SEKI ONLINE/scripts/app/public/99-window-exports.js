@@ -40,6 +40,9 @@
         window.showLogHistory = showLogHistory;
         window.sendChat = sendChat;
         window.sendDesktopChat = sendDesktopChat;
+        window.markChatImeComposing = markChatImeComposing;
+        window.clearChatImeComposingDeferred = clearChatImeComposingDeferred;
+        window.handleChatInputEnterKeydown = handleChatInputEnterKeydown;
         window.playCutInAnimation = playCutInAnimation;
         window.openHostSettings = openHostSettings;
         window.confirmInitGameWithSettings = confirmInitGameWithSettings;

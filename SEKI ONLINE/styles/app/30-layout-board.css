@@ -806,6 +806,9 @@
         font-size: 11px;
         font-family: var(--font-ui);
         cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        box-shadow: none;
     }
     .role-draft-opt-symbol-btn.selected {
         border-color: rgba(255, 235, 59, 0.92);
@@ -813,9 +816,26 @@
     }
     .role-draft-opt-symbol-btn:hover,
     .role-draft-opt-symbol-btn:active,
+    .role-draft-opt-symbol-btn:focus,
+    .role-draft-opt-symbol-btn:focus-visible,
     .role-draft-opt-symbol-btn.selected:hover,
-    .role-draft-opt-symbol-btn.selected:active {
+    .role-draft-opt-symbol-btn.selected:active,
+    .role-draft-opt-symbol-btn.selected:focus,
+    .role-draft-opt-symbol-btn.selected:focus-visible {
         transform: none !important;
+        border-color: rgba(0, 216, 255, 0.36);
+        background: rgba(10, 32, 56, 0.72);
+        color: #d8ecfb;
+        box-shadow: none;
+        outline: none;
+    }
+    .role-draft-opt-symbol-btn.selected,
+    .role-draft-opt-symbol-btn.selected:hover,
+    .role-draft-opt-symbol-btn.selected:active,
+    .role-draft-opt-symbol-btn.selected:focus,
+    .role-draft-opt-symbol-btn.selected:focus-visible {
+        border-color: rgba(255, 235, 59, 0.92);
+        box-shadow: inset 0 0 0 1px rgba(255, 235, 59, 0.82);
     }
     .role-draft-opt-symbol-btn:disabled {
         opacity: 0.58;
