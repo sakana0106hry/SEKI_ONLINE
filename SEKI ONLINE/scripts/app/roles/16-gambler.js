@@ -252,6 +252,7 @@ async function execGamblerDiscard(count) {
         state.hands[myId] = hand;
         state.graveNum = graveNum;
         state.graveSym = graveSym;
+        state.lastGraveActorId = myId;
         state.passCount = 0;
         state.lastSound = { type: soundList, id: ctx.now };
 

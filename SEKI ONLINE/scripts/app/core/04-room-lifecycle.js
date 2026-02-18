@@ -176,7 +176,7 @@
             `;
             els.modal.classList.remove("hidden");
         }
-        async function execInitGame(fixedNumCount, fixedRoleGroups) {
+        async function execInitGame(modeOrNum, fixedRoleGroups) {
             try {
                 const players = gameState.players || {};
 
@@ -197,9 +197,42 @@
 
                 if(playerIds.length < 2) return showInfoModal("エラー", "最低2人のプレイヤーが必要です！");
 
-                // ★修正: 引数で枚数を受け取る（なければデフォルト6）
-                // (モーダル内の要素を探す処理は削除しました)
-                let numCount = fixedNumCount || 6;
+                let gameMode = "normal";
+                if (modeOrNum === undefined || modeOrNum === null) {
+                    gameMode = "normal";
+                } else if (typeof modeOrNum === "string") {
+                    if (modeOrNum === "normal" || modeOrNum === "short" || modeOrNum === "duel") {
+                        gameMode = modeOrNum;
+                    } else {
+                        console.error("[init] 未定義のゲームモードを検知したため開始を中止しました。", modeOrNum);
+                        showInfoModal("エラー", `未定義のゲームモード(${modeOrNum})が指定されたため、開始を中止しました。`);
+                        return;
+                    }
+                } else if (typeof modeOrNum === "number") {
+                    if (modeOrNum === 6) gameMode = "normal";
+                    else if (modeOrNum === 4) gameMode = "short";
+                    else {
+                        console.error("[init] 数値ゲームモードの指定が不正なため開始を中止しました。", modeOrNum);
+                        showInfoModal("エラー", `ゲームモード数値(${modeOrNum})が不正なため、開始を中止しました。`);
+                        return;
+                    }
+                } else {
+                    console.error("[init] ゲームモードの型が不正なため開始を中止しました。", modeOrNum);
+                    showInfoModal("エラー", "ゲームモードの指定型が不正なため、開始を中止しました。");
+                    return;
+                }
+
+                const isDuelMode = gameMode === "duel";
+                if (isDuelMode && playerIds.length !== 2) {
+                    console.error("[init] デュエルモードの参加人数が2人ではないため開始を中止しました。", {
+                        playerCount: playerIds.length,
+                        playerIds
+                    });
+                    showInfoModal("エラー", "デュエルモードは2人のときのみ開始できます。");
+                    return;
+                }
+
+                const numCount = (gameMode === "short") ? 4 : ((gameMode === "duel") ? 10 : 6);
                 const requestedRoleGroups = (fixedRoleGroups === undefined)
                     ? [...ROLE_DRAFT_GROUP_ORDER]
                     : fixedRoleGroups;
@@ -217,41 +250,76 @@
                 const enabledRoleGroups = ROLE_DRAFT_GROUP_ORDER.filter(groupKey => requestedRoleGroups.includes(groupKey));
 
                 let deckNum = [];
-                NUMBERS.forEach(n => { for(let i=0; i<4; i++) deckNum.push({type:'num', val:n}); });
                 let deckSym = [];
                 SYMBOLS.forEach(s => { for(let i=0; i<SYMBOL_COUNTS[s]; i++) deckSym.push({type:'sym', val:s}); });
-                
-                shuffle(deckNum);
                 shuffle(deckSym);
 
-                /* --- execInitGame関数内 --- */
                 let hands = {};
-                playerIds.forEach((pid, i) => {
-                    let h = [];
-                    // ★枚数選択反映
-                    for(let k=0; k<numCount; k++) h.push(deckNum.pop());
-                    for(let k=0; k<2; k++) h.push(deckSym.pop());
-                    h = sortCards(h);
-                    hands[pid] = h;
-                });
+                if (isDuelMode) {
+                    NUMBERS.forEach(n => {
+                        for (let i = 0; i < 2; i++) deckNum.push({ type: 'num', val: n });
+                    });
+                    shuffle(deckNum);
+
+                    playerIds.forEach(pid => {
+                        const h = NUMBERS.map(n => ({ type: 'num', val: n }));
+                        hands[pid] = sortCards(h);
+                    });
+                } else {
+                    NUMBERS.forEach(n => { for(let i=0; i<4; i++) deckNum.push({type:'num', val:n}); });
+                    shuffle(deckNum);
+
+                    for (let i = 0; i < playerIds.length; i++) {
+                        const pid = playerIds[i];
+                        let h = [];
+                        for (let k = 0; k < numCount; k++) {
+                            const drawnNum = deckNum.pop();
+                            if (!drawnNum) {
+                                console.error("[init] 数字山札が不足したため開始を中止しました。", { gameMode, numCount });
+                                showInfoModal("エラー", "数字山札の枚数が不足したため、開始を中止しました。");
+                                return;
+                            }
+                            h.push(drawnNum);
+                        }
+                        for (let k = 0; k < 2; k++) {
+                            const drawnSym = deckSym.pop();
+                            if (!drawnSym) {
+                                console.error("[init] 記号山札が不足したため開始を中止しました。", { gameMode, numCount });
+                                showInfoModal("エラー", "記号山札の枚数が不足したため、開始を中止しました。");
+                                return;
+                            }
+                            h.push(drawnSym);
+                        }
+                        hands[pid] = sortCards(h);
+                    }
+                }
 
                 const roleDraftChoices = buildRoleDraftChoices(playerIds, enabledRoleGroups);
                 const now = Date.now();
                 const isNoRoleMode = enabledRoleGroups.length === 0;
+                const modeLabel = (gameMode === "duel")
+                    ? "デュエルモード"
+                    : ((gameMode === "short") ? "短期決戦モード" : "通常モード");
                 const roleModeLabel = (enabledRoleGroups.length > 0)
                     ? enabledRoleGroups.map(groupKey => getRoleGroupLabel(groupKey)).join(" / ")
                     : "なし（役職なしモード）";
-                const rolePhaseStartLog = (enabledRoleGroups.length > 0)
-                    ? "役職選択フェーズを開始します"
-                    : "役職なしモードを開始します";
+                const rolePhaseStartLog = isDuelMode
+                    ? ((enabledRoleGroups.length > 0)
+                        ? "役職選択フェーズを開始します（完了後にOPTIMIZE SEQUENCEへ進みます）"
+                        : "役職なしモードのため選択フェーズをスキップし、OPTIMIZE SEQUENCEへ進みます")
+                    : ((enabledRoleGroups.length > 0)
+                        ? "役職選択フェーズを開始します"
+                        : "役職なしモードを開始します");
 
                 const initData = {
                     status: "role_selecting",
+                    gameMode,
                     deckNum,
                     deckSym,
                     graveNum: [],
                     graveSym: [],
                     exclusion: [],
+                    lastGraveActorId: null,
                     isReverse: false,
                     turnIdx: 0,
                     playerOrder: playerIds,
@@ -275,6 +343,11 @@
                     roleDraft: {
                         order: playerIds,
                         groupOrder: [...enabledRoleGroups],
+                        duelMode: isDuelMode,
+                        duelOptimize: {
+                            enabled: isDuelMode,
+                            submissions: {}
+                        },
                         noRoleMode: isNoRoleMode,
                         currentIdx: 0,
                         choicesByPlayer: roleDraftChoices,
@@ -297,7 +370,7 @@
 
                     // ログにカミングアウト情報を追加
                     logs: [
-                        {text: `ゲーム開始！(数字${numCount}枚モード / 役職:${roleModeLabel})`, type: "public", timestamp: now},
+                        {text: `ゲーム開始！(${modeLabel} / 役職:${roleModeLabel})`, type: "public", timestamp: now},
                         {text: rolePhaseStartLog, type: "public", timestamp: now + 1}
                     ]
                 };

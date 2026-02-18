@@ -7,8 +7,12 @@
         let prevHandCounts = {}; // 手札枚数の記録用（SE再生に使用）
         const audioCache = {};
         // ★追加: ホスト設定の前回値を覚えておく変数
-        let lastHostHandMode = 6;
+        let lastHostGameMode = "normal";
         let lastHostRoleGroups = [...ROLE_DRAFT_GROUP_ORDER];
+        // ★追加: デュエルOPTIMIZEフェーズのローカル選択状態
+        let duelOptimizeSelectedSymbols = [];
+        let duelOptimizeExcludeIndices = [];
+        let duelOptimizeConfirmBusy = false;
 
         let currentRoom = null;
         let myName = "";

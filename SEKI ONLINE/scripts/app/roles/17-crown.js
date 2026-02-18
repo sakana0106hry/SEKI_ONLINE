@@ -229,6 +229,7 @@ async function execMagicianDigUp(buryIdx) {
 
     updates[`rooms/${currentRoom}/hands/${myId}`] = sortCards(hand);
     updates[`rooms/${currentRoom}/graveNum`] = gn;
+    updates[`rooms/${currentRoom}/lastGraveActorId`] = myId;
 
     // ★使用済み記録: DIG UP
     let actList = {...(gameState.activatedList || {})};

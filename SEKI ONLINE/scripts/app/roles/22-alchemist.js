@@ -220,6 +220,7 @@ async function execAlchemist(resultVal) {
     updates[`rooms/${currentRoom}/deckNum`] = deck;
     updates[`rooms/${currentRoom}/exclusion`] = excl;
     updates[`rooms/${currentRoom}/graveNum`] = gn;
+    updates[`rooms/${currentRoom}/lastGraveActorId`] = myId;
 
     await pushLog(`${myName}が錬金成功！ [${realDrawn.val}] (ドロー)と [${realHandCard.val}] (手札)を融合し [${resultVal}] を出しました。`, 'public');
     

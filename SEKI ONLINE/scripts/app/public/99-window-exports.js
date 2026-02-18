@@ -45,6 +45,9 @@
         window.confirmInitGameWithSettings = confirmInitGameWithSettings;
         window.selectRoleDraftCandidate = selectRoleDraftCandidate;
         window.confirmRoleDraftSelection = confirmRoleDraftSelection;
+        window.toggleDuelOptimizeSymbol = toggleDuelOptimizeSymbol;
+        window.toggleDuelOptimizeExclude = toggleDuelOptimizeExclude;
+        window.confirmDuelOptimizeSelection = confirmDuelOptimizeSelection;
         window.openRoleDraftDetail = openRoleDraftDetail;
         window.showRoleDraftUnusedDetail = showRoleDraftUnusedDetail;
         window.showRoleList = showRoleList;

@@ -5,13 +5,20 @@
             if (!isMyTurn()) return;
             
             let activeCount = getActiveCount(gameState);
-            let top = getTop(gameState.graveNum);
-            let resetHolder = top ? top.owner : null;
+            const isDuelMode = gameState.gameMode === "duel";
+            const hasResetSource = Array.isArray(gameState.graveNum) && gameState.graveNum.length > 0;
+            let top = hasResetSource ? getTop(gameState.graveNum) : null;
+            let resetHolder = null;
+            let isInheritedReset = false;
+            if (isDuelMode) {
+                resetHolder = hasResetSource ? (gameState.lastGraveActorId || null) : null;
+            } else {
+                resetHolder = top ? top.owner : null;
+                // ★修正: 共通関数を使ってリセット権の継承判定を行う
+                isInheritedReset = checkInheritedResetLogic(gameState, myId);
+            }
 
-            let isOwnerReset = (resetHolder === myId && (gameState.graveNum||[]).length > 0);
-
-            // ★修正: 共通関数を使ってリセット権の継承判定を行う
-            let isInheritedReset = checkInheritedResetLogic(gameState, myId);
+            let isOwnerReset = (resetHolder === myId);
 
             if (isOwnerReset || isInheritedReset) {
                 const resetNotice = renderNoticeBlock("※リセット権を行使します（場が流れ、自分のターンが続きます）", "warn");
@@ -172,6 +179,7 @@
                     const gn = [...(state.graveNum || [])];
                     gn.push({ ...card, owner: myId });
                     state.graveNum = gn;
+                    state.lastGraveActorId = myId;
                     state.passCount = 0;
                     ctx.appendLog(`${myName}がパスドローから [${card.val}] を出しました`, "public");
                     state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
@@ -271,6 +279,7 @@
                         let newGraveNum = [...(state.graveNum || [])];
                         newGraveNum.push({ ...txCard, owner: myId });
                         state.graveNum = newGraveNum;
+                        state.lastGraveActorId = myId;
                         state.passCount = 0;
                         ctx.appendLog(`${myName}が [${txCard.val}] を出しました`, 'public');
 
@@ -465,6 +474,7 @@
                 let newGraveSym = [...(state.graveSym || [])];
                 newGraveSym.push(txCard);
                 state.graveSym = newGraveSym;
+                state.lastGraveActorId = myId;
                 clearPoliticianShieldInState(state, myId, ctx, `${txCard.val}使用`);
 
                 let logMsg = `${myName}が [${txCard.val}] を使用して`;
@@ -524,6 +534,7 @@
                     state.hands[myId] = newHand;
                     state.graveNum = gn;
                     state.graveSym = newGraveSym;
+                    state.lastGraveActorId = myId;
                     clearPoliticianShieldInState(state, myId, ctx, "DIG UP使用");
                     state.passCount = 0;
                     state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
@@ -640,6 +651,7 @@
                     state.hands = state.hands || {};
                     state.hands[myId] = myHand;
                     state.graveSym = newGraveSym;
+                    state.lastGraveActorId = myId;
                     clearPoliticianShieldInState(state, myId, ctx, "TRADE空振り使用");
                     state.lastSound = { type: soundList, id: ctx.now };
                     state.passCount = 0;
@@ -695,6 +707,7 @@
                     state.hands[myId] = myHand;
                     state.hands[targetId] = targetHand;
                     state.graveSym = newGraveSym;
+                    state.lastGraveActorId = myId;
                     clearPoliticianShieldInState(state, myId, ctx, "TRADE使用");
 
                     let targetName = (state.players && state.players[targetId]) ? state.players[targetId].name : "Player";
@@ -764,6 +777,7 @@
                     state.lastSound = { type: soundList, id: ctx.now };
                     state.graveNum = newGraveNum;
                     state.graveSym = newGraveSym;
+                    state.lastGraveActorId = myId;
                     state.hands = state.hands || {};
                     state.hands[myId] = currentHand;
                     clearPoliticianShieldInState(state, myId, ctx, "DISCARD使用");

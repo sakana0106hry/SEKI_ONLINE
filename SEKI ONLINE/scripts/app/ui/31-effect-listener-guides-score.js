@@ -32,8 +32,9 @@ function setupEffectListener() {
 // ★新設: ホスト設定メニューを開く
         // ↓↓↓ openHostSettings関数をこれに置き換えてください ↓↓↓
         function openHostSettings() {
-            let check6 = (lastHostHandMode === 6) ? "checked" : "";
-            let check4 = (lastHostHandMode === 4) ? "checked" : "";
+            const checkNormal = (lastHostGameMode === "normal") ? "checked" : "";
+            const checkShort = (lastHostGameMode === "short") ? "checked" : "";
+            const checkDuel = (lastHostGameMode === "duel") ? "checked" : "";
             const selectedGroupSet = new Set(Array.isArray(lastHostRoleGroups) ? lastHostRoleGroups : []);
             const roleGroupItems = ROLE_DRAFT_GROUP_ORDER.map(groupKey => {
                 const groupMeta = ROLE_GROUP_META[groupKey] || {};
@@ -53,17 +54,24 @@ function setupEffectListener() {
                 <div class="seki-host-settings">
                     <div class="seki-host-mode-box">
                         <label class="seki-host-mode-item">
-                            <input type="radio" name="handMode" value="6" ${check6}>
+                            <input type="radio" name="gameMode" value="normal" ${checkNormal}>
                             <div>
                                 <span class="seki-host-mode-title">通常モード (6枚)</span>
                                 <span class="seki-host-mode-meta">― 数字6 + 記号2</span>
                             </div>
                         </label>
                         <label class="seki-host-mode-item">
-                            <input type="radio" name="handMode" value="4" ${check4}>
+                            <input type="radio" name="gameMode" value="short" ${checkShort}>
                             <div>
                                 <span class="seki-host-mode-title hot">短期決戦 (4枚)</span>
                                 <span class="seki-host-mode-meta">― 数字4 + 記号2</span>
+                            </div>
+                        </label>
+                        <label class="seki-host-mode-item">
+                            <input type="radio" name="gameMode" value="duel" ${checkDuel}>
+                            <div>
+                                <span class="seki-host-mode-title">デュエルモード (2人専用)</span>
+                                <span class="seki-host-mode-meta">― 数字0-9の10枚で開始 / OPTIMIZE SEQUENCEあり</span>
                             </div>
                         </label>
                     </div>
@@ -89,8 +97,16 @@ function setupEffectListener() {
 
         // ★新設: 設定値を読み取って開始確認へ
         function confirmInitGameWithSettings() {
-            const modeEls = document.getElementsByName('handMode');
-            for(let el of modeEls) { if(el.checked) lastHostHandMode = parseInt(el.value); }
+            const modeEls = document.getElementsByName('gameMode');
+            for (let el of modeEls) {
+                if (el.checked) lastHostGameMode = String(el.value || "normal");
+            }
+            const validModes = ["normal", "short", "duel"];
+            if (!validModes.includes(lastHostGameMode)) {
+                console.error("[host-settings] 無効なゲームモードを検知したため開始確認を停止します。", lastHostGameMode);
+                showInfoModal("エラー", "ゲームモードの指定が不正なため、開始確認を中止しました。");
+                return;
+            }
             const selectedGroups = [];
             const roleEls = document.getElementsByName('roleGroup');
             for (let el of roleEls) {
@@ -101,15 +117,22 @@ function setupEffectListener() {
             const roleModeText = (lastHostRoleGroups.length > 0)
                 ? `有効属性: ${lastHostRoleGroups.map(groupKey => getRoleGroupLabel(groupKey)).join(" / ")}`
                 : "有効属性: なし（役職なしモード）";
+            const modeLabelMap = {
+                normal: "通常モード (数字6 + 記号2)",
+                short: "短期決戦 (数字4 + 記号2)",
+                duel: "デュエルモード (2人専用 / 数字0-9の10枚)"
+            };
+            const selectedModeLabel = modeLabelMap[lastHostGameMode] || "通常モード";
+            const modeArg = `'${String(lastHostGameMode).replace(/'/g, "\\'")}'`;
             const roleGroupsArg = `[${lastHostRoleGroups.map(groupKey => `'${String(groupKey).replace(/'/g, "\\'")}'`).join(",")}]`;
 
             // 確認画面へ切り替え
             els.mTitle.innerText = "開始確認";
             els.mContent.innerHTML = `
-                <p><strong>${lastHostHandMode}枚モード</strong> / <strong>${roleModeText}</strong><br>ゲームを開始（リセット）しますか？</p>
+                <p><strong>${selectedModeLabel}</strong> / <strong>${roleModeText}</strong><br>ゲームを開始（リセット）しますか？</p>
             `;
             els.mFooter.innerHTML = `
-                ${renderModalButton(getModalActionLabel("yes"), `closeModal(); execInitGame(${lastHostHandMode}, ${roleGroupsArg})`, "primary")}
+                ${renderModalButton(getModalActionLabel("yes"), `closeModal(); execInitGame(${modeArg}, ${roleGroupsArg})`, "primary")}
                 ${renderModalButton(getModalActionLabel("no"), "openHostSettings()", "ghost")}
             `;
         }

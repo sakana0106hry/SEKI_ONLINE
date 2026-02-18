@@ -72,17 +72,24 @@
                 advanceRoleDraftPhaseIfNeeded(data);
             }
 
+            const isDuelMode = data.gameMode === "duel";
+            const hasResetSource = Array.isArray(data.graveNum) && data.graveNum.length > 0;
             // ★追加: 墓地トップとリセット権所有者の計算（位置を上に移動）
-            let top = (data.graveNum && data.graveNum.length > 0) ? data.graveNum[data.graveNum.length-1] : null;
-            let resetHolder = top ? top.owner : null;
-
-           // ★修正: 共通関数を使ってリセット権の継承判定を行う
-            let isInheritedReset = checkInheritedResetLogic(data, myId);
+            let top = hasResetSource ? data.graveNum[data.graveNum.length-1] : null;
+            let resetHolder = null;
+            let isInheritedReset = false;
+            if (isDuelMode) {
+                resetHolder = hasResetSource ? (data.lastGraveActorId || null) : null;
+            } else {
+                resetHolder = top ? top.owner : null;
+                // ★修正: 共通関数を使ってリセット権の継承判定を行う
+                isInheritedReset = checkInheritedResetLogic(data, myId);
+            }
 
             // ★決定: 最終的なリセット権を持つプレイヤーID
             // 継承が起きているなら「現在の手番プレイヤー」、そうでなければ「カードの持ち主」
             let effectiveResetHolder = resetHolder;
-            if (isInheritedReset && data.playerOrder) {
+            if (!isDuelMode && isInheritedReset && data.playerOrder) {
                 effectiveResetHolder = data.playerOrder[data.turnIdx];
             }
 
@@ -321,6 +328,7 @@
                 let pIds = getSortedPlayerIds(players);
                 if(data.playerOrder) pIds = data.playerOrder;
                 const roleDraftActivePid = getRoleDraftActivePlayerId(data);
+                const roleDraftPhase = roleDraft ? (roleDraft.phase || "booting") : "";
                 const opponentSignature = buildRenderSignature({
                     status: data.status,
                     turnIdx: Number(data.turnIdx) || 0,
@@ -329,6 +337,7 @@
                     effectiveResetHolder: effectiveResetHolder || null,
                     effectiveHostId: effectiveHostId || null,
                     roleDraftActivePid: roleDraftActivePid || null,
+                    roleDraftPhase: roleDraftPhase,
                     hands,
                     hackedHands,
                     roles,
@@ -343,7 +352,10 @@
                     const myAreaEl = document.getElementById("my-area");
                     if (myAreaEl) {
                         myAreaEl.classList.remove("current-turn", "warning-1", "warning-2");
-                        if ((data.status === "role_selecting" && roleDraftActivePid === myId) || (data.status !== "role_selecting" && pIds[data.turnIdx] === myId)) {
+                        if (
+                            (data.status === "role_selecting" && roleDraftPhase !== "duel_optimize" && roleDraftActivePid === myId) ||
+                            (data.status !== "role_selecting" && pIds[data.turnIdx] === myId)
+                        ) {
                             myAreaEl.classList.add("current-turn");
                         }
                     }
@@ -386,7 +398,7 @@
 
                         let isTurn = false;
                         if (data.status === "role_selecting") {
-                            isTurn = (roleDraftActivePid === pid);
+                            isTurn = (roleDraftPhase === "duel_optimize") ? false : (roleDraftActivePid === pid);
                         } else {
                             isTurn = (pIds[data.turnIdx] === pid);
                         }
@@ -424,9 +436,19 @@
                         let suffix = ["st","nd","rd"][rank-1] || "th"; // 1st, 2nd...
                         statusHtml = `<span class="status-text status-rank">🏆 ${rank}${suffix}</span>`;
                     } else if (data.status === "role_selecting") {
-                        statusHtml = isTurn
-                            ? `<span class="status-text status-reset">PICKING</span>`
-                            : `<span class="status-text status-normal">WAITING</span>`;
+                        if (roleDraftPhase === "duel_optimize") {
+                            const duelSubmissions = (roleDraft && roleDraft.duelOptimize && roleDraft.duelOptimize.submissions)
+                                ? roleDraft.duelOptimize.submissions
+                                : {};
+                            const isSubmitted = !!duelSubmissions[pid];
+                            statusHtml = isSubmitted
+                                ? `<span class="status-text status-reset">LOCKED</span>`
+                                : `<span class="status-text status-normal">OPTIMIZING</span>`;
+                        } else {
+                            statusHtml = isTurn
+                                ? `<span class="status-text status-reset">PICKING</span>`
+                                : `<span class="status-text status-normal">WAITING</span>`;
+                        }
                     } else if (pid === effectiveResetHolder) {
                         // リセット権を持っている場合
                         statusHtml = `<span class="status-text status-reset">RESET</span>`;
@@ -605,6 +627,15 @@
                             els.msg.innerText = "役職を確定中...";
                         } else if (phase === "reveal_unused") {
                             els.msg.innerText = "未選択役職を公開中...";
+                        } else if (phase === "duel_optimize") {
+                            const order = Array.isArray(rd.order) ? rd.order : [];
+                            const submissions = (rd.duelOptimize && rd.duelOptimize.submissions) ? rd.duelOptimize.submissions : {};
+                            const doneCount = order.filter(pid => !!submissions[pid]).length;
+                            const totalCount = order.length;
+                            const myDone = !!submissions[myId];
+                            els.msg.innerText = myDone
+                                ? `OPTIMIZE確定済み... (${doneCount}/${totalCount})`
+                                : `OPTIMIZE SEQUENCE: 記号3枚選択 + 4枚除外 (${doneCount}/${totalCount})`;
                         } else if (phase === "system_online") {
                             els.msg.innerText = "ALL ROLES AUTHENTICATED. SYSTEM ONLINE...";
                         } else {
@@ -627,8 +658,7 @@
 
                     } else {
                         // ここでの activeCount, isInheritedReset は冒頭で計算したものを使用
-                        let isOwnerReset = (resetHolder === myId);
-                        let canReset = isOwnerReset || isInheritedReset;
+                        let canReset = (effectiveResetHolder === myId);
 
                         if (isMyTurnNow) {
                             if (!wasMyTurn) playSoundEffect('turn');
