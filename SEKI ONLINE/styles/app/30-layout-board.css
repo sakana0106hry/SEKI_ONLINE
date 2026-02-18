@@ -811,6 +811,12 @@
         border-color: rgba(255, 235, 59, 0.92);
         box-shadow: inset 0 0 0 1px rgba(255, 235, 59, 0.82);
     }
+    .role-draft-opt-symbol-btn:hover,
+    .role-draft-opt-symbol-btn:active,
+    .role-draft-opt-symbol-btn.selected:hover,
+    .role-draft-opt-symbol-btn.selected:active {
+        transform: none !important;
+    }
     .role-draft-opt-symbol-btn:disabled {
         opacity: 0.58;
         cursor: default;
@@ -842,9 +848,17 @@
         cursor: pointer;
     }
     .role-draft-opt-card.selected {
+        border: 1px solid rgba(255, 94, 53, 0.95) !important;
         border-color: rgba(255, 94, 53, 0.95) !important;
-        box-shadow: inset 0 0 0 2px rgba(255, 94, 53, 0.75);
-        transform: translateY(-1px);
+        box-shadow: inset 0 0 0 2px rgba(255, 94, 53, 0.75) !important;
+        transform: none !important;
+        z-index: 1;
+    }
+    .role-draft-opt-card:hover,
+    .role-draft-opt-card:active,
+    .role-draft-opt-card.selected:hover,
+    .role-draft-opt-card.selected:active {
+        transform: none !important;
     }
     .role-draft-opt-hand-index {
         font-size: 10px;

@@ -839,10 +839,19 @@
             monitor.classList.toggle("phase-noise-out", phase === "noise_out");
             monitor.dataset.roleDraftPhase = phase;
             if (shouldPatchMonitor) {
+                let prevOptimizeScrollTop = null;
+                if (phase === "duel_optimize") {
+                    const prevOptWrap = monitor.querySelector(".role-draft-opt-wrap");
+                    if (prevOptWrap) prevOptimizeScrollTop = prevOptWrap.scrollTop;
+                }
                 monitor.innerHTML = nextHtml;
                 roleDraftMonitorCache.signature = monitorSignature;
                 roleDraftMonitorCache.html = nextHtml;
                 applyRoleDraftLayoutDensity(monitor);
+                if (phase === "duel_optimize" && prevOptimizeScrollTop !== null) {
+                    const nextOptWrap = monitor.querySelector(".role-draft-opt-wrap");
+                    if (nextOptWrap) nextOptWrap.scrollTop = prevOptimizeScrollTop;
+                }
             }
             handleRoleDraftPhaseSound(data);
         }

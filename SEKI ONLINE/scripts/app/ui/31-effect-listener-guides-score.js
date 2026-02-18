@@ -63,7 +63,7 @@ function setupEffectListener() {
                         <label class="seki-host-mode-item">
                             <input type="radio" name="gameMode" value="short" ${checkShort}>
                             <div>
-                                <span class="seki-host-mode-title hot">短期決戦 (4枚)</span>
+                                <span class="seki-host-mode-title hot">短期決戦モード (4枚)</span>
                                 <span class="seki-host-mode-meta">― 数字4 + 記号2</span>
                             </div>
                         </label>
@@ -71,7 +71,7 @@ function setupEffectListener() {
                             <input type="radio" name="gameMode" value="duel" ${checkDuel}>
                             <div>
                                 <span class="seki-host-mode-title">デュエルモード (2人専用)</span>
-                                <span class="seki-host-mode-meta">― 数字0-9の10枚で開始 / OPTIMIZE SEQUENCEあり</span>
+                                <span class="seki-host-mode-meta">― 数字0-9の10+好きな記号3</span>
                             </div>
                         </label>
                     </div>
@@ -119,8 +119,8 @@ function setupEffectListener() {
                 : "有効属性: なし（役職なしモード）";
             const modeLabelMap = {
                 normal: "通常モード (数字6 + 記号2)",
-                short: "短期決戦 (数字4 + 記号2)",
-                duel: "デュエルモード (2人専用 / 数字0-9の10枚)"
+                short: "短期決戦モード (数字4 + 記号2)",
+                duel: "デュエルモード (2人専用 / 数字10+記号3)"
             };
             const selectedModeLabel = modeLabelMap[lastHostGameMode] || "通常モード";
             const modeArg = `'${String(lastHostGameMode).replace(/'/g, "\\'")}'`;
