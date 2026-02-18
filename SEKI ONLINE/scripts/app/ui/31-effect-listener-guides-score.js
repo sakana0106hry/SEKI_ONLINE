@@ -70,7 +70,7 @@ function setupEffectListener() {
                         <label class="seki-host-mode-item">
                             <input type="radio" name="gameMode" value="duel" ${checkDuel}>
                             <div>
-                                <span class="seki-host-mode-title hot9">デュエルモード (2人専用)</span>
+                                <span class="seki-host-mode-title hot">デュエルモード (2人専用)</span>
                                 <span class="seki-host-mode-meta">― 数字0-9の10+好きな記号3</span>
                             </div>
                         </label>
