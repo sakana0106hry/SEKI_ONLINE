@@ -190,12 +190,17 @@
 
             sanitizeDuelOptimizeLocalSelection(gameState);
             const currentCount = duelOptimizeSelectedSymbols.filter(val => val === symbolVal).length;
-            const canAdd = duelOptimizeSelectedSymbols.length < 3 && currentCount < 2;
-            if (canAdd) {
-                duelOptimizeSelectedSymbols.push(symbolVal);
-            } else if (currentCount > 0) {
-                const removeIdx = duelOptimizeSelectedSymbols.lastIndexOf(symbolVal);
-                if (removeIdx >= 0) duelOptimizeSelectedSymbols.splice(removeIdx, 1);
+            const totalCount = duelOptimizeSelectedSymbols.length;
+            if (currentCount >= 2) {
+                duelOptimizeSelectedSymbols = duelOptimizeSelectedSymbols.filter(val => val !== symbolVal);
+            } else if (currentCount === 1) {
+                if (totalCount < 3) {
+                    duelOptimizeSelectedSymbols.push(symbolVal);
+                } else {
+                    duelOptimizeSelectedSymbols = duelOptimizeSelectedSymbols.filter(val => val !== symbolVal);
+                }
+            } else {
+                if (totalCount < 3) duelOptimizeSelectedSymbols.push(symbolVal);
             }
             sanitizeDuelOptimizeLocalSelection(gameState);
             renderRoleDraftMonitor(gameState);
