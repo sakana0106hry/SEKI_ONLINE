@@ -727,7 +727,7 @@
                 }).join("");
                 const symbolButtons = DUEL_OPTIMIZE_SYMBOLS.map(sym => {
                     const count = symbolCountMap[sym] || 0;
-                    const selectedClass = count > 0 ? " selected" : "";
+                    const selectedClass = count > 0 ? " opt-selected" : "";
                     const disabledAttr = myDuelSubmission ? "disabled" : "";
                     const safeSym = String(sym).replace(/'/g, "\\'");
                     return `
