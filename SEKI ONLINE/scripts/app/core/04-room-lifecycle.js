@@ -363,6 +363,8 @@
 
                     // ★追加: ハッキングされたカードの隔離所
                     hackedHands: null,
+                    cpuRoleMemo: {},
+                    cpuTurnSeen: {},
 
                     // ▼▼▼ 修正: ここに lastSound: null を追加して、前の音を消す ▼▼▼
                     lastSound: null,
