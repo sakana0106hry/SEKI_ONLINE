@@ -68,7 +68,14 @@
         flex-direction: column;
     }
     body.desktop-side-mode {
-        --seki-side-panel-width: calc((100vw - var(--seki-game-max-width, 860px)) / 2);
+        --seki-side-panel-width: calc((100vw - var(--seki-game-max-width, 800px)) / 2);
+    }
+
+    @media (max-width: 1200px) {
+    body {
+        /* これにより、(1194 - 690) / 2 = 252px のサイドパネル幅が確保されます */
+        --seki-game-max-width: 690px; 
+        }
     }
 
     /* 共通レイアウト */
@@ -90,8 +97,6 @@
         border-left: 1px solid rgba(0, 216, 255, 0.11);
         border-right: 1px solid rgba(0, 216, 255, 0.11);
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
-        max-width: 700px;
-        justify-content: center;
     }
     body.desktop-side-mode #game-screen {
         width: 100vw;
