@@ -40,6 +40,8 @@
         
         /* 高さ指定（calc）は削除して auto に */
         height: auto !important; 
+
+        max-width: 800px;
     }
 
     /* エリア定義 */
