@@ -97,6 +97,7 @@
         border-left: 1px solid rgba(0, 216, 255, 0.11);
         border-right: 1px solid rgba(0, 216, 255, 0.11);
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+        max-width: 800px;
     }
     body.desktop-side-mode #game-screen {
         width: 100vw;
