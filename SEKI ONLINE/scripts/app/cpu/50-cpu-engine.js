@@ -712,6 +712,8 @@
         const actList = { ...(state.activatedList || {}) };
         if (actList[activePid]) return false;
 
+        if (getTotalHandCountInState(state, activePid) > 2) return false;
+
         const gn = [...(state.graveNum || [])];
         if (gn.length <= 0) return false;
         const removedCard = gn.pop();
@@ -1243,6 +1245,9 @@
     }
     function tryCpuActivatePoliceOfficer(state, ctx, activePid, playerName, roleLabel) {
         let myHand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        const checkTargets = getAliveCpuTargetIdsForHandInterference(state, activePid);
+        if (myHand.length < 1 || checkTargets.length < 1) return false;
+
         const aliveOthers = (state.playerOrder || []).filter(pid => {
             if (pid === activePid) return false;
             if (state.rankings && state.rankings[pid]) return false;
@@ -1526,6 +1531,9 @@
     }
     function tryCpuActivateThief(state, ctx, activePid, playerName, roleLabel) {
         let myHand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        const checkTargets = getAliveCpuTargetIdsForHandInterference(state, activePid);
+        if (myHand.length < 1 || checkTargets.length < 1) return false;
+
         if (myHand.length <= 0) {
             applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "提出できる手札がありません");
             return true;
@@ -1607,17 +1615,8 @@
         if (roleKey === "EMPEROR") {
             return tryCpuActivateEmperor(state, ctx, activePid, playerName, roleLabel);
         }
-        if (roleKey === "POLICE OFFICER") {
-            return tryCpuActivatePoliceOfficer(state, ctx, activePid, playerName, roleLabel);
-        }
-        if (roleKey === "AGENT") {
-            return tryCpuActivateAgent(state, ctx, activePid, playerName, roleLabel);
-        }
         if (roleKey === "CROWN") {
             return tryCpuActivateCrown(state, ctx, activePid, playerName, roleLabel);
-        }
-        if (roleKey === "THIEF") {
-            return tryCpuActivateThief(state, ctx, activePid, playerName, roleLabel);
         }
         return false;
     }
@@ -2250,6 +2249,12 @@
                     roleActivatedNow = tryCpuActivateNecromancer(state, ctx, activePid, playerName);
                 } else if (roleKey === "ASTRONOMER") {
                     roleActivatedNow = tryCpuActivateAstronomer(state, ctx, activePid, playerName, hand);
+                } else if (roleKey === "POLICE OFFICER") {
+                    roleActivatedNow = tryCpuActivatePoliceOfficer(state, ctx, activePid, playerName, roleLabel);
+                } else if (roleKey === "AGENT") {
+                    roleActivatedNow = tryCpuActivateAgent(state, ctx, activePid, playerName, roleLabel);
+                } else if (roleKey === "THIEF") {
+                    roleActivatedNow = tryCpuActivateThief(state, ctx, activePid, playerName, roleLabel);
                 }
             }
             if (roleActivatedNow) return state;
