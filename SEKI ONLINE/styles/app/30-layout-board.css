@@ -40,6 +40,8 @@
         
         /* 高さ指定（calc）は削除して auto に */
         height: auto !important; 
+
+        justify-content: center; /* 水平方向の中央揃え */
     }
 
     /* エリア定義 */

@@ -16,7 +16,7 @@
             const visualWidth = (window.visualViewport && Number(window.visualViewport.width)) ? Number(window.visualViewport.width) : 0;
             const innerWidthSafe = Number(window.innerWidth) || 0;
             const safeWidth = Math.max(0, visualWidth, innerWidthSafe);
-            const gameMaxWidth = readCssPxVar("--seki-game-max-width", 860);
+            const gameMaxWidth = readCssPxVar("--seki-game-max-width", 800);
             const sidePanelWidth = (safeWidth - gameMaxWidth) / 2;
 
             const canUseDesktopSidePanels = sidePanelWidth >= 220;
