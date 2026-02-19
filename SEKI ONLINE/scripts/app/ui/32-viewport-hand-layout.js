@@ -17,6 +17,10 @@
             const innerWidthSafe = Number(window.innerWidth) || 0;
             const safeWidth = Math.max(0, visualWidth, innerWidthSafe);
             const gameMaxWidth = readCssPxVar("--seki-game-max-width", 800);
+            // ★追加：iPadサイズ（1200px以下）の時は、強制的に690pxとして計算させる
+            if (safeWidth <= 1200) {
+                gameMaxWidth = 700;
+            }
             const sidePanelWidth = (safeWidth - gameMaxWidth) / 2;
 
             const canUseDesktopSidePanels = sidePanelWidth >= 220;
