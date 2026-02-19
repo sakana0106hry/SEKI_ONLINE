@@ -101,6 +101,8 @@
     function syncCpuInputLimit() {
         const input = document.getElementById("cpu-player-count");
         const note = document.getElementById("cpu-player-count-note");
+        const btnDec = document.getElementById("cpu-player-dec");
+        const btnInc = document.getElementById("cpu-player-inc");
         if (!input || !note) return;
 
         const mode = getSelectedModeFromHostModal();
@@ -115,6 +117,8 @@
         const clamped = clampInt(input.value, 0, maxCpu);
         input.value = String(clamped);
         input.disabled = (maxCpu <= 0);
+        if (btnDec) btnDec.disabled = (maxCpu <= 0 || clamped <= 0);
+        if (btnInc) btnInc.disabled = (maxCpu <= 0 || clamped >= maxCpu);
 
         lastHostCpuCount = clamped;
         note.innerText = `人間 ${humanCount}人 / 上限 ${cap}人 / CPU最大 ${maxCpu}人`;
@@ -140,14 +144,13 @@
         cpuBox.id = "seki-host-cpu-box";
         cpuBox.innerHTML = `
             <div class="seki-host-mode-title">CPUプレイヤー</div>
-            <label class="seki-host-mode-item">
-                <div>
-                    <span class="seki-host-mode-title">CPU人数</span>
-                    <span class="seki-host-mode-meta">― 開始時に自動参加</span>
-                </div>
-                <input id="cpu-player-count" type="number" min="0" step="1" value="${Math.max(0, toInt(lastHostCpuCount, 0))}">
-            </label>
-            <div id="cpu-player-count-note" class="seki-host-mode-meta"></div>
+            <div class="seki-host-mode-meta seki-host-cpu-intro">開始時に自動参加するCPU人数を指定します</div>
+            <div class="seki-host-cpu-row" role="group" aria-label="CPU人数">
+                <button id="cpu-player-dec" type="button" class="modal-btn ghost seki-host-cpu-step" aria-label="CPU人数を減らす">-</button>
+                <input id="cpu-player-count" class="seki-host-cpu-input" type="number" min="0" step="1" inputmode="numeric" value="${Math.max(0, toInt(lastHostCpuCount, 0))}" aria-label="CPU人数">
+                <button id="cpu-player-inc" type="button" class="modal-btn ghost seki-host-cpu-step" aria-label="CPU人数を増やす">+</button>
+            </div>
+            <div id="cpu-player-count-note" class="seki-host-mode-meta seki-host-cpu-note"></div>
         `;
         root.insertBefore(cpuBox, actionArea);
 
@@ -157,15 +160,32 @@
         });
 
         const cpuInput = document.getElementById("cpu-player-count");
+        const cpuDec = document.getElementById("cpu-player-dec");
+        const cpuInc = document.getElementById("cpu-player-inc");
+        const applyCpuInputValue = (rawValue) => {
+            if (!cpuInput) return;
+            const mode = getSelectedModeFromHostModal();
+            const humanCount = getHumanCount(gameState && gameState.players ? gameState.players : {});
+            const cap = resolveCpuCapByMode(mode);
+            const maxCpu = Math.max(0, cap - humanCount);
+            const safe = clampInt(rawValue, 0, maxCpu);
+            cpuInput.value = String(safe);
+            lastHostCpuCount = safe;
+            syncCpuInputLimit();
+        };
         if (cpuInput) {
             cpuInput.addEventListener("input", () => {
-                const mode = getSelectedModeFromHostModal();
-                const humanCount = getHumanCount(gameState && gameState.players ? gameState.players : {});
-                const cap = resolveCpuCapByMode(mode);
-                const maxCpu = Math.max(0, cap - humanCount);
-                const safe = clampInt(cpuInput.value, 0, maxCpu);
-                cpuInput.value = String(safe);
-                lastHostCpuCount = safe;
+                applyCpuInputValue(cpuInput.value);
+            });
+        }
+        if (cpuDec) {
+            cpuDec.addEventListener("click", () => {
+                applyCpuInputValue((Number(cpuInput && cpuInput.value) || 0) - 1);
+            });
+        }
+        if (cpuInc) {
+            cpuInc.addEventListener("click", () => {
+                applyCpuInputValue((Number(cpuInput && cpuInput.value) || 0) + 1);
             });
         }
 
