@@ -162,7 +162,7 @@ async function execNecromancer() {
     updates[`rooms/${currentRoom}/activatedList`] = actList;
 
     // ログ
-    await pushLog(`${myName}が[ネクロマンサー]を発動！${fromLabel}の [${removedCard.val}] を蘇生して除外しました`, 'public');
+    await pushLog(`${myName}が[牧師]を発動！${fromLabel}の [${removedCard.val}] を浄化して除外しました`, 'public');
     // 音は activatedList の変化をトリガーにカットイン側で再生する（重複再生防止）
 
     /* ★重要: ターンを進める処理（turnIdxの更新）は書きません。
