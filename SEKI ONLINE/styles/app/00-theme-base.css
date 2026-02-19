@@ -71,8 +71,8 @@
         --seki-side-panel-width: calc((100vw - var(--seki-game-max-width, 800px)) / 2);
     }
 
-    @media (max-width: 1200px) {
-    :root {
+    @media (max-width: 1240px) {
+    body {
         --seki-game-max-width: 700px;
     }
     }
