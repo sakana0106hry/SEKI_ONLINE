@@ -19,12 +19,18 @@
                 // 1. まず部屋のデータを取得して確認する
                 const checkRef = db.ref(`rooms/${room}`);
                 const snapshot = await checkRef.get();
+                let existingJoinedAt = null;
 
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     const players = data.players || {};
                     const playerCount = Object.keys(players).length;
                     
+                    // 自分が既にいるなら、その joinedAt を取得しておく（ホスト権限維持のため）
+                    if (players[myId]) {
+                        existingJoinedAt = players[myId].joinedAt;
+                    }
+
                     // 「自分がまだリストにいない」かつ「既に5人以上いる」ならエラー
                     // (リロードして戻ってきた人は入れるように !players[myId] で判定します)
                     if (!players[myId] && playerCount >= 5) {
@@ -56,7 +62,9 @@
                 updates[`rooms/${room}/players/${myId}/name`] = name;
                 updates[`rooms/${room}/players/${myId}/online`] = true;
                 //★変更：サーバーの正確な時間を使って「入室時刻」を記録する
-                updates[`rooms/${room}/players/${myId}/joinedAt`] = firebase.database.ServerValue.TIMESTAMP;
+                if (!existingJoinedAt) {
+                    updates[`rooms/${room}/players/${myId}/joinedAt`] = firebase.database.ServerValue.TIMESTAMP;
+                }
 
 
                 await db.ref().update(updates);
