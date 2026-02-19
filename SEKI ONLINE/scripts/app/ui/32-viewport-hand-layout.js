@@ -25,6 +25,9 @@
 
             const canUseDesktopSidePanels = sidePanelWidth >= 220;
 
+            // ★原因を特定するためのログ出力
+            console.log("【チェック】画面幅:", safeWidth, "計算ゲーム幅:", gameMaxWidth, "パネル幅:", sidePanelWidth, "表示するか？:", canUseDesktopSidePanels);
+
             document.body.classList.toggle("desktop-side-mode", canUseDesktopSidePanels);
         }
 
