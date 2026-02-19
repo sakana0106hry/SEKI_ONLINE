@@ -183,10 +183,14 @@
                 // 1. 入室順リスト取得
                 let playerIds = getSortedPlayerIds(players);
 
-                // 2. 最下位を先頭へ
+                // 2. 人間プレイヤー内の最下位を先頭へ
                 if (gameState.rankings) {
-                    let loserId = Object.keys(gameState.rankings).reduce((a, b) => 
-                        gameState.rankings[a] > gameState.rankings[b] ? a : b
+                    const rankedHumanPids = Object.keys(gameState.rankings).filter(pid => {
+                        const p = players[pid];
+                        return !!p && p.isCpu !== true;
+                    });
+                    let loserId = rankedHumanPids.reduce((a, b) =>
+                        Number(gameState.rankings[a]) > Number(gameState.rankings[b]) ? a : b
                     , null);
 
                     if (loserId && playerIds.includes(loserId)) {

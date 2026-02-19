@@ -1,14 +1,19 @@
 ﻿    function getEffectiveHostId(data) {
         if (!data) return null;
-        let pIds = data.playerOrder || getSortedPlayerIds(data.players || {});
+        const players = data.players || {};
+        let pIds = data.playerOrder || getSortedPlayerIds(players);
         let hostId = (pIds.length > 0) ? pIds[0] : null;
 
-        // ゲーム終了時は最下位（敗者）にホスト権限を移す
+        // ゲーム終了時は人間プレイヤー内の最下位（敗者）にホスト権限を移す
         if (data.status === "finished" && data.rankings) {
-            let loserId = Object.keys(data.rankings).reduce((a, b) => 
-                data.rankings[a] > data.rankings[b] ? a : b
+            const rankedHumanPids = Object.keys(data.rankings).filter(pid => {
+                const player = players[pid];
+                return !!player && player.isCpu !== true;
+            });
+            let loserId = rankedHumanPids.reduce((a, b) =>
+                Number(data.rankings[a]) > Number(data.rankings[b]) ? a : b
             , null);
-            if (loserId && data.players[loserId]) {
+            if (loserId && players[loserId]) {
                 hostId = loserId;
             }
         }

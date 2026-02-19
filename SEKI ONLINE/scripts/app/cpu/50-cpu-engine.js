@@ -7,6 +7,7 @@
     const CPU_MAX_PLAYERS_DUEL = 2;
     const CPU_TICK_MS = 320;
     const CPU_ACTION_COOLDOWN_MS = 420;
+    const CPU_ACTION_START_DELAY_MS = 2000;
     const CPU_WATCHDOG_MS = 7000;
 
     let lastHostCpuCount = null;
@@ -15,6 +16,7 @@
     let cpuWatchStartedAt = 0;
     let cpuWatchdogDoneSig = "";
     const cpuLastAttemptAtBySig = {};
+    const cpuDelayStartedAtBySig = {};
 
     function toInt(value, fallback = 0) {
         const n = Number(value);
@@ -454,6 +456,16 @@
     }
     function isCpuImplementedRole(roleKey) {
         return (
+            roleKey === "ALCHEMIST" ||
+            roleKey === "GAMBLER" ||
+            roleKey === "MILLIONAIRE" ||
+            roleKey === "HUNTER" ||
+            roleKey === "ANGLER" ||
+            roleKey === "EMPEROR" ||
+            roleKey === "POLICE OFFICER" ||
+            roleKey === "THIEF" ||
+            roleKey === "CROWN" ||
+            roleKey === "AGENT" ||
             roleKey === "POLITICIAN" ||
             roleKey === "HACKER" ||
             roleKey === "FORTUNE TELLER" ||
@@ -744,6 +756,850 @@
         const preferred = targets.filter(pid => memoTargets.includes(pid));
         if (preferred.length > 0) return pickRandom(preferred);
         return pickRandom(targets);
+    }
+    function setCpuRoleActivatedInState(state, pid, activatedValue = true) {
+        const actList = { ...(state.activatedList || {}) };
+        actList[pid] = activatedValue;
+        state.activatedList = actList;
+    }
+    function applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, reasonText = "") {
+        setCpuRoleActivatedInState(state, activePid, true);
+        state.passCount = 0;
+        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+        const label = roleLabel || "不明";
+        const suffix = reasonText ? ` (${reasonText})` : "";
+        ctx.appendLog(`${playerName}の役職[${label}]は処理不能のため終了しました${suffix}。`, "public");
+    }
+    function getAliveCpuTargetIdsForHandInterference(state, activePid, opts = {}) {
+        const includeSelf = !!opts.includeSelf;
+        return (state && Array.isArray(state.playerOrder) ? state.playerOrder : []).filter(pid => {
+            if (!includeSelf && pid === activePid) return false;
+            if (state.rankings && state.rankings[pid]) return false;
+            if (isPoliticianShieldActive(pid, state)) return false;
+            const hand = (state.hands && state.hands[pid]) ? state.hands[pid] : [];
+            return hand.length > 0;
+        });
+    }
+    function setCpuTradeNotification(state, targetId, fromName, lostVal, gotVal) {
+        state.players = state.players || {};
+        const targetName = getPlayerNameFromState(state, targetId);
+        state.players[targetId] = state.players[targetId] || { name: targetName };
+        state.players[targetId].notification = { fromName, lostVal, gotVal };
+    }
+    function getCpuGamblerGuessInfo(guessType) {
+        if (guessType === "A") return { text: "小さい [1-4]", hits: [1, 2, 3, 4] };
+        if (guessType === "B") return { text: "大きい [6-9]", hits: [6, 7, 8, 9] };
+        return { text: "命知らず [0, 5]", hits: [0, 5] };
+    }
+    function tryCpuActivateGambler(state, ctx, activePid, playerName, roleLabel) {
+        if (getTotalHandCountInState(state, activePid) !== 1) return false;
+
+        let hand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        let deck = [...(state.deckNum || [])];
+        if (deck.length <= 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "数字山札が空です");
+            return true;
+        }
+
+        const guessType = pickRandom(["A", "B", "C"]);
+        if (!guessType) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "予想候補を生成できません");
+            return true;
+        }
+        const guessInfo = getCpuGamblerGuessInfo(guessType);
+        const card = deck.pop();
+        if (!card || card.type !== "num") {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "山札トップが不正です");
+            return true;
+        }
+
+        const val = Number(card.val);
+        const win = guessInfo.hits.includes(val);
+
+        setCpuRoleActivatedInState(state, activePid, true);
+        state.deckNum = deck;
+        ctx.appendLog(`${playerName}が[賭博師]を発動！: ${guessInfo.text} -> 結果は...?`, "public");
+
+        if (!win) {
+            if (guessType === "C") {
+                hand.push(card);
+                hand = sortCards(hand);
+                state.hands = state.hands || {};
+                state.hands[activePid] = hand;
+                ctx.appendLog(`結果: [${card.val}] でした。開いたカードを手札に加えました。`, "public");
+            } else {
+                state.exclusion = [...(state.exclusion || []), card];
+                ctx.appendLog(`結果: [${card.val}] でした。開いたカードは除外されました。`, "public");
+            }
+            state.passCount = 0;
+            state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            return true;
+        }
+
+        state.exclusion = [...(state.exclusion || []), card];
+        const wantDiscardCount = (guessType === "C") ? 2 : 1;
+        const discardCount = Math.min(wantDiscardCount, hand.length);
+        if (discardCount <= 0) {
+            state.passCount = 0;
+            state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            return true;
+        }
+
+        const pickIdxs = pickDistinctRandomIndices(hand.length, discardCount).sort((a, b) => b - a);
+        const graveNum = [...(state.graveNum || [])];
+        const graveSym = [...(state.graveSym || [])];
+        const discardedNames = [];
+
+        pickIdxs.forEach(idx => {
+            const c = hand.splice(idx, 1)[0];
+            if (!c) return;
+            discardedNames.unshift(c.val);
+            if (c.type === "num") graveNum.push({ ...c, owner: activePid });
+            else graveSym.push(c);
+        });
+
+        hand = sortCards(hand);
+        state.hands = state.hands || {};
+        state.hands[activePid] = hand;
+        state.graveNum = graveNum;
+        state.graveSym = graveSym;
+        state.lastGraveActorId = activePid;
+
+        const hackedCount = (state.hackedHands && state.hackedHands[activePid]) ? state.hackedHands[activePid].length : 0;
+        const remainCount = hand.length + hackedCount;
+        const soundList = buildSoundList("DISCARD", remainCount);
+        state.lastSound = { type: soundList, id: ctx.now };
+        ctx.appendLog(`${playerName}が[賭博師]の報酬で [${discardedNames.join(", ")}] を捨てました！`, "public");
+
+        finalizeCpuFinishIfNeeded(state, ctx, activePid, hand, hackedCount, "GAMBLER", soundList);
+        return true;
+    }
+    function tryCpuActivateAlchemist(state, ctx, activePid, playerName, roleLabel) {
+        if (getTotalHandCountInState(state, activePid) !== 1) return false;
+
+        let hand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        const numIdxs = [];
+        for (let i = 0; i < hand.length; i++) {
+            if (hand[i] && hand[i].type === "num") numIdxs.push(i);
+        }
+        if (numIdxs.length <= 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "触媒にできる数字カードがありません");
+            return true;
+        }
+
+        let deck = [...(state.deckNum || [])];
+        if (deck.length <= 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "数字山札が空です");
+            return true;
+        }
+        const drawn = deck[deck.length - 1];
+        if (!drawn || drawn.type !== "num") {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "山札トップが不正です");
+            return true;
+        }
+
+        const top = getTop(state.graveNum || []);
+        const candidates = [];
+        for (let i = 0; i < numIdxs.length; i++) {
+            const handIdx = numIdxs[i];
+            const handCard = hand[handIdx];
+            if (!handCard || handCard.type !== "num") continue;
+
+            const val1 = Number(drawn.val);
+            const val2 = Number(handCard.val);
+            const sumVal = (val1 + val2) % 10;
+            const diffVal = Math.abs(val1 - val2);
+            const prodVal = (val1 * val2) % 10;
+            const big = Math.max(val1, val2);
+            const small = Math.min(val1, val2);
+            const divVal = (small !== 0) ? Math.floor(big / small) : null;
+
+            if (canPlay({ type: "num", val: sumVal }, top, state.isReverse, state)) {
+                candidates.push({ handIdx, resultVal: sumVal });
+            }
+            if (canPlay({ type: "num", val: diffVal }, top, state.isReverse, state)) {
+                candidates.push({ handIdx, resultVal: diffVal });
+            }
+            if (canPlay({ type: "num", val: prodVal }, top, state.isReverse, state)) {
+                candidates.push({ handIdx, resultVal: prodVal });
+            }
+            if (divVal !== null && canPlay({ type: "num", val: divVal }, top, state.isReverse, state)) {
+                candidates.push({ handIdx, resultVal: divVal });
+            }
+        }
+
+        setCpuRoleActivatedInState(state, activePid, true);
+
+        if (candidates.length <= 0) {
+            const removed = deck.pop();
+            if (removed) {
+                state.deckNum = deck;
+                state.exclusion = [...(state.exclusion || []), removed];
+            }
+            state.passCount = 0;
+            state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            ctx.appendLog(`${playerName}の錬金は失敗し、ドロー素材 [${drawn.val}] を除外しました。`, "public");
+            return true;
+        }
+
+        const picked = pickRandom(candidates);
+        if (!picked || !Number.isInteger(picked.handIdx) || picked.handIdx < 0 || picked.handIdx >= hand.length) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "演算結果の選択に失敗しました");
+            return true;
+        }
+
+        const realDrawn = deck.pop();
+        const handCard = hand.splice(picked.handIdx, 1)[0];
+        if (!realDrawn || !handCard) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "素材の取得に失敗しました");
+            return true;
+        }
+
+        state.deckNum = deck;
+        state.exclusion = [...(state.exclusion || []), realDrawn, handCard];
+
+        const created = { type: "num", val: Number(picked.resultVal), owner: activePid, isAlchemy: true };
+        state.graveNum = [...(state.graveNum || []), created];
+        state.lastGraveActorId = activePid;
+
+        hand = sortCards(hand);
+        state.hands = state.hands || {};
+        state.hands[activePid] = hand;
+
+        ctx.appendLog(`${playerName}が錬金成功！ [${realDrawn.val}] (ドロー)と [${handCard.val}] (手札)を融合し [${picked.resultVal}] を出しました。`, "public");
+
+        const hackedCount = (state.hackedHands && state.hackedHands[activePid]) ? state.hackedHands[activePid].length : 0;
+        const remainCount = hand.length + hackedCount;
+        const soundList = [];
+        if (remainCount === 1) soundList.push("UNO");
+        else if (remainCount === 2) soundList.push("DOS");
+        state.lastSound = { type: soundList, id: ctx.now };
+
+        finalizeCpuFinishIfNeeded(state, ctx, activePid, hand, hackedCount, "ALCHEMIST", soundList);
+        return true;
+    }
+    function tryCpuActivateHunter(state, ctx, activePid, playerName, roleLabel) {
+        let hand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        let deckSym = [...(state.deckSym || [])];
+
+        const handSymIdxs = [];
+        for (let i = 0; i < hand.length; i++) {
+            const card = hand[i];
+            if (!card || card.type !== "sym") continue;
+            if (card.val === "DISCARD") continue;
+            handSymIdxs.push(i);
+        }
+
+        const swapCount = Math.min(2, handSymIdxs.length, deckSym.length);
+        if (swapCount <= 0) return false;
+
+        const outIdxs = shuffleCopy(handSymIdxs).slice(0, swapCount).sort((a, b) => b - a);
+        const outCards = [];
+        outIdxs.forEach(idx => {
+            const c = hand.splice(idx, 1)[0];
+            if (c) outCards.unshift(c);
+        });
+        if (outCards.length !== swapCount) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "交換枚数が不足しました");
+            return true;
+        }
+
+        const inCards = [];
+        const hasDiscardInDeck = deckSym.some(c => c && c.type === "sym" && c.val === "DISCARD");
+        if (hasDiscardInDeck && swapCount >= 1) {
+            const discardIdx = deckSym.findIndex(c => c && c.type === "sym" && c.val === "DISCARD");
+            if (discardIdx >= 0) {
+                const discardCard = deckSym.splice(discardIdx, 1)[0];
+                if (discardCard) inCards.push(discardCard);
+            }
+        }
+        while (inCards.length < swapCount) {
+            const idx = pickRandom(deckSym.map((_, i) => i));
+            if (!Number.isInteger(idx) || idx < 0 || idx >= deckSym.length) break;
+            const card = deckSym.splice(idx, 1)[0];
+            if (!card) continue;
+            inCards.push(card);
+        }
+        if (inCards.length !== swapCount) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "交換先カードの取得に失敗しました");
+            return true;
+        }
+
+        outCards.forEach(c => deckSym.push(c));
+        shuffle(deckSym);
+
+        hand.push(...inCards);
+        hand = sortCards(hand);
+
+        state.hands = state.hands || {};
+        state.hands[activePid] = hand;
+        state.deckSym = deckSym;
+        setCpuRoleActivatedInState(state, activePid, true);
+        state.passCount = 0;
+        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+        ctx.appendLog(`${playerName}が[狩人]を発動！手札 ${swapCount} 枚を記号山札と交換しました。`, "public");
+        return true;
+    }
+    function tryCpuActivateMillionaire(state, ctx, activePid, playerName, roleLabel) {
+        let hand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        let deckSym = [...(state.deckSym || [])];
+
+        const numIdxs = [];
+        for (let i = 0; i < hand.length; i++) {
+            if (hand[i] && hand[i].type === "num") numIdxs.push(i);
+        }
+        const useCount = Math.min(2, numIdxs.length, deckSym.length);
+        if (useCount <= 0) return false;
+
+        const chosenNumIdxs = shuffleCopy(numIdxs).slice(0, useCount).sort((a, b) => b - a);
+        const excludedCards = [];
+        let exclusion = [...(state.exclusion || [])];
+        chosenNumIdxs.forEach(idx => {
+            const c = hand.splice(idx, 1)[0];
+            if (!c) return;
+            exclusion.push(c);
+            excludedCards.unshift(c);
+        });
+        if (excludedCards.length !== useCount) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "除外カードの選択に失敗しました");
+            return true;
+        }
+
+        const drawnCards = [];
+        for (let i = 0; i < excludedCards.length; i++) {
+            const drawn = deckSym.pop();
+            if (!drawn) break;
+            hand.push(drawn);
+            drawnCards.push(drawn);
+        }
+        if (drawnCards.length !== excludedCards.length) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "記号山札が不足しました");
+            return true;
+        }
+
+        hand = sortCards(hand);
+        state.hands = state.hands || {};
+        state.hands[activePid] = hand;
+        state.deckSym = deckSym;
+        state.exclusion = exclusion;
+        state.lastSound = { type: "PUT", id: ctx.now };
+        setCpuRoleActivatedInState(state, activePid, true);
+
+        const exclText = excludedCards.map(c => `[${c.val}]`).join(" ");
+        ctx.appendLog(`${playerName}が[億万長者]を発動！数字カード ${exclText} を除外し、記号カードを${drawnCards.length}枚引きました`, "public");
+        return true;
+    }
+    function tryCpuActivateAngler(state, ctx, activePid, playerName) {
+        let hand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        let graveSym = [...(state.graveSym || [])];
+        if (hand.length <= 0 || graveSym.length <= 0) return false;
+
+        const numIdxs = [];
+        for (let i = 0; i < hand.length; i++) {
+            if (hand[i] && hand[i].type === "num") numIdxs.push(i);
+        }
+        const exIdx = pickRandom((numIdxs.length > 0) ? numIdxs : hand.map((_, i) => i));
+        if (!Number.isInteger(exIdx) || exIdx < 0 || exIdx >= hand.length) return false;
+
+        const pickupIdx = pickRandom(graveSym.map((_, i) => i));
+        if (!Number.isInteger(pickupIdx) || pickupIdx < 0 || pickupIdx >= graveSym.length) return false;
+
+        const excludedCard = hand.splice(exIdx, 1)[0];
+        const pickedCard = graveSym.splice(pickupIdx, 1)[0];
+        if (!excludedCard || !pickedCard) return false;
+
+        const exclusion = [...(state.exclusion || []), excludedCard];
+        hand.push(pickedCard);
+        hand = sortCards(hand);
+
+        state.hands = state.hands || {};
+        state.hands[activePid] = hand;
+        state.exclusion = exclusion;
+        state.graveSym = graveSym;
+        setCpuRoleActivatedInState(state, activePid, true);
+        state.passCount = 0;
+        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+        ctx.appendLog(`${playerName}が[釣り師]を発動！手札を除外して墓地の [${pickedCard.val}] を釣り上げました`, "public");
+        return true;
+    }
+    function getCpuEmperorCardPriority(card, isReverse) {
+        if (!card) return 99;
+        if (card.type === "sym" && card.val === "DISCARD") return 0;
+        const wantedNum = isReverse ? 1 : 9;
+        if (card.type === "num" && Number(card.val) === wantedNum) return 1;
+        if (card.type === "sym" && card.val === "TRADE") return 2;
+        if (card.type === "sym" && card.val === "DIG UP") return 3;
+        if (card.type === "sym" && card.val === "REVERSE") return 4;
+        return 5;
+    }
+    function pickCpuEmperorCardIndex(cards, isReverse) {
+        if (!Array.isArray(cards) || cards.length <= 0) return -1;
+        let bestPriority = 99;
+        const bestIdxs = [];
+        for (let i = 0; i < cards.length; i++) {
+            const priority = getCpuEmperorCardPriority(cards[i], isReverse);
+            if (priority < bestPriority) {
+                bestPriority = priority;
+                bestIdxs.length = 0;
+                bestIdxs.push(i);
+            } else if (priority === bestPriority) {
+                bestIdxs.push(i);
+            }
+        }
+        if (bestIdxs.length <= 0) return -1;
+        const picked = pickRandom(bestIdxs);
+        return Number.isInteger(picked) ? picked : -1;
+    }
+    function tryCpuActivateEmperor(state, ctx, activePid, playerName, roleLabel) {
+        const pIds = Array.isArray(state.playerOrder) ? state.playerOrder : [];
+        const protectedPids = pIds.filter(pid => isPoliticianShieldActive(pid, state));
+        const targetPids = pIds.filter(pid => !isPoliticianShieldActive(pid, state));
+
+        const handCounts = {};
+        let allCards = [];
+        targetPids.forEach(pid => {
+            const h = deepCopy((state.hands && state.hands[pid]) || []);
+            handCounts[pid] = h.length;
+            allCards = allCards.concat(h);
+        });
+
+        if (allCards.length <= 0) return false;
+
+        const selectedIdx = pickCpuEmperorCardIndex(allCards, !!state.isReverse);
+        if (selectedIdx < 0 || selectedIdx >= allCards.length) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "取得カードの選別に失敗しました");
+            return true;
+        }
+
+        const emperorCard = allCards.splice(selectedIdx, 1)[0];
+        if (!emperorCard) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "取得カードの抽出に失敗しました");
+            return true;
+        }
+        shuffle(allCards);
+
+        const newHands = {};
+        pIds.forEach(pid => {
+            if (isPoliticianShieldActive(pid, state)) {
+                newHands[pid] = sortCards(deepCopy((state.hands && state.hands[pid]) || []));
+            } else {
+                newHands[pid] = [];
+            }
+        });
+        newHands[activePid] = Array.isArray(newHands[activePid]) ? newHands[activePid] : [];
+        newHands[activePid].push(emperorCard);
+
+        const myTurnIdx = targetPids.indexOf(activePid);
+        if (myTurnIdx < 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "配布対象の計算に失敗しました");
+            return true;
+        }
+
+        let cardPtr = 0;
+        const totalTargets = targetPids.length;
+        for (let i = 1; i <= totalTargets; i++) {
+            const targetPid = targetPids[(myTurnIdx + i) % totalTargets];
+            const needCount = handCounts[targetPid] || 0;
+            while (newHands[targetPid].length < needCount && cardPtr < allCards.length) {
+                newHands[targetPid].push(allCards[cardPtr]);
+                cardPtr += 1;
+            }
+        }
+
+        state.hands = state.hands || {};
+        pIds.forEach(pid => {
+            state.hands[pid] = sortCards(newHands[pid] || []);
+        });
+
+        setCpuRoleActivatedInState(state, activePid, true);
+        state.passCount = 0;
+        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+        ctx.appendLog(`${playerName}が[皇帝]を発動！市民の手札を全て回収し、再分配しました。`, "public");
+        if (protectedPids.length > 0) {
+            const protectedNames = protectedPids.map(pid => getPlayerNameFromState(state, pid)).join("、");
+            ctx.appendLog(`[政治家]保護により ${protectedNames} の手札は[皇帝]の対象外でした。`, "public");
+        }
+        return true;
+    }
+    function tryCpuActivatePoliceOfficer(state, ctx, activePid, playerName, roleLabel) {
+        let myHand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        const aliveOthers = (state.playerOrder || []).filter(pid => {
+            if (pid === activePid) return false;
+            if (state.rankings && state.rankings[pid]) return false;
+            return true;
+        });
+
+        const revealLogs = [];
+        const protectedNames = [];
+        state.hands = state.hands || {};
+
+        aliveOthers.forEach(pid => {
+            if (isPoliticianShieldActive(pid, state)) {
+                protectedNames.push(getPlayerNameFromState(state, pid));
+                return;
+            }
+
+            const targetHand = deepCopy((state.hands && state.hands[pid]) || []);
+            const hiddenIdxs = [];
+            for (let i = 0; i < targetHand.length; i++) {
+                if (!targetHand[i] || targetHand[i].isOpen) continue;
+                hiddenIdxs.push(i);
+            }
+
+            if (hiddenIdxs.length > 0) {
+                const pickedIdx = pickRandom(hiddenIdxs);
+                if (!Number.isInteger(pickedIdx) || pickedIdx < 0 || pickedIdx >= targetHand.length) return;
+                if (!targetHand[pickedIdx]) return;
+                targetHand[pickedIdx].isOpen = true;
+                state.hands[pid] = targetHand;
+                revealLogs.push(`${getPlayerNameFromState(state, pid)}の[${targetHand[pickedIdx].val}]`);
+            }
+        });
+
+        if (revealLogs.length > 0) {
+            ctx.appendLog(`${playerName}が[警察官]で一斉捜査！ ${revealLogs.join("、")} を公開させました！`, "public");
+        } else {
+            ctx.appendLog(`${playerName}が[警察官]を発動しましたが、新たな証拠は見つかりませんでした。`, "public");
+        }
+        if (protectedNames.length > 0) {
+            ctx.appendLog(`[政治家]保護により ${protectedNames.join("、")} は[警察官]の公開対象外でした。`, "public");
+        }
+
+        if (myHand.length <= 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "提出できる手札がありません");
+            return true;
+        }
+
+        const tradeTargets = aliveOthers.filter(pid => {
+            if (isPoliticianShieldActive(pid, state)) return false;
+            const hand = (state.hands && state.hands[pid]) ? state.hands[pid] : [];
+            return hand.length > 0;
+        });
+        if (tradeTargets.length <= 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "TRADE対象がいません");
+            return true;
+        }
+
+        const discardOwners = tradeTargets.filter(pid => {
+            const hand = (state.hands && state.hands[pid]) ? state.hands[pid] : [];
+            return hand.some(c => c && c.type === "sym" && c.val === "DISCARD" && c.isOpen === true);
+        });
+
+        let targetId = null;
+        let targetHand = [];
+        let takeIdx = -1;
+
+        if (discardOwners.length > 0) {
+            targetId = pickRandom(discardOwners);
+            if (!targetId) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "DISCARD保持者を特定できません");
+                return true;
+            }
+            targetHand = sortCards(deepCopy((state.hands && state.hands[targetId]) || []));
+            const discardIdxs = [];
+            for (let i = 0; i < targetHand.length; i++) {
+                const card = targetHand[i];
+                if (card && card.type === "sym" && card.val === "DISCARD") discardIdxs.push(i);
+            }
+            if (discardIdxs.length <= 0) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "公開DISCARDを押収できません");
+                return true;
+            }
+            takeIdx = pickRandom(discardIdxs);
+        } else {
+            targetId = pickRandom(tradeTargets);
+            if (!targetId) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "TRADE対象を選択できません");
+                return true;
+            }
+            targetHand = sortCards(deepCopy((state.hands && state.hands[targetId]) || []));
+            takeIdx = pickRandom(targetHand.map((_, idx) => idx));
+        }
+
+        if (!Number.isInteger(takeIdx) || takeIdx < 0 || takeIdx >= targetHand.length) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "押収カードの選択に失敗しました");
+            return true;
+        }
+
+        const giveIdx = pickRandom(myHand.map((_, idx) => idx));
+        if (!Number.isInteger(giveIdx) || giveIdx < 0 || giveIdx >= myHand.length) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "提出カードの選択に失敗しました");
+            return true;
+        }
+
+        const giveCard = myHand.splice(giveIdx, 1)[0];
+        const receiveCard = targetHand.splice(takeIdx, 1)[0];
+        if (!giveCard || !receiveCard) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "TRADE処理に失敗しました");
+            return true;
+        }
+
+        myHand.push(receiveCard);
+        targetHand.push(giveCard);
+        myHand = sortCards(myHand);
+        targetHand = sortCards(targetHand);
+
+        state.hands[activePid] = myHand;
+        state.hands[targetId] = targetHand;
+        setCpuRoleActivatedInState(state, activePid, true);
+        state.lastSound = { type: "TRADE", id: ctx.now };
+
+        const targetName = getPlayerNameFromState(state, targetId);
+        ctx.appendLog(`${playerName}が[警察官]として${targetName}とトレードを実行しました。`, "public");
+        ctx.appendLog(`${targetName}から [${receiveCard.val}] を押収し、[${giveCard.val}] を渡しました。`, "private", activePid);
+        ctx.appendLog(`${playerName}に [${receiveCard.val}] を押収され、[${giveCard.val}] を渡されました。`, "private", targetId);
+        setCpuTradeNotification(state, targetId, `${playerName}(警察官)`, receiveCard.val, giveCard.val);
+
+        state.passCount = 0;
+        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+        return true;
+    }
+    function tryCpuActivateAgent(state, ctx, activePid, playerName, roleLabel) {
+        const candidates = getAliveCpuTargetIdsForHandInterference(state, activePid, { includeSelf: true });
+        if (candidates.length < 2) return false;
+
+        const selected = shuffleCopy(candidates).slice(0, 2);
+        const pidA = selected[0];
+        const pidB = selected[1];
+        if (!pidA || !pidB || pidA === pidB) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "交換対象の選択に失敗しました");
+            return true;
+        }
+
+        let handA = deepCopy((state.hands && state.hands[pidA]) || []);
+        let handB = deepCopy((state.hands && state.hands[pidB]) || []);
+        if (handA.length <= 0 || handB.length <= 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "対象手札が不足しています");
+            return true;
+        }
+
+        const idxA = pickRandom(handA.map((_, idx) => idx));
+        const idxB = pickRandom(handB.map((_, idx) => idx));
+        if (!Number.isInteger(idxA) || !Number.isInteger(idxB)) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "交換カードの選択に失敗しました");
+            return true;
+        }
+
+        const cardA = handA.splice(idxA, 1)[0];
+        const cardB = handB.splice(idxB, 1)[0];
+        if (!cardA || !cardB) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "交換カードの取得に失敗しました");
+            return true;
+        }
+
+        handA.push(cardB);
+        handB.push(cardA);
+        state.hands = state.hands || {};
+        state.hands[pidA] = sortCards(handA);
+        state.hands[pidB] = sortCards(handB);
+        setCpuRoleActivatedInState(state, activePid, true);
+
+        const nameA = getPlayerNameFromState(state, pidA);
+        const nameB = getPlayerNameFromState(state, pidB);
+        ctx.appendLog(`${playerName}が[工作員]を発動！${nameA}と${nameB}の手札をランダムに1枚交換しました。`, "public");
+        ctx.appendLog(`【工作員の策略】${nameA}:[${cardA.val}] ↔ ${nameB}:[${cardB.val}]`, "private", pidA);
+        ctx.appendLog(`【工作員の策略】${nameA}:[${cardA.val}] ↔ ${nameB}:[${cardB.val}]`, "private", pidB);
+
+        if (pidA !== activePid) {
+            setCpuTradeNotification(state, pidA, `${playerName}(工作員)`, cardA.val, cardB.val);
+        }
+        if (pidB !== activePid) {
+            setCpuTradeNotification(state, pidB, `${playerName}(工作員)`, cardB.val, cardA.val);
+        }
+        return true;
+    }
+    function tryCpuActivateCrown(state, ctx, activePid, playerName, roleLabel) {
+        if (getTotalHandCountInState(state, activePid) !== 2) return false;
+
+        const targetNum = state.isReverse ? 1 : 9;
+        const hasPriorityDigUp = (state.graveNum || []).some(c => c && c.type === "num" && Number(c.val) === targetNum);
+        const selected = hasPriorityDigUp ? "DIG UP" : pickRandom(["REVERSE", "TRADE"]);
+        if (!selected) return false;
+
+        if (selected === "REVERSE") {
+            setCpuRoleActivatedInState(state, activePid, "REVERSE");
+            state.isReverse = !state.isReverse;
+            state.lastSound = { type: "REVERSE", id: ctx.now };
+            state.passCount = 0;
+            state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            ctx.appendLog(`${playerName}が[ピエロ]で[REVERSE] を使用して強弱を逆転させました`, "public");
+            return true;
+        }
+
+        if (selected === "TRADE") {
+            let myHand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+            if (myHand.length <= 0) return false;
+
+            const targets = getAliveCpuTargetIdsForHandInterference(state, activePid);
+            if (targets.length <= 0) return false;
+
+            const targetId = pickRandom(targets);
+            if (!targetId) return false;
+            let targetHand = sortCards(deepCopy((state.hands && state.hands[targetId]) || []));
+            if (targetHand.length <= 0) return false;
+
+            const giveIdx = pickRandom(myHand.map((_, idx) => idx));
+            const takeIdx = pickRandom(targetHand.map((_, idx) => idx));
+            if (!Number.isInteger(giveIdx) || !Number.isInteger(takeIdx)) return false;
+
+            const giveCard = myHand.splice(giveIdx, 1)[0];
+            const receiveCard = targetHand.splice(takeIdx, 1)[0];
+            if (!giveCard || !receiveCard) return false;
+
+            myHand.push(receiveCard);
+            targetHand.push(giveCard);
+            myHand = sortCards(myHand);
+            targetHand = sortCards(targetHand);
+
+            state.hands = state.hands || {};
+            state.hands[activePid] = myHand;
+            state.hands[targetId] = targetHand;
+            setCpuRoleActivatedInState(state, activePid, "TRADE");
+            state.lastSound = { type: "TRADE", id: ctx.now };
+
+            const targetName = getPlayerNameFromState(state, targetId);
+            ctx.appendLog(`${playerName}が[ピエロ]で[TRADE]を使用して${targetName} とカードを交換しました`, "public");
+            ctx.appendLog(`[ピエロ]で${targetName}から [${receiveCard.val}] を奪い、[${giveCard.val}] を渡しました。`, "private", activePid);
+            ctx.appendLog(`[ピエロ]の${playerName}に [${receiveCard.val}] を奪われ、 [${giveCard.val}] を渡されました。`, "private", targetId);
+            setCpuTradeNotification(state, targetId, `${playerName}(ピエロ)`, receiveCard.val, giveCard.val);
+
+            state.passCount = 0;
+            state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            return true;
+        }
+
+        if (selected === "DIG UP") {
+            let gn = [...(state.graveNum || [])];
+            if (gn.length <= 0) return false;
+
+            let hand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+            const buryIdxs = [];
+            for (let i = 0; i < hand.length; i++) {
+                if (hand[i] && hand[i].type === "num") buryIdxs.push(i);
+            }
+            if (buryIdxs.length <= 0) return false;
+
+            const buryIdx = pickRandom(buryIdxs);
+            if (!Number.isInteger(buryIdx) || buryIdx < 0 || buryIdx >= hand.length) return false;
+
+            const top = gn.pop();
+            const buryCard = hand.splice(buryIdx, 1)[0];
+            if (!top || !buryCard) return false;
+
+            hand.push(top);
+            hand = sortCards(hand);
+            gn.push({ ...buryCard, owner: activePid });
+
+            state.hands = state.hands || {};
+            state.hands[activePid] = hand;
+            state.graveNum = gn;
+            state.lastGraveActorId = activePid;
+            setCpuRoleActivatedInState(state, activePid, "DIG UP");
+            state.lastSound = { type: "DIG UP", id: ctx.now };
+            state.passCount = 0;
+            state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+            ctx.appendLog(`${playerName}が[ピエロ]の[DIG UP] を使用して [${top.val}] を回収し、[${buryCard.val}] を埋めました。`, "public");
+            return true;
+        }
+
+        return false;
+    }
+    function tryCpuActivateThief(state, ctx, activePid, playerName, roleLabel) {
+        let myHand = sortCards(deepCopy((state.hands && state.hands[activePid]) || []));
+        if (myHand.length <= 0) {
+            applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, "提出できる手札がありません");
+            return true;
+        }
+
+        state.hands = state.hands || {};
+        for (let step = 1; step <= 2; step++) {
+            const targets = getAliveCpuTargetIdsForHandInterference(state, activePid);
+            if (targets.length <= 0) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, `${step}回目の対象がいません`);
+                return true;
+            }
+
+            const targetId = pickRandom(targets);
+            if (!targetId) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, `${step}回目の対象選択に失敗しました`);
+                return true;
+            }
+            let targetHand = sortCards(deepCopy((state.hands && state.hands[targetId]) || []));
+            if (targetHand.length <= 0) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, `${step}回目の相手手札が不足しています`);
+                return true;
+            }
+
+            const giveIdx = pickRandom(myHand.map((_, idx) => idx));
+            const takeIdx = pickRandom(targetHand.map((_, idx) => idx));
+            if (!Number.isInteger(giveIdx) || !Number.isInteger(takeIdx)) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, `${step}回目のカード選択に失敗しました`);
+                return true;
+            }
+
+            const giveCard = myHand.splice(giveIdx, 1)[0];
+            const receiveCard = targetHand.splice(takeIdx, 1)[0];
+            if (!giveCard || !receiveCard) {
+                applyCpuRoleFailureAndEndTurn(state, ctx, activePid, playerName, roleLabel, `${step}回目のカード取得に失敗しました`);
+                return true;
+            }
+
+            myHand.push(receiveCard);
+            targetHand.push(giveCard);
+            myHand = sortCards(myHand);
+            targetHand = sortCards(targetHand);
+
+            state.hands[activePid] = myHand;
+            state.hands[targetId] = targetHand;
+
+            const targetName = getPlayerNameFromState(state, targetId);
+            ctx.appendLog(`${playerName}が[盗賊]で${targetName}とトレードしました！(${step}回目)`, "public");
+            ctx.appendLog(`${targetName}から [${receiveCard.val}] を盗み、 [${giveCard.val}] を奪いました。`, "private", activePid);
+            ctx.appendLog(`${playerName}に [${receiveCard.val}] を盗まれ、 [${giveCard.val}] を渡されました。`, "private", targetId);
+            setCpuTradeNotification(state, targetId, `${playerName}(盗賊)`, receiveCard.val, giveCard.val);
+        }
+
+        const skillSound = (typeof SOUND_FILES !== "undefined" && SOUND_FILES["SKILL_THIEF"]) ? "SKILL_THIEF" : "SKILL";
+        state.lastSound = { type: skillSound, id: ctx.now };
+        setCpuRoleActivatedInState(state, activePid, true);
+        state.passCount = 0;
+        state.lastAction = "THIEF_END";
+        state.turnIdx = ctx.getNextTurnIdx(state.rankings || {});
+        ctx.appendLog(`${playerName}の[盗賊]が終了しました。`, "public");
+        return true;
+    }
+    function tryCpuActivateAdditionalRole(state, ctx, activePid, playerName, roleKey, roleLabel) {
+        if (roleKey === "GAMBLER") {
+            return tryCpuActivateGambler(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "ALCHEMIST") {
+            return tryCpuActivateAlchemist(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "HUNTER") {
+            return tryCpuActivateHunter(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "MILLIONAIRE") {
+            return tryCpuActivateMillionaire(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "ANGLER") {
+            return tryCpuActivateAngler(state, ctx, activePid, playerName);
+        }
+        if (roleKey === "EMPEROR") {
+            return tryCpuActivateEmperor(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "POLICE OFFICER") {
+            return tryCpuActivatePoliceOfficer(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "AGENT") {
+            return tryCpuActivateAgent(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "CROWN") {
+            return tryCpuActivateCrown(state, ctx, activePid, playerName, roleLabel);
+        }
+        if (roleKey === "THIEF") {
+            return tryCpuActivateThief(state, ctx, activePid, playerName, roleLabel);
+        }
+        return false;
     }
     function finalizeCpuFinishIfNeeded(state, ctx, activePid, currentHand, hackedCount, finishMethod, soundList) {
         let tempRankings = { ...(state.rankings || {}) };
@@ -1102,6 +1958,16 @@
                     preemptiveRoleActivated = tryCpuActivateHacker(state, ctx, activePid, playerName);
                 }
                 if (preemptiveRoleActivated) return state;
+
+                const additionalRoleActivated = tryCpuActivateAdditionalRole(
+                    state,
+                    ctx,
+                    activePid,
+                    playerName,
+                    roleKey,
+                    roleLabel
+                );
+                if (additionalRoleActivated) return state;
             }
 
             if (!forceWatchdog && playableNums.length > 0) {
@@ -1409,6 +2275,23 @@
         updateCpuWatchSignature(action);
 
         const now = Date.now();
+        const needsActionDelay = (action.type === "playing" || action.type === "role-select");
+        if (needsActionDelay) {
+            const delayStartedAt = cpuDelayStartedAtBySig[action.sig] || 0;
+            if (delayStartedAt <= 0) {
+                Object.keys(cpuDelayStartedAtBySig).forEach(sig => {
+                    if (sig !== action.sig) delete cpuDelayStartedAtBySig[sig];
+                });
+                cpuDelayStartedAtBySig[action.sig] = now;
+                return;
+            }
+            if ((now - delayStartedAt) < CPU_ACTION_START_DELAY_MS) return;
+        } else {
+            Object.keys(cpuDelayStartedAtBySig).forEach(sig => {
+                if (sig !== action.sig) delete cpuDelayStartedAtBySig[sig];
+            });
+        }
+
         const lastAttemptAt = cpuLastAttemptAtBySig[action.sig] || 0;
         const shouldForceWatchdog =
             action.type === "playing" &&

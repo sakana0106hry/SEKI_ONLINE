@@ -93,22 +93,8 @@
                 effectiveResetHolder = data.playerOrder[data.turnIdx];
             }
 
-            // ★追加: 実質的なホスト（権限者）を決定する
-            // 通常は先頭の人だが、ゲーム終了時は「最下位の人」に権限を移す
-            let pIdsForHost = getSortedPlayerIds(players);
-            if (data.playerOrder) pIdsForHost = data.playerOrder;
-            
-            let effectiveHostId = (pIdsForHost.length > 0) ? pIdsForHost[0] : null;
-
-            if (data.status === "finished" && data.rankings) {
-                let loserId = Object.keys(data.rankings).reduce((a, b) => 
-                    data.rankings[a] > data.rankings[b] ? a : b
-                , null);
-                
-                if (loserId && players[loserId]) {
-                    effectiveHostId = loserId;
-                }
-            }
+            // ★実質的なホスト（権限者）を共通判定で決定
+            let effectiveHostId = getEffectiveHostId(data);
 
             // ↓↓↓ 修正: "山札: xx枚" という文字を消し、数字だけ入れる ↓↓↓
             if (data.deckNum && els.deckNum) els.deckNum.innerText = data.deckNum.length;
