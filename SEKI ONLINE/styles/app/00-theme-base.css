@@ -78,7 +78,7 @@
         padding: 0;
         margin: 0 auto;
         width: 100%;
-        max-width: var(--seki-game-max-width, 860px);
+        max-width: var(--seki-game-max-width, 800px);
         height: auto;
         min-height: 100vh;
         min-height: 100dvh;
