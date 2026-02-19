@@ -326,6 +326,7 @@
         padding: 15px;
         box-shadow: var(--seki-shadow-panel), inset 0 0 18px rgba(0, 216, 255, 0.08);
         margin-top: 10px;
+        max-width: 800px;
     }
     #my-hand {
         width: 100%;
