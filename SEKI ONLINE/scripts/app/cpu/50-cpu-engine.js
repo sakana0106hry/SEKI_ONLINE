@@ -723,7 +723,7 @@
         state.activatedList = actList;
         state.graveNum = gn;
         state.exclusion = [...(state.exclusion || []), removedCard];
-        ctx.appendLog(`${playerName}が[牧師]を発動！数字墓地の [${removedCard.val}] を除外しました。`, "public");
+        ctx.appendLog(`${playerName}が[牧師]を発動！墓地の [${removedCard.val}] を浄化して除外しました。`, "public");
         return true;
     }
     function isCpuAstronomerSelectableValue(val, isRev) {
